@@ -2,6 +2,8 @@ package cn.panshihao.weiboregserver;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,10 +15,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -27,6 +33,7 @@ import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.message.BasicHeader;
@@ -59,7 +66,6 @@ public class reg {
 		connectionManager.setMaxTotal(2000);
 		connectionManager.setDefaultMaxPerRoute(1000);
 		
-		
 		// 访问 http://weibo.com/signup/mobile.php;
 		HttpClient httpClient = new DefaultHttpClient(connectionManager);
 		
@@ -77,23 +83,23 @@ public class reg {
 		headerList.add(new BasicHeader("Connection", "keep-alive"));
 		headerList.add(new BasicHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8"));
 		headerList.add(new BasicHeader("X-Requested-With", "XMLHttpRequest"));
-		headerList.add(new BasicHeader("Host", "weibo.com"));
-		headerList.add(new BasicHeader("Origin", "http://weibo.com"));
-		headerList.add(new BasicHeader("Referer", "http://weibo.com/signup/mobile.php"));
-		
+		headerList.add(new BasicHeader("Host", "www.weibo.com"));
+		headerList.add(new BasicHeader("Origin", "http://www.weibo.com"));
+		headerList.add(new BasicHeader("Referer", "http://www.weibo.com/signup/mobile.php"));
 		
 		
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		//连接超时、sockete超时和从connectionmanager中获取connection的超时设置，计算单位都是微秒；
-		httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(30000)); 
-		httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT,  new Integer(30000) ); 
-		httpClient.getParams().setParameter(ClientPNames.CONN_MANAGER_TIMEOUT, new Long(30000)); // second;
+		httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(300000)); 
+		httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT,  new Integer(300000) ); 
+		httpClient.getParams().setParameter(ClientPNames.CONN_MANAGER_TIMEOUT, new Long(300000)); // second;
 		//伪装成Firefox
 		httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0");
 		
-		
-		
-		HttpPost httpPost = new HttpPost("http://weibo.com/signup/mobile.php");
+		//设置代理对象 ip/代理名称,端口     
+        httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost("190.90.36.8", 8000));
+        
+		HttpPost httpPost = new HttpPost("http://www.weibo.com/signup/mobile.php");
 		
 		HttpResponse httpResponse = httpClient.execute(httpPost);
 		
@@ -134,11 +140,10 @@ public class reg {
   		 * 
 		 */
 		
-		
+		System.out.println(result);
 		System.out.println("已获取到 html");
 		
 		Document doc = Jsoup.parse(result);
-		
 		
 		Elements elements = doc.getElementsByAttributeValue("type", "hidden");
 		
@@ -172,15 +177,15 @@ public class reg {
 			formParams.add(new BasicNameValuePair(name, value)); 
 			System.out.println("name -> "+name+" ,value -> "+value);
 		}
-		formParams.add(new BasicNameValuePair("nickname", "panshihaoooo2")); 
+		formParams.add(new BasicNameValuePair("nickname", "panshihaoooo23")); 
 		formParams.add(new BasicNameValuePair("passwd", "caicai520")); 
-		formParams.add(new BasicNameValuePair("username", "yun@uhomeu.com")); 
+		formParams.add(new BasicNameValuePair("username", "caicai@uhomeu.com")); 
 		formParams.add(new BasicNameValuePair("rejectFake", "clickCount=7&subBtnClick=0&keyPress=43&menuClick=0&mouseMove=732&checkcode=0&subBtnPosx=545&subBtnPosy=240&subBtnDelay=94&keycode=0,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0&winWidth=1366&winHeight=336&userAgent=Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0")); 
 		
 		
 		// 拉取验证码
 		
-		URL url = new URL("http://weibo.com/signup/v5/pincode/pincode.php?lang=zh&sinaId="+sinaId+"&r="+regtime+"");
+		URL url = new URL("http://www.weibo.com/signup/v5/pincode/pincode.php?lang=zh&sinaId="+sinaId+"&r="+regtime+"");
 		
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		
@@ -192,16 +197,23 @@ public class reg {
 			byteOut.write(readByte);
 		}
 		
-		String pincode = FastVerCode.INSTANCE.RecByte(byteOut.toByteArray(), url.openConnection().getContentLength(), "psh24053", "2227976");
-		formParams.add(new BasicNameValuePair("pincode", pincode)); 
+		FileOutputStream fos = new FileOutputStream(new File("c:\\abc.jpg"));
+		byteOut.writeTo(fos);
+		byteOut.flush();
+		byteOut.close();
+		fos.close();
+
+		String pincode = FastVerCode.INSTANCE.RecYZM("c:\\abc.jpg", "psh24053", "2227976");
 		
-		System.out.println("已获取到验证码 -> "+pincode);
+		formParams.add(new BasicNameValuePair("pincode", pincode.substring(0, 4))); 
+		
+		System.out.println("已获取到验证码 -> "+pincode.substring(0, 4));
 		
 		
 		
 		
 		// 发送表单
-		httpPost = new HttpPost("http://weibo.com/signup/v5/reg");
+		httpPost = new HttpPost("http://www.weibo.com/signup/v5/reg");
 		httpPost.setEntity(new UrlEncodedFormEntity(formParams, "UTF-8"));
 		
 		System.out.println("requestLine -> "+httpPost.getRequestLine());
