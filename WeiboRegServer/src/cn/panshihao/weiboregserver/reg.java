@@ -179,7 +179,7 @@ public class reg {
 		}
 		formParams.add(new BasicNameValuePair("nickname", "panshihaoooo23")); 
 		formParams.add(new BasicNameValuePair("passwd", "caicai520")); 
-		formParams.add(new BasicNameValuePair("username", "caicai@uhomeu.com")); 
+		formParams.add(new BasicNameValuePair("username", "caicai552@uhomeu.com")); 
 		formParams.add(new BasicNameValuePair("rejectFake", "clickCount=7&subBtnClick=0&keyPress=43&menuClick=0&mouseMove=732&checkcode=0&subBtnPosx=545&subBtnPosy=240&subBtnDelay=94&keycode=0,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0&winWidth=1366&winHeight=336&userAgent=Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0")); 
 		
 		
