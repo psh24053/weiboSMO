@@ -9,4 +9,34 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
+  <servlet>
+    <servlet-name>regService</servlet-name>
+    <servlet-class>cn.panshihao.weiboregserver.servlet.regService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>regService</servlet-name>
+    <url-pattern>/regService</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>emailService</servlet-name>
+    <servlet-class>cn.panshihao.weiboregserver.servlet.emailService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>emailService</servlet-name>
+    <url-pattern>/emailService</url-pattern>
+  </servlet-mapping>
+  <listener>
+    <listener-class>cn.panshihao.weiboregserver.listener.startListener</listener-class>
+  </listener>
+  
+  <filter>
+      <filter-name>EncodingFilter</filter-name>
+      <filter-class>cn.panshihao.weiboregserver.filter.EncodingFilter</filter-class>
+  </filter>
+  
+  <filter-mapping>
+      <filter-name>EncodingFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  
 </web-app>

@@ -1,0 +1,37 @@
+package cn.panshihao.register.model;
+
+import cn.panshihao.desktop.commons.SuperModel;
+
+public class wb_proxyModel extends SuperModel {
+
+	protected int proxyid;
+	protected String ip;
+	protected int port;
+	protected long checktime;
+	
+	public int getProxyid() {
+		return proxyid;
+	}
+	public void setProxyid(int proxyid) {
+		this.proxyid = proxyid;
+	}
+	public String getIp() {
+		return ip;
+	}
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+	public int getPort() {
+		return port;
+	}
+	public void setPort(int port) {
+		this.port = port;
+	}
+	public long getChecktime() {
+		return checktime;
+	}
+	public void setChecktime(long checktime) {
+		this.checktime = checktime;
+	}
+	
+}

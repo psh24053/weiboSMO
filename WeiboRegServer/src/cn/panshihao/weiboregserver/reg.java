@@ -46,6 +46,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import cn.panshihao.weiboregserver.PinCodeManager.FastVerCode;
+
 
 
 public class reg {
@@ -54,6 +56,8 @@ public class reg {
 	
 	
 	public static void main(String[] args) throws IOException {
+		
+		ProxyServerManager proxyservermanager = new ProxyServerManager();
 		
 		/**
 		 * 注册逻辑：
@@ -87,7 +91,6 @@ public class reg {
 		headerList.add(new BasicHeader("Origin", "http://www.weibo.com"));
 		headerList.add(new BasicHeader("Referer", "http://www.weibo.com/signup/mobile.php"));
 		
-		
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		//连接超时、sockete超时和从connectionmanager中获取connection的超时设置，计算单位都是微秒；
 		httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(300000)); 
@@ -97,7 +100,7 @@ public class reg {
 		httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0");
 		
 		//设置代理对象 ip/代理名称,端口     
-        httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost("190.90.36.8", 8000));
+        httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxyservermanager.getProxyServer());
         
 		HttpPost httpPost = new HttpPost("http://www.weibo.com/signup/mobile.php");
 		
