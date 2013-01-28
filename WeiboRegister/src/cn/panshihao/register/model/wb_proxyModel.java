@@ -4,10 +4,10 @@ import cn.panshihao.desktop.commons.SuperModel;
 
 public class wb_proxyModel extends SuperModel {
 
-	protected int proxyid;
-	protected String ip;
-	protected int port;
-	protected long checktime;
+	public int proxyid;
+	public String ip;
+	public int port;
+	public long checktime;
 	
 	public int getProxyid() {
 		return proxyid;

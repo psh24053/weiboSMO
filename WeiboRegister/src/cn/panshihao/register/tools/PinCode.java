@@ -25,7 +25,7 @@ public class PinCode {
 	public static final String YZM_PASS = "2227976";
 	public static File tempDir = null;
 	static{
-		tempDir = new File("c:\\weibo_pincode_temp");
+		tempDir = new File("/temp");
 		tempDir.mkdirs();
 	}
 	
@@ -60,7 +60,7 @@ public class PinCode {
 		
 		FileOutputStream out = null;
 		try {
-			out = new FileOutputStream(new File(tempDir, sinaId));
+			out = new FileOutputStream(new File(tempDir, sinaId+".jpg"));
 		} catch (FileNotFoundException e) {
 			Log.log.error(e.getMessage(), e);
 			return false;
@@ -90,7 +90,7 @@ public class PinCode {
 		}
 		String result = null;
 		try {
-			result = FastVerCode.INSTANCE.RecYZM("c:\\weibo_pincode_temp\\"+sinaId, "psh24053", "2227976");
+			result = FastVerCode.INSTANCE.RecYZM("\\temp\\"+sinaId+".jpg", "psh24053", "2227976");
 		} catch(UnsatisfiedLinkError e){
 			Log.log.error(e.getMessage(), e);
 			return false;

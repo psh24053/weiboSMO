@@ -36,24 +36,32 @@ import cn.panshihao.desktop.commons.HtmlTools;
 import cn.panshihao.desktop.commons.Log;
 import cn.panshihao.register.model.wb_accountModel;
 import cn.panshihao.register.model.wb_proxyModel;
+import cn.panshihao.register.tools.PinCode.FastVerCode;
 
 public class RegisterRunnble implements Runnable {
 
-	private RegisterService service;
+	private RegisterService registerService;
+	private ProxyService proxyService;
 	
 	public RegisterRunnble(RegisterService service){
-		this.service = service;
+		this.registerService = service;
 	}
 	
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		wb_accountModel model = null;
+		wb_accountModel account = null;
+		wb_proxyModel proxy = null;
 		
-		while((model = service.getAccountModelFromRandomData()) != null){
+		
+		while((account = registerService.getAccountModelFromRandomData()) != null){
 			
-			runRegister(model, null);
+			proxy = proxyService.getRandomProxyModel();
 			
+			boolean register = runRegister(account, proxy);
+			
+			// 将已经使用过的proxyModel归还到内存中
+			proxyService.revertProxyModel(proxy, System.currentTimeMillis());
 			
 		}
 		
@@ -71,6 +79,12 @@ public class RegisterRunnble implements Runnable {
 	public boolean runRegister(wb_accountModel account, wb_proxyModel proxy) {
 		
 		Log.log.debug("wb_accountModel -> "+account.toString()+" ,wb_proxyModel -> "+proxy);
+		
+		if(account == null || proxy == null){
+			Log.log.error("account or proxy is null!");
+			return false;
+		}
+		
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -107,8 +121,7 @@ public class RegisterRunnble implements Runnable {
 		httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0");
 		
 		//设置代理对象 ip/代理名称,端口     
-        httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost("210.177.139.89", 8080));
-		
+		httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
         
         // 请求注册界面，获取表单必须参数
         HttpPost httpPost = new HttpPost("http://www.weibo.com/signup/mobile.php");
@@ -117,8 +130,10 @@ public class RegisterRunnble implements Runnable {
 			httpResponse = httpClient.execute(httpPost);
 		} catch (ClientProtocolException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		} catch (IOException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		}
 		HttpEntity httpEntity = httpResponse.getEntity();
 		
@@ -127,10 +142,13 @@ public class RegisterRunnble implements Runnable {
 			html = HtmlTools.getHtml(httpEntity);
 		} catch (UnsupportedEncodingException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		} catch (IllegalStateException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		} catch (IOException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		}
 		
 		Log.log.debug("getHtml "+html);
@@ -172,6 +190,7 @@ public class RegisterRunnble implements Runnable {
 		PinCode pincode = new PinCode(sinaId, regtime);
 		// 若拉取验证码失败（内部已经三次失败），
 		if(!pincode.loadPinCode()){
+			Log.log.error("get pincode error!");
 			return false;
 		}
 		
@@ -184,14 +203,17 @@ public class RegisterRunnble implements Runnable {
 			httpPost.setEntity(new UrlEncodedFormEntity(formParams, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		}
 		
 		try {
 			httpResponse = httpClient.execute(httpPost);
 		} catch (ClientProtocolException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		} catch (IOException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		}
 		
 		httpEntity = httpResponse.getEntity();
@@ -203,18 +225,78 @@ public class RegisterRunnble implements Runnable {
 			register_response = HtmlTools.getHtmlByBr(httpEntity);
 		} catch (UnsupportedEncodingException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		} catch (IllegalStateException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		} catch (IOException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
 		}
 		
 		Log.log.debug("final response -> "+register_response);
 		
+		JSONObject json = null;
 		try {
-			JSONObject json = new JSONObject(register_response);
+			json = new JSONObject(register_response);
 		} catch (JSONException e) {
 			Log.log.error(e.getMessage(), e);
+			return false;
+		}
+		
+		if(json == null){
+			Log.log.error("parse json error!");
+			return false;
+		}
+		
+		if(json.has("code")){
+			
+			try {
+				int code = json.getInt("code");
+				
+				switch (code) {
+				case 100000:
+					// 注册成功
+					registerService.getWaitActivationData().add(account);
+					Log.log.debug("【Register Success】 "+account.toString());
+					
+					
+					break;
+				case 600001:
+					// 验证码错误，或账号昵称重复
+					registerService.getFaildData().add(account);
+					
+					String msg = json.getJSONObject("data").getJSONObject("verifycode").getString("msg");
+					
+					if(msg != null && msg.equals("\u9a8c\u8bc1\u7801\u8f93\u5165\u6709\u8bef")){
+						pincode.ReportError(pincode.getAnthor());
+					}
+					Log.log.debug("【Register Faild】 Pincode Error or other.");
+					
+					
+					break;
+				case 100001:
+					// 该IP注册次数过多被墙了
+					registerService.getFaildData().add(account);
+					proxyService.getBlockData().add(proxy);
+					Log.log.debug("【Register Faild】 proxy ip Blocked. "+proxy);
+					break;
+				default:
+					break;
+				}
+				
+				
+				
+			} catch (JSONException e) {
+				Log.log.error(e.getMessage(), e);
+				return false;
+			}
+			
+			
+			
+		}else{
+			Log.log.error("json is not 'code' fiald!");
+			return false;
 		}
 		
 		
@@ -222,7 +304,7 @@ public class RegisterRunnble implements Runnable {
 		long endTime = System.currentTimeMillis();
 		
 		
-		System.out.println("用时 "+ (endTime - startTime)+" ms");
+		Log.log.debug("用时 "+ (endTime - startTime)+" ms");
 		
 		return true;
 	}
