@@ -34,6 +34,7 @@ import org.jsoup.select.Elements;
 
 import cn.panshihao.desktop.commons.HtmlTools;
 import cn.panshihao.desktop.commons.Log;
+import cn.panshihao.register.dao.wb_accountDAO;
 import cn.panshihao.register.model.wb_accountModel;
 import cn.panshihao.register.model.wb_proxyModel;
 import cn.panshihao.register.tools.PinCode.FastVerCode;
@@ -43,8 +44,9 @@ public class RegisterRunnble implements Runnable {
 	private RegisterService registerService;
 	private ProxyService proxyService;
 	
-	public RegisterRunnble(RegisterService service){
-		this.registerService = service;
+	public RegisterRunnble(RegisterService register, ProxyService proxy){
+		this.registerService = register;
+		this.proxyService = proxy;
 	}
 	
 	@Override
@@ -59,6 +61,12 @@ public class RegisterRunnble implements Runnable {
 			proxy = proxyService.getRandomProxyModel();
 			
 			boolean register = runRegister(account, proxy);
+			
+			if(register){
+				wb_accountDAO dao = new wb_accountDAO();
+				dao.insert(account);
+			}
+			
 			
 			// 将已经使用过的proxyModel归还到内存中
 			proxyService.revertProxyModel(proxy, System.currentTimeMillis());
@@ -129,10 +137,10 @@ public class RegisterRunnble implements Runnable {
 		try {
 			httpResponse = httpClient.execute(httpPost);
 		} catch (ClientProtocolException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		} catch (IOException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		}
 		HttpEntity httpEntity = httpResponse.getEntity();
@@ -141,13 +149,13 @@ public class RegisterRunnble implements Runnable {
 		try {
 			html = HtmlTools.getHtml(httpEntity);
 		} catch (UnsupportedEncodingException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		} catch (IllegalStateException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		} catch (IOException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		}
 		
@@ -202,17 +210,17 @@ public class RegisterRunnble implements Runnable {
 		try {
 			httpPost.setEntity(new UrlEncodedFormEntity(formParams, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		}
 		
 		try {
 			httpResponse = httpClient.execute(httpPost);
 		} catch (ClientProtocolException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		} catch (IOException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		}
 		
@@ -224,13 +232,13 @@ public class RegisterRunnble implements Runnable {
 		try {
 			register_response = HtmlTools.getHtmlByBr(httpEntity);
 		} catch (UnsupportedEncodingException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		} catch (IllegalStateException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		} catch (IOException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		}
 		
@@ -240,7 +248,7 @@ public class RegisterRunnble implements Runnable {
 		try {
 			json = new JSONObject(register_response);
 		} catch (JSONException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		}
 		
@@ -248,6 +256,8 @@ public class RegisterRunnble implements Runnable {
 			Log.log.error("parse json error!");
 			return false;
 		}
+		
+		boolean resultBool = true;
 		
 		if(json.has("code")){
 			
@@ -260,7 +270,7 @@ public class RegisterRunnble implements Runnable {
 					registerService.getWaitActivationData().add(account);
 					Log.log.debug("【Register Success】 "+account.toString());
 					
-					
+					resultBool = true;
 					break;
 				case 600001:
 					// 验证码错误，或账号昵称重复
@@ -272,7 +282,7 @@ public class RegisterRunnble implements Runnable {
 						pincode.ReportError(pincode.getAnthor());
 					}
 					Log.log.debug("【Register Faild】 Pincode Error or other.");
-					
+					resultBool = false;
 					
 					break;
 				case 100001:
@@ -280,6 +290,9 @@ public class RegisterRunnble implements Runnable {
 					registerService.getFaildData().add(account);
 					proxyService.getBlockData().add(proxy);
 					Log.log.debug("【Register Faild】 proxy ip Blocked. "+proxy);
+					
+					resultBool = false;
+					
 					break;
 				default:
 					break;
@@ -288,7 +301,7 @@ public class RegisterRunnble implements Runnable {
 				
 				
 			} catch (JSONException e) {
-				Log.log.error(e.getMessage(), e);
+				Log.log.error(e.getMessage());
 				return false;
 			}
 			
@@ -306,7 +319,7 @@ public class RegisterRunnble implements Runnable {
 		
 		Log.log.debug("用时 "+ (endTime - startTime)+" ms");
 		
-		return true;
+		return resultBool;
 	}
 	
 	

@@ -85,8 +85,11 @@ public class RegisterService {
 		}
 		executorService = Executors.newFixedThreadPool(threadSize);
 		
+		ProxyService proxyService = new ProxyService();
+		proxyService.loadProxyData();
+		
 		for(int i = 0 ; i < threadSize ; i ++){
-			executorService.execute(new RegisterRunnble(this));
+			executorService.execute(new RegisterRunnble(this, proxyService));
 		}
 		
 	}

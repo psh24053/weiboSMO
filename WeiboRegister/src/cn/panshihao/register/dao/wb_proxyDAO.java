@@ -28,7 +28,7 @@ public class wb_proxyDAO {
 		
 		try {
 			conn = SQLConn.db.getConnection();
-			pstmt = conn.prepareStatement("select * from wb_proxy");
+			pstmt = conn.prepareStatement("select * from wb_proxy order by rand()");
 			rs = pstmt.executeQuery();
 			data = new ArrayList<wb_proxyModel>();
 			

@@ -66,7 +66,7 @@ public class ProxyService {
 		List<wb_proxyModel> data = dao.selectALL();
 		
 		for(int i = 0 ; i < data.size() ; i ++){
-			ProxyData.put(System.currentTimeMillis(), data.get(i));
+			ProxyData.put(System.currentTimeMillis() - ProxyDelay + i, data.get(i));
 		}
 		
 	}
