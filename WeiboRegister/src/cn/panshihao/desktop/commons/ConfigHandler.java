@@ -21,8 +21,7 @@ public class ConfigHandler {
 		
 		Log.log.debug("Get config porperties info,config file name = " + configName + ",keyname=" + keyName);
 		
-		InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("cn" + nowSeparator +
-				"panshihao" + nowSeparator + "desktop" + nowSeparator + "commons" + nowSeparator + configName);    
+		InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(configName);    
 		
 		Properties properties = new Properties();    
 		

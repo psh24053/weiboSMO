@@ -6,14 +6,13 @@ import org.apache.log4j.*;
 
 public class Log {
 
-	public static Logger log = Logger.getLogger("cn.panshihao.desktop");
+	public static Logger log = Logger.getLogger("log4j.properties");
 	
 	private static String nowSeparator = File.separator;
 	
 	//加载配置文件
 	static {
-		PropertyConfigurator.configure("src" + nowSeparator + "cn" + nowSeparator +
-				"panshihao" + nowSeparator + "desktop" + nowSeparator + "commons" + nowSeparator + "log4j.properties");
+		PropertyConfigurator.configure("log4j.properties");
 	}
 	
 	private Log() {

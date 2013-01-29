@@ -23,6 +23,7 @@ public class PinCode {
 
 	public static final String YZM_USER = "psh24053";
 	public static final String YZM_PASS = "2227976";
+	
 	public static File tempDir = null;
 	static{
 		tempDir = new File("/temp");
@@ -131,21 +132,7 @@ public class PinCode {
 	}
 	
 	
-	public interface FastVerCode extends Library
-	{
-		FastVerCode	INSTANCE = (FastVerCode) Native.loadLibrary("FastVerCode", FastVerCode.class);
 
-		public String GetUserInfo(String UserName, String passWord);
-
-		public String RecByte(byte[] imgByte, int len, String username, String password);
-
-		public String RecYZM(String path, String UserName, String passWord);
-
-		public void ReportError(WString UserName, WString passWord);
-
-		public int Reglz(String userName, String passWord, String email, String qq, String dlId, String dlAccount);
-
-	}
 	
 
 	public String getPincode() {

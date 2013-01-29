@@ -37,7 +37,6 @@ import cn.panshihao.desktop.commons.Log;
 import cn.panshihao.register.dao.wb_accountDAO;
 import cn.panshihao.register.model.wb_accountModel;
 import cn.panshihao.register.model.wb_proxyModel;
-import cn.panshihao.register.tools.PinCode.FastVerCode;
 
 public class RegisterRunnble implements Runnable {
 

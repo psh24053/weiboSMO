@@ -141,6 +141,8 @@ public class WeiboMatcher extends GenericMatcher {
 		HttpEntity httpEntity = httpResponse.getEntity();
 		
 		
+		httpResponse.getHeaders("Location");
+		
 		try {
 			String html = HtmlTools.getHtml(httpEntity);
 			
