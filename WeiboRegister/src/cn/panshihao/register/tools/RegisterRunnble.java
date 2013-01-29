@@ -67,9 +67,12 @@ public class RegisterRunnble implements Runnable {
 				dao.insert(account);
 			}
 			
+			if(proxy.getChecktime() != 10001){
+				
+				// 将已经使用过的proxyModel归还到内存中
+				proxyService.revertProxyModel(proxy, System.currentTimeMillis());
+			}
 			
-			// 将已经使用过的proxyModel归还到内存中
-			proxyService.revertProxyModel(proxy, System.currentTimeMillis());
 			
 		}
 		
@@ -159,7 +162,7 @@ public class RegisterRunnble implements Runnable {
 			return false;
 		}
 		
-		Log.log.debug("getHtml "+html);
+		Log.log.debug("getHtml Success");
 		
 		// 如果html为null，或者html的长度小于8000，则代表获取html失败
 		if(html == null || html.length() < 8000){
@@ -289,6 +292,7 @@ public class RegisterRunnble implements Runnable {
 					// 该IP注册次数过多被墙了
 					registerService.getFaildData().add(account);
 					proxyService.getBlockData().add(proxy);
+					proxyService.proxyOnBlocked(proxy);
 					Log.log.debug("【Register Faild】 proxy ip Blocked. "+proxy);
 					
 					resultBool = false;

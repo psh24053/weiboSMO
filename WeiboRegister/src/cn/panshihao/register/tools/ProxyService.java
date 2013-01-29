@@ -43,7 +43,7 @@ import cn.panshihao.register.model.wb_proxyModel;
 public class ProxyService {
 
 	
-	public static final long ProxyDelay = 30000;
+	public static final long ProxyDelay = 300000;
 	
 	/**
 	 * 代理服务器数据
@@ -63,7 +63,7 @@ public class ProxyService {
 	 */
 	public void loadProxyData(){
 		wb_proxyDAO dao = new wb_proxyDAO();
-		List<wb_proxyModel> data = dao.selectALL();
+		List<wb_proxyModel> data = dao.selectByAvailable();
 		
 		for(int i = 0 ; i < data.size() ; i ++){
 			ProxyData.put(System.currentTimeMillis() - ProxyDelay + i, data.get(i));
@@ -218,7 +218,7 @@ public class ProxyService {
 		
 		Document doc = Jsoup.parse(html);
 		Elements elements = doc.select("tr");
-		
+		System.out.println("get_51daili_fast -> "+elements.size());
 		for(int i = 0 ; i < elements.size() ; i ++){
 			Element e = elements.get(i);
 			if(e.select("th").size() > 0){
@@ -285,7 +285,7 @@ public class ProxyService {
 		
 		Document doc = Jsoup.parse(html);
 		Elements elements = doc.select("tr");
-		
+		System.out.println("get_51daili_anonymous -> "+elements.size());
 		for(int i = 0 ; i < elements.size() ; i ++){
 			Element e = elements.get(i);
 			if(e.select("th").size() > 0){
@@ -345,7 +345,7 @@ public class ProxyService {
 		
 		Document doc = Jsoup.parse(html);
 		Elements elements = doc.select("tr");
-		
+		System.out.println("get_51daili_non_anonymous -> "+elements.size());
 		for(int i = 0 ; i < elements.size() ; i ++){
 			Element e = elements.get(i);
 			if(e.select("th").size() > 0){
@@ -537,8 +537,11 @@ public class ProxyService {
 		ProxyService s = new ProxyService();
 		
 		try {
+			s.get_51daili_fast();
 			s.get_51daili_anonymous();
 			s.get_51daili_non_anonymous();
+			s.get_xici_wn();
+			s.get_xici_wt();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -587,6 +590,19 @@ public class ProxyService {
 		ProxyData.put(time, model);
 		
 	}
+	/**
+	 * 指定ip已经被新浪所禁止
+	 * @param model
+	 */
+	public synchronized void proxyOnBlocked(wb_proxyModel model){
+		wb_proxyDAO dao = new wb_proxyDAO();
+		
+		model.setChecktime(10001);
+		
+		dao.update(model);
+		
+	}
+	
 	
 
 	public Map<Long, wb_proxyModel> getProxyData() {

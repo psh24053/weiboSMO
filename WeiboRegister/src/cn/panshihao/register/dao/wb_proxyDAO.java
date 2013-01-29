@@ -9,11 +9,84 @@ import java.util.List;
 
 import cn.panshihao.desktop.commons.Log;
 import cn.panshihao.desktop.commons.SQLConn;
-import cn.panshihao.register.model.wb_accountModel;
+import cn.panshihao.register.model.wb_proxyModel;
 import cn.panshihao.register.model.wb_proxyModel;
 
 public class wb_proxyDAO {
 
+	/**
+	 * 返回所有wb_proxyModel对象,符合checktime条件的
+	 * 
+	 * @return
+	 */
+	public List<wb_proxyModel> selectByAvailable(){
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		List<wb_proxyModel> data = null;
+		
+		
+		try {
+			conn = SQLConn.db.getConnection();
+			pstmt = conn.prepareStatement("select * from wb_proxy where checktime != 10001 order by rand()");
+			
+			rs = pstmt.executeQuery();
+			data = new ArrayList<wb_proxyModel>();
+			
+			
+			
+			while(rs.next()){
+				wb_proxyModel model = new wb_proxyModel();
+				
+				model.setChecktime(rs.getLong("checktime"));
+				model.setIp(rs.getString("ip"));
+				model.setPort(rs.getInt("port"));
+				model.setProxyid(rs.getInt("proxyid"));
+				
+				
+				data.add(model);
+			}
+			
+			
+			
+		} catch (SQLException e) {
+			Log.log.error(e.getMessage(), e);
+		} finally {
+			if(rs != null){
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					Log.log.error(e.getMessage(), e);
+				}
+			}
+			if(pstmt != null){
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+					Log.log.error(e.getMessage(), e);
+				}
+			}
+			if(conn != null){
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					Log.log.error(e.getMessage(), e);
+				}
+			}
+			
+			
+		}
+		
+		if(data != null){
+			Log.log.debug("【Success】Select Available wb_proxy Size -> "+data.size());
+		}else{
+			Log.log.debug("【Faild】Select Available wb_proxy");
+		}
+		
+		
+		return data;
+	}
+	
 	
 	/**
 	 * 返回所有wb_proxyModel对象
@@ -142,5 +215,69 @@ public class wb_proxyDAO {
 		
 		return resultCount > 0;
 	}
+	
+	/**
+	 * 更新传入的wb_proxyModel对象
+	 * @param model
+	 * @return
+	 */
+	public boolean update(wb_proxyModel model){
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		int resultCount = 0;
+		
+		if(model == null){
+			Log.log.error("insert wb_proxyModel is null!");
+			return false;
+		}
+		if(model.getProxyid() == 0){
+			Log.log.error("insert wb_proxyModel Model Proxyid is 0!");
+			return false;
+		}
+		
+		
+		
+		try {
+			conn = SQLConn.db.getConnection();
+			pstmt = conn.prepareStatement("update wb_proxy set ip = ? , port = ? , checktime = ? where proxyid = ?");
+			
+			pstmt.setString(1, model.getIp());
+			pstmt.setInt(2, model.getPort());
+			pstmt.setLong(3, model.getChecktime());
+			pstmt.setInt(4, model.getProxyid());
+			
+			
+			resultCount = pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			Log.log.error(e.getMessage(), e);
+		} finally {
+			if(pstmt != null){
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+					Log.log.error(e.getMessage(), e);
+				}
+			}
+			if(conn != null){
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					Log.log.error(e.getMessage(), e);
+				}
+			}
+			
+			
+		}
+		
+		if(resultCount > 0){
+			Log.log.debug("【Success】update "+model.toString());
+		}else{
+			Log.log.debug("【Faild】update "+model.toString());
+		}
+		
+		return resultCount > 0;
+	}
+	
 	
 }
