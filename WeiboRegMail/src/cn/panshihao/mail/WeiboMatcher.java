@@ -48,6 +48,8 @@ import org.jsoup.select.Elements;
 
 public class WeiboMatcher extends GenericMatcher {
 
+	public static final String DOMAIN = "uhomeu.com";
+	
 	@Override
 	public Collection match(Mail mail) throws MessagingException {
 		
@@ -72,13 +74,10 @@ public class WeiboMatcher extends GenericMatcher {
 				
 				String url = elements.get(0).attr("href");
 				
-				
-				
-				
 				MailAddress recipient = (MailAddress) mail.getRecipients().toArray()[0];
 				
 				connectURL(url);
-				updateDB(recipient.getUser()+"@"+recipient.getHost());
+				updateDB(recipient.getUser()+"@"+DOMAIN);
 			}
 			
 			

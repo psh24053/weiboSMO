@@ -2,19 +2,22 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/jsoup-1.7.1.jar"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/c3p0-0.9.2-pre8.jar"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/mysql-connector-java-5.1.12-bin.jar"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/commons-codec.jar"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/fluent-hc-4.2.3.jar"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/httpclient-4.2.3.jar"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/httpclient-cache-4.2.3.jar"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/httpcore-4.2.2.jar"/>
-	<classpathentry kind="lib" path="/WeiboRegister/lib/httpmime-4.2.3.jar"/>
-	<classpathentry kind="lib" path="E:/SDK/james mailet/james-2.3.2.jar"/>
-	<classpathentry kind="lib" path="E:/SDK/james mailet/mail-1.4.1.jar"/>
-	<classpathentry kind="lib" path="E:/SDK/james mailet/mailet-2.3.jar"/>
-	<classpathentry kind="lib" path="E:/SDK/james mailet/mailet-api-2.3.jar"/>
+	<classpathentry kind="lib" path="lib/c3p0-0.9.2-pre8.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/fluent-hc-4.2.3.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient-4.2.3.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient-cache-4.2.3.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore-4.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/httpmime-4.2.3.jar"/>
+	<classpathentry kind="lib" path="lib/james-2.3.2.jar"/>
+	<classpathentry kind="lib" path="lib/json.jar"/>
+	<classpathentry kind="lib" path="lib/jsoup-1.7.1.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="lib/mail-1.4.1.jar"/>
+	<classpathentry kind="lib" path="lib/mailet-2.3.jar"/>
+	<classpathentry kind="lib" path="lib/mailet-api-2.3.jar"/>
+	<classpathentry kind="lib" path="lib/mchange-commons-java-0.2.3.3.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.12-bin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
