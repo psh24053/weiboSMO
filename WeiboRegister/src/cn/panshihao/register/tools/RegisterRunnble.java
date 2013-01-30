@@ -199,7 +199,7 @@ public class RegisterRunnble implements Runnable {
 		//拉取验证码
 		PinCode pincode = new PinCode(sinaId, regtime);
 		// 若拉取验证码失败（内部已经三次失败），
-		if(!pincode.loadPinCode()){
+		if(!pincode.loadPinCode(httpClient)){
 			Log.log.error("get pincode error!");
 			return false;
 		}

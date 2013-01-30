@@ -89,14 +89,26 @@ public class ProxyService {
 	 * @return
 	 * @throws IOException 
 	 */
-	private List<wb_proxyModel> get_xici_wt() throws IOException{
+	private List<wb_proxyModel> get_xici_wt() {
 		
 		ExecutorService service = Executors.newFixedThreadPool(100);
 		
 		for(int j = 1 ; j < 11 ; j ++){
-			URL url = new URL("http://www.xici.net.co/wt/"+j);
+			URL url = null;
+			try {
+				url = new URL("http://www.xici.net.co/wt/"+j);
+			} catch (MalformedURLException e1) {
+				// TODO Auto-generated catch block
+				continue;
+			}
 			
-			String html = HtmlTools.getHtml(url.openStream());
+			String html = null;
+			try {
+				html = HtmlTools.getHtml(url.openStream());
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				continue;
+			}
 			
 			Document doc = Jsoup.parse(html);
 			Elements elements = doc.select("tr");
@@ -150,13 +162,25 @@ public class ProxyService {
 	 * @return
 	 * @throws IOException 
 	 */
-	private List<wb_proxyModel> get_xici_wn() throws IOException{
+	private List<wb_proxyModel> get_xici_wn() {
 		ExecutorService service = Executors.newFixedThreadPool(100);
 		
 		for(int j = 1 ; j < 48 ; j ++){
-			URL url = new URL("http://www.xici.net.co/wn/"+j);
+			URL url = null;
+			try {
+				url = new URL("http://www.xici.net.co/wn/"+j);
+			} catch (MalformedURLException e1) {
+				// TODO Auto-generated catch block
+				continue;
+			}
 			
-			String html = HtmlTools.getHtml(url.openStream());
+			String html = null;
+			try {
+				html = HtmlTools.getHtml(url.openStream());
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				continue;
+			}
 			
 			Document doc = Jsoup.parse(html);
 			Elements elements = doc.select("tr");
@@ -209,12 +233,24 @@ public class ProxyService {
 	 * @return
 	 * @throws IOException 
 	 */
-	private List<wb_proxyModel> get_51daili_fast() throws IOException{
+	private List<wb_proxyModel> get_51daili_fast() {
 		ExecutorService service = Executors.newFixedThreadPool(100);
 		
-		URL url = new URL("http://51dai.li/http_fast.html");
+		URL url;
+		try {
+			url = new URL("http://51dai.li/http_fast.html");
+		} catch (MalformedURLException e2) {
+			// TODO Auto-generated catch block
+			return null;
+		}
 		
-		String html = HtmlTools.getHtml(url.openStream());
+		String html = null;
+		try {
+			html = HtmlTools.getHtml(url.openStream());
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			return null;
+		}
 		
 		Document doc = Jsoup.parse(html);
 		Elements elements = doc.select("tr");
@@ -276,12 +312,24 @@ public class ProxyService {
 	 * @return
 	 * @throws IOException 
 	 */
-	private List<wb_proxyModel> get_51daili_anonymous() throws IOException{
+	private List<wb_proxyModel> get_51daili_anonymous(){
 		ExecutorService service = Executors.newFixedThreadPool(100);
 		
-		URL url = new URL("http://51dai.li/http_anonymous.html");
+		URL url;
+		try {
+			url = new URL("http://51dai.li/http_anonymous.html");
+		} catch (MalformedURLException e1) {
+			// TODO Auto-generated catch block
+			return null;
+		}
 		
-		String html = HtmlTools.getHtml(url.openStream());
+		String html = null;
+		try {
+			html = HtmlTools.getHtml(url.openStream());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			return null;
+		}
 		
 		Document doc = Jsoup.parse(html);
 		Elements elements = doc.select("tr");
@@ -336,12 +384,24 @@ public class ProxyService {
 	 * @return
 	 * @throws IOException 
 	 */
-	private List<wb_proxyModel> get_51daili_non_anonymous() throws IOException{
+	private List<wb_proxyModel> get_51daili_non_anonymous() {
 		ExecutorService service = Executors.newFixedThreadPool(100);
 		
-		URL url = new URL("http://51dai.li/http_non_anonymous.html");
+		URL url = null;
+		try {
+			url = new URL("http://51dai.li/http_non_anonymous.html");
+		} catch (MalformedURLException e1) {
+			// TODO Auto-generated catch block
+			return null;
+		}
 		
-		String html = HtmlTools.getHtml(url.openStream());
+		String html = null;
+		try {
+			html = HtmlTools.getHtml(url.openStream());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			return null;
+		}
 		
 		Document doc = Jsoup.parse(html);
 		Elements elements = doc.select("tr");
@@ -536,16 +596,11 @@ public class ProxyService {
 	public static void main(String[] args) {
 		ProxyService s = new ProxyService();
 		
-		try {
-			s.get_51daili_fast();
-			s.get_51daili_anonymous();
-			s.get_51daili_non_anonymous();
-			s.get_xici_wn();
-			s.get_xici_wt();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		s.get_51daili_fast();
+		s.get_51daili_anonymous();
+		s.get_51daili_non_anonymous();
+		s.get_xici_wn();
+		s.get_xici_wt();
 		
 	}
 	

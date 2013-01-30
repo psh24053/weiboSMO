@@ -9,11 +9,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -86,7 +89,9 @@ public class WeiboMatcher extends GenericMatcher {
 				
 				System.out.println(url);
 				
-				connectURL(url);
+				insertDB(recipient.getUser()+"@"+DOMAIN, url);
+				
+//				connectURL(url);
 //				updateDB(recipient.getUser()+"@"+DOMAIN);
 			}
 			
@@ -100,27 +105,91 @@ public class WeiboMatcher extends GenericMatcher {
 		return null;
 	}
 	/**
+	 * 插入
+	 * @param email
+	 * @param url
+	 */
+	public void insertDB(String email, String url){
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int aid = -1;
+		try {
+			conn = SQLConn.db.getConnection();
+			
+			pstmt = conn.prepareStatement("select aid from wb_account where email = ?");
+			pstmt.setString(1, email);
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()){
+				aid = rs.getInt("aid");
+			}else{
+				return;
+			}
+			
+			
+			
+			pstmt = conn.prepareStatement("insert into wb_activation(aid,email,url,status) values(?,?,?,?)");
+			
+			pstmt.setInt(1, aid);
+			pstmt.setString(2, email);
+			pstmt.setString(3, url);
+			pstmt.setInt(4, 0);
+			
+			pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if(rs != null){
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(pstmt != null){
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			if(conn != null){
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+		}
+		
+		
+		System.out.println("已插入数据库   aid: "+aid+" ,email: "+email);
+	}
+	
+	
+	/**
 	 * 点击Url
 	 * @param url
 	 */
 	public void connectURL(String url){
 		
-		String[] params = url.split("?")[1].split("&");
 		
-		System.out.println(params.length);
+		Map<String, String> params = URLRequest(url);
 		
 		List<NameValuePair> formParams = new ArrayList<NameValuePair>();
 		
-		for(int i = 0 ; i < params.length ; i ++){
-			String[] item = params[i].split("=");
-			
-			String key = item[0];
-			String value = item.length > 1 ? item[1] : "";
-			
-			formParams.add(new BasicNameValuePair(key, value));
+		for(String key : params.keySet()){
+			System.out.println("key: "+key+" ,value: "+params.get(key));
+			formParams.add(new BasicNameValuePair(key, params.get(key)));
 		}
-		
-		
 		
 		
 		/**
@@ -134,7 +203,7 @@ public class WeiboMatcher extends GenericMatcher {
 		
 		//伪装成Firefox 5, 
 		httpClient.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1); 
-		httpClient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES); //
+		httpClient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY); //
 		httpClient.getParams().setParameter(CoreProtocolPNames.HTTP_CONTENT_CHARSET,"UTF-8"); //这个是和目标网站的编码有关；
 		httpClient.getParams().setParameter(CoreProtocolPNames.HTTP_ELEMENT_CHARSET,"UTF-8"); 
 		httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(30000)); 
@@ -194,7 +263,7 @@ public class WeiboMatcher extends GenericMatcher {
 	public String toLocation(HttpClient httpClient, HttpResponse httpResponse) throws UnsupportedEncodingException, IllegalStateException, IOException{
 		Header[] headers = httpResponse.getAllHeaders();
 		
-		System.out.println(HtmlTools.getHtmlByBr(httpResponse.getEntity()));
+		System.out.println(HtmlTools.getHtmlByBr(httpResponse.getEntity()).length());
 		
 		String location = null;
 		
@@ -322,7 +391,73 @@ public class WeiboMatcher extends GenericMatcher {
 		
 		return result;
 	}
-	
-
+	/**
+     * 去掉url中的路径，留下请求参数部分
+     * @param strURL url地址
+     * @return url请求参数部分
+     */
+    private static String TruncateUrlPage(String strURL)
+    {
+    String strAllParam=null;
+      String[] arrSplit=null;
+      
+      strURL=strURL.trim().toLowerCase();
+      
+      arrSplit=strURL.split("[?]");
+      if(strURL.length()>1)
+      {
+          if(arrSplit.length>1)
+          {
+                  if(arrSplit[1]!=null)
+                  {
+                  strAllParam=arrSplit[1];
+                  }
+          }
+      }
+      
+    return strAllParam;    
+    }
+	/**
+     * 解析出url参数中的键值对
+     * 如 "index.jsp?Action=del&id=123"，解析出Action:del,id:123存入map中
+     * @param URL  url地址
+     * @return  url请求参数部分
+     */
+    public static Map<String, String> URLRequest(String URL)
+    {
+    Map<String, String> mapRequest = new HashMap<String, String>();
+    
+      String[] arrSplit=null;
+      
+    String strUrlParam= TruncateUrlPage(URL);
+    if(strUrlParam==null)
+    {
+        return mapRequest;
+    }
+      //每个键值为一组
+    arrSplit=strUrlParam.split("[&]");
+    for(String strSplit:arrSplit)
+    {
+          String[] arrSplitEqual=null;          
+          arrSplitEqual= strSplit.split("[=]"); 
+          
+          //解析出键值
+          if(arrSplitEqual.length>1)
+          {
+              //正确解析
+              mapRequest.put(arrSplitEqual[0], arrSplitEqual[1]);
+              
+          }
+          else
+          {
+              if(arrSplitEqual[0]!="")
+              {
+              //只有参数没有值，不加入
+              mapRequest.put(arrSplitEqual[0], "");        
+              }
+          }
+    }    
+    return mapRequest;    
+    }
 
 }

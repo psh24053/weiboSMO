@@ -10,6 +10,10 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.message.BasicNameValuePair;
 
 
@@ -45,19 +49,27 @@ public class PinCode {
 	 * 拉取验证码，成功返回true，失败返回false
 	 * @return
 	 */
-	public boolean loadPinCode(){
+	public boolean loadPinCode(HttpClient httpclient){
 		if(error_total == 3){
 			return false;
 		}
 		
 		// 拉取验证码
-		URL url = null;
+		
+		HttpGet httpget = new HttpGet("http://www.weibo.com/signup/v5/pincode/pincode.php?lang=zh&sinaId="+sinaId+"&r="+regtime);
+		
+		
+		HttpResponse httpresponse = null;
 		try {
-			url = new URL("http://www.weibo.com/signup/v5/pincode/pincode.php?lang=zh&sinaId="+sinaId+"&r="+regtime+"");
-		} catch (MalformedURLException e) {
-			Log.log.error(e.getMessage(), e);
-			return false;
+			httpresponse = httpclient.execute(httpget);
+		} catch (ClientProtocolException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
+		
 		
 		FileOutputStream out = null;
 		try {
@@ -69,7 +81,7 @@ public class PinCode {
 		
 		InputStream pincodeIn = null;
 		try {
-			pincodeIn = url.openStream();
+			pincodeIn = httpresponse.getEntity().getContent();
 		} catch (IOException e) {
 			Log.log.error(e.getMessage(), e);
 			return false;
@@ -107,7 +119,7 @@ public class PinCode {
 		
 		if(strArr == null || strArr.length != 2){
 			error_total ++;
-			return loadPinCode();
+			return loadPinCode(httpclient);
 		}
 		
 		Log.log.debug("sinaId -> "+sinaId);
@@ -117,7 +129,7 @@ public class PinCode {
 		if(pincode.length() != 4){
 			ReportError(anthor);
 			error_total ++;
-			return loadPinCode(); 
+			return loadPinCode(httpclient); 
 		}
 		return true;
 	}
