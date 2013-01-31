@@ -415,6 +415,10 @@ public class ProxyService {
 			
 			Elements ee = e.select("td");
 			
+			if(ee.size() < 2){
+				continue;
+			}
+			
 			final String ip = ee.get(1).text();
 			final int port = Integer.parseInt(ee.get(2).text());
 			String county = ee.get(3).text();
@@ -470,7 +474,75 @@ public class ProxyService {
 	 * @return
 	 */
 	private List<wb_proxyModel> get_sitedigger(){
+		
+		ExecutorService service = Executors.newFixedThreadPool(100);
+		
+		URL url = null;
+		try {
+			url = new URL("http://51dai.li/http_non_anonymous.html");
+		} catch (MalformedURLException e1) {
+			// TODO Auto-generated catch block
+			return null;
+		}
+		
+		String html = null;
+		try {
+			html = HtmlTools.getHtml(url.openStream());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			return null;
+		}
+		
+		Document doc = Jsoup.parse(html);
+		Elements elements = doc.select("tr");
+		System.out.println("get_51daili_non_anonymous -> "+elements.size());
+		for(int i = 0 ; i < elements.size() ; i ++){
+			Element e = elements.get(i);
+			if(e.select("th").size() > 0){
+				continue;
+			}
+			
+			
+			Elements ee = e.select("td");
+			
+			if(ee.size() < 2){
+				continue;
+			}
+			
+			final String ip = ee.get(1).text();
+			final int port = Integer.parseInt(ee.get(2).text());
+			String county = ee.get(3).text();
+			
+			if(county != null && county.equals("CN")){
+				continue;
+			}
+			
+			service.execute(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					if(validationProxy(ip, port)){
+						wb_proxyDAO dao = new wb_proxyDAO();
+						wb_proxyModel model = new wb_proxyModel();
+						model.setChecktime(System.currentTimeMillis());
+						model.setIp(ip);
+						model.setPort(port);
+						
+						dao.insert(model);
+						
+					}
+				}
+			});
+			
+			
+			
+			
+			
+		}
+		
 		return null;
+		
 	}
 	/**
 	 * 获取cz88的http代理数据
