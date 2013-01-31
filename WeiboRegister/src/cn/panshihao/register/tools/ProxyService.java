@@ -1,12 +1,16 @@
 package cn.panshihao.register.tools;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -270,13 +274,6 @@ public class ProxyService {
 			
 			if(county != null && county.equals("CN")){
 				continue;
-			}
-			
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
 			}
 			
 			service.execute(new Runnable() {
@@ -576,7 +573,80 @@ public class ProxyService {
 	private List<wb_proxyModel> get_5753(){
 		return null;
 	}
-	
+	/**
+	 * 获取CZ88 BBS的本地文件数据
+	 * @param filename
+	 * @return
+	 */
+	private List<wb_proxyModel> getCZ88BBS_LOCAL_FILE(String filename){
+		
+		File file = new File(filename);
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "GBK"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			return null;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			return null;
+		}
+		
+		String temp = "";
+		
+		try {
+			while((temp = reader.readLine()) != null){
+				
+				String[] hostContent = temp.split("#");
+				
+				final String address = hostContent[1];
+				
+				String hostInfo = hostContent[0];
+				
+				String host = hostInfo.substring(0, hostInfo.indexOf("$"));
+				
+				String[] hostMain = host.split(":");
+				
+				final String ip = hostMain[0];
+				final int port = Integer.parseInt(hostMain[1]);
+				
+				new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						if(validationCountry(address)){
+							
+							if(validationProxy(ip, port)){
+								wb_proxyDAO dao = new wb_proxyDAO();
+								wb_proxyModel model = new wb_proxyModel();
+								model.setChecktime(System.currentTimeMillis());
+								model.setIp(ip);
+								model.setPort(port);
+								
+								dao.insert(model);
+								
+							}
+							
+							
+						}
+						
+					}
+				}).start();
+				
+				
+				
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			return null;
+		}
+		
+		
+		
+		
+		return null;
+	}
 	
 	
 	
@@ -663,6 +733,41 @@ public class ProxyService {
 		
 		return true;
 	}
+	/**
+	 * 判断国家是否为中国，为中国返回false
+	 * @param address
+	 * @return
+	 */
+	public boolean validationCountry(String address){
+		URL url = null;
+		try {
+			url = new URL("http://maps.googleapis.com/maps/api/geocode/json?address="+URLEncoder.encode(address)+"&sensor=true");
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			return false;
+		}
+		String html = null;
+		
+		try {
+			html = HtmlTools.getHtmlByBr(url.openStream());
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(html == null || html.contains("中国") || html.contains("CN")){
+			return false;
+		}
+		
+		
+		
+		return true;
+	}
 	
 	
 	public static void main(String[] args) {
@@ -673,7 +778,7 @@ public class ProxyService {
 		s.get_51daili_non_anonymous();
 		s.get_xici_wn();
 		s.get_xici_wt();
-		
+		s.getCZ88BBS_LOCAL_FILE("proxy.txt");
 	}
 	
 	
