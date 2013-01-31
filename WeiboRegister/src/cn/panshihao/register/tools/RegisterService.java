@@ -112,7 +112,7 @@ public class RegisterService {
 		for(int i = 0 ; i < count ; i ++){
 			wb_accountModel model = new wb_accountModel();
 			model.setEmail(RandomString.getMD5ForUUIDIndex(12, 22)+"@"+EmailServerDomain);
-			model.setNickname(RandomString.getMD5ForUUIDIndex(2, 30));
+			model.setNickname("pan"+RandomString.getMD5ForUUIDIndex(2, 20)+"shihao");
 			model.setPassword(RandomString.getMD5ForUUIDIndex(12, 22));
 			
 			randomData.add(model);

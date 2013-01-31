@@ -7,7 +7,7 @@ public class main {
 	public static void main(String[] args) {
 		RegisterService service = new RegisterService();
 		
-		service.startRegister(100000, 100);
+		service.startRegister(10, 10);
 		
 		
 	}

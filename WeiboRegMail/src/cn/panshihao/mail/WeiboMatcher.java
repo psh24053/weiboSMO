@@ -89,7 +89,10 @@ public class WeiboMatcher extends GenericMatcher {
 				
 				System.out.println(url);
 				
-				insertDB(recipient.getUser()+"@"+DOMAIN, url);
+				
+				ConnectLocalServer(recipient.getUser()+"@"+DOMAIN, url);
+				
+//				insertDB(recipient.getUser()+"@"+DOMAIN, url);
 				
 //				connectURL(url);
 //				updateDB(recipient.getUser()+"@"+DOMAIN);
@@ -104,6 +107,22 @@ public class WeiboMatcher extends GenericMatcher {
 		
 		return null;
 	}
+	public void ConnectLocalServer(String email, String url){
+		HttpClient httpClient = new DefaultHttpClient();
+		
+		HttpGet httpGet = new HttpGet("http://127.0.0.1:8888/WeiboActivationServer/Activation?email="+email+"&url="+url);
+		
+		try {
+			httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+		}
+		
+		httpClient.getConnectionManager().shutdown();
+	}
+	
 	/**
 	 * 插入
 	 * @param email
@@ -114,15 +133,16 @@ public class WeiboMatcher extends GenericMatcher {
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		int aid = -1;
+		System.out.println(email +" , "+url);
 		try {
 			conn = SQLConn.db.getConnection();
-			
-			pstmt = conn.prepareStatement("select aid from wb_account where email = ?");
+			pstmt = conn.prepareStatement("SELECT aid FROM wb_account WHERE email = ?");
 			pstmt.setString(1, email);
 			rs = pstmt.executeQuery();
 			
 			if(rs.next()){
 				aid = rs.getInt("aid");
+				System.out.println(aid +" , ");
 			}else{
 				return;
 			}

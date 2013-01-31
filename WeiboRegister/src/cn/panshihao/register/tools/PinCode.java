@@ -7,13 +7,23 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 
@@ -40,11 +50,18 @@ public class PinCode {
 	private String regtime;
 	private int error_total = 0;
 	
+	
+	private String url;
+	
 	public PinCode(String sinaId, String regtime){
 		this.sinaId = sinaId;
 		this.regtime = regtime;
 	}
 
+	public PinCode(String url){
+		this.url = url;
+	}
+	
 	/**
 	 * 拉取验证码，成功返回true，失败返回false
 	 * @return
@@ -53,59 +70,57 @@ public class PinCode {
 		if(error_total == 3){
 			return false;
 		}
+		HttpGet httpget = null;
 		
 		// 拉取验证码
-		
-		HttpGet httpget = new HttpGet("http://www.weibo.com/signup/v5/pincode/pincode.php?lang=zh&sinaId="+sinaId+"&r="+regtime);
+		if(url != null){
+			Map<String, String> maps = URLRequest(url);
+			
+			sinaId = maps.get("sinaid");
+			regtime = maps.get("r");
+			
+			httpget = new HttpGet("http://www.weibo.com"+url);
+			
+			
+		}else{
+			httpget = new HttpGet("http://www.weibo.com/signup/v5/pincode/pincode.php?lang=zh&sinaId="+sinaId+"&r="+regtime);
+		}
 		
 		
 		HttpResponse httpresponse = null;
 		try {
 			httpresponse = httpclient.execute(httpget);
-		} catch (ClientProtocolException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		} catch (ClientProtocolException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IOException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} 
 		
 		
 		FileOutputStream out = null;
 		try {
 			out = new FileOutputStream(new File(tempDir, sinaId+".jpg"));
 		} catch (FileNotFoundException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		}
-		
-		InputStream pincodeIn = null;
 		try {
-			pincodeIn = httpresponse.getEntity().getContent();
-		} catch (IOException e) {
-			Log.log.error(e.getMessage(), e);
-			return false;
-		}
-		byte[] readByte = new byte[1024];
-		int readCount = -1;
-		
-		
-		try {
-			while((readCount = pincodeIn.read(readByte, 0, 1024)) != -1){
-				out.write(readByte);
-			}
+			httpresponse.getEntity().writeTo(out);
 			out.flush();
 			out.close();
-			pincodeIn.close();
 		} catch (IOException e) {
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		}
+		
+		
 		String result = null;
 		try {
 			result = FastVerCode.INSTANCE.RecYZM("\\temp\\"+sinaId+".jpg", "psh24053", "2227976");
 		} catch(UnsatisfiedLinkError e){
-			Log.log.error(e.getMessage(), e);
+			Log.log.error(e.getMessage());
 			return false;
 		}
 		
@@ -122,8 +137,6 @@ public class PinCode {
 			return loadPinCode(httpclient);
 		}
 		
-		Log.log.debug("sinaId -> "+sinaId);
-		
 		pincode = strArr[0];
 		anthor = strArr[1];
 		if(pincode.length() != 4){
@@ -131,6 +144,7 @@ public class PinCode {
 			error_total ++;
 			return loadPinCode(httpclient); 
 		}
+		
 		return true;
 	}
 	/**
@@ -138,9 +152,40 @@ public class PinCode {
 	 * @param source
 	 */
 	public void ReportError(String source){
-		WString user = new WString("psh24053");
+		/*WString user = new WString("psh24053");
 		WString anthor = new WString(source);
-		FastVerCode.INSTANCE.ReportError(user, anthor);
+		FastVerCode.INSTANCE.ReportError(user, anthor);*/
+		
+		
+		HttpClient httpClient = new DefaultHttpClient();
+		
+		HttpPost httpPost = new HttpPost("http://dama3.yzmbuy.com/lz_yzmphp/update_err.php");
+		
+		List<NameValuePair> formParams = new ArrayList<NameValuePair>();
+		
+		formParams.add(new BasicNameValuePair("worker", source));
+		formParams.add(new BasicNameValuePair("username", "psh24053"));
+		formParams.add(new BasicNameValuePair("submit", "Ìí ¼Ó"));
+		
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity(formParams,"utf-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			Log.log.error("ReportError Exception Message: "+e.getMessage());
+		}
+		
+		try {
+			httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			Log.log.error(e.getMessage());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			Log.log.error(e.getMessage());
+		} 
+		httpClient.getConnectionManager().shutdown();
+		
+		
 	}
 	
 	
@@ -162,7 +207,74 @@ public class PinCode {
 	
 	
 	
-	
+	/**
+     * 去掉url中的路径，留下请求参数部分
+     * @param strURL url地址
+     * @return url请求参数部分
+     */
+    private static String TruncateUrlPage(String strURL)
+    {
+    String strAllParam=null;
+      String[] arrSplit=null;
+      
+      strURL=strURL.trim().toLowerCase();
+      
+      arrSplit=strURL.split("[?]");
+      if(strURL.length()>1)
+      {
+          if(arrSplit.length>1)
+          {
+                  if(arrSplit[1]!=null)
+                  {
+                  strAllParam=arrSplit[1];
+                  }
+          }
+      }
+      
+    return strAllParam;    
+    }
+	/**
+     * 解析出url参数中的键值对
+     * 如 "index.jsp?Action=del&id=123"，解析出Action:del,id:123存入map中
+     * @param URL  url地址
+     * @return  url请求参数部分
+     */
+    public static Map<String, String> URLRequest(String URL)
+    {
+    Map<String, String> mapRequest = new HashMap<String, String>();
+    
+      String[] arrSplit=null;
+      
+    String strUrlParam= TruncateUrlPage(URL);
+    if(strUrlParam==null)
+    {
+        return mapRequest;
+    }
+      //每个键值为一组
+    arrSplit=strUrlParam.split("[&]");
+    for(String strSplit:arrSplit)
+    {
+          String[] arrSplitEqual=null;          
+          arrSplitEqual= strSplit.split("[=]"); 
+          
+          //解析出键值
+          if(arrSplitEqual.length>1)
+          {
+              //正确解析
+              mapRequest.put(arrSplitEqual[0], arrSplitEqual[1]);
+              
+          }
+          else
+          {
+              if(arrSplitEqual[0]!="")
+              {
+              //只有参数没有值，不加入
+              mapRequest.put(arrSplitEqual[0], "");        
+              }
+          }
+    }    
+    return mapRequest;    
+    }
 	
 	
 }

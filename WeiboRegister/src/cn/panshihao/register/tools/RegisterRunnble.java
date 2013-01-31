@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -30,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import cn.panshihao.desktop.commons.HtmlTools;
@@ -66,7 +69,7 @@ public class RegisterRunnble implements Runnable {
 				dao.insert(account);
 			}
 			
-			if(proxy.getChecktime() != 10001){
+			if(proxy.getChecktime() != 10001 && !proxyService.getTimeOutData().contains(proxy)){
 				
 				// 将已经使用过的proxyModel归还到内存中
 				proxyService.revertProxyModel(proxy, System.currentTimeMillis());
@@ -142,9 +145,14 @@ public class RegisterRunnble implements Runnable {
 			Log.log.error(e.getMessage());
 			return false;
 		} catch (IOException e) {
+			if(e.getMessage().indexOf("refused") != -1){
+				proxyService.getTimeOutData().add(proxy);
+			}
+			
 			Log.log.error(e.getMessage());
 			return false;
-		}
+		} 
+		
 		HttpEntity httpEntity = httpResponse.getEntity();
 		
 		String html = null;
@@ -171,6 +179,14 @@ public class RegisterRunnble implements Runnable {
 		
 		// 使用Jsoup解析html
 		Document doc = Jsoup.parse(html);
+		
+		Elements pincodeElements = doc.getElementsByAttributeValue("action-type", "btn_change_verifycode");
+		String pincodeURL = null;
+		if(pincodeElements != null && pincodeElements.size() > 0){
+			pincodeURL = pincodeElements.get(0).attr("src");
+		}
+		
+		
 		Elements elements = doc.getElementsByAttributeValue("type", "hidden");
         
 		List<NameValuePair> formParams = new ArrayList<NameValuePair>();
@@ -196,13 +212,113 @@ public class RegisterRunnble implements Runnable {
 		formParams.add(new BasicNameValuePair("rejectFake", "clickCount=7&subBtnClick=0&keyPress=43&menuClick=0&mouseMove=732&checkcode=0&subBtnPosx=545&subBtnPosy=240&subBtnDelay=94&keycode=0,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0&winWidth=1366&winHeight=336&userAgent=Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0")); 
 		
 		
+		// 验证邮箱是否可用
+		
+		httpPost = new HttpPost("http://www.weibo.com/signup/v5/formcheck?type=email&value="+URLEncoder.encode(account.getEmail())+"&__rnd="+regtime);
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IOException e) {
+			if(e.getMessage().indexOf("refused") != -1){
+				proxyService.getTimeOutData().add(proxy);
+			}
+			
+			Log.log.error(e.getMessage());
+			return false;
+		} 
+		
+		try {
+			String formcheckEmail = HtmlTools.getHtml(httpResponse.getEntity());
+			if(formcheckEmail != null){
+				JSONObject form = new JSONObject(formcheckEmail);
+				if(!form.has("code") || !(form.getInt("code") == 100000)){
+					Log.log.error("email exist!");
+					return false;
+				}
+			}
+			
+		} catch (UnsupportedEncodingException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IllegalStateException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IOException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (JSONException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		}
+		
+		// 验证昵称是否可用
+		
+		httpPost = new HttpPost("http://www.weibo.com/signup/v5/formcheck?type=nickname&value="+URLEncoder.encode(account.getNickname())+"&__rnd="+regtime);
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IOException e) {
+			if(e.getMessage().indexOf("refused") != -1){
+				proxyService.getTimeOutData().add(proxy);
+			}
+			
+			Log.log.error(e.getMessage());
+			return false;
+		} 
+		
+		try {
+			String formcheckEmail = HtmlTools.getHtml(httpResponse.getEntity());
+			if(formcheckEmail != null){
+				JSONObject form = new JSONObject(formcheckEmail);
+				if(!form.has("code") || !(form.getInt("code") == 100000)){
+					Log.log.error("nickname exist!");
+					return false;
+				}
+			}
+			
+		} catch (UnsupportedEncodingException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IllegalStateException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IOException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (JSONException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		}
+		
+		
+		
 		//拉取验证码
-		PinCode pincode = new PinCode(sinaId, regtime);
+		PinCode pincode = null;
+		
+		if(pincodeURL != null){
+			pincode = new PinCode(pincodeURL);
+		}else{
+			pincode = new PinCode(sinaId, regtime);
+		}
+		
 		// 若拉取验证码失败（内部已经三次失败），
 		if(!pincode.loadPinCode(httpClient)){
 			Log.log.error("get pincode error!");
 			return false;
 		}
+		
+		
+		// TODO 拉取验证码之后，等待10秒，再进行表单提交
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		
 		
 		formParams.add(new BasicNameValuePair("pincode", pincode.getPincode())); 
 		Log.log.debug("pincode -> "+pincode.getPincode());
@@ -319,6 +435,8 @@ public class RegisterRunnble implements Runnable {
 		
 		long endTime = System.currentTimeMillis();
 		
+		
+		httpClient.getConnectionManager().shutdown();
 		
 		Log.log.debug("用时 "+ (endTime - startTime)+" ms");
 		

@@ -56,7 +56,7 @@ public class ProxyService {
 	private List<wb_proxyModel> blockData = new ArrayList<wb_proxyModel>();
 	
 	
-	
+	private List<wb_proxyModel> timeOutData = new ArrayList<wb_proxyModel>();
 	
 	/**
 	 * 从数据库中加载代理服务器数据
@@ -624,6 +624,13 @@ public class ProxyService {
 			
 		}
 		
+		if(timeOutData.size() > 0){
+			long curTime = System.currentTimeMillis();
+			long key = timeOutData.get(0).getChecktime();
+			if(curTime - key > ProxyDelay){
+				return timeOutData.remove(0);
+			}
+		}
 		
 		try {
 			Thread.sleep(1000);
@@ -673,6 +680,12 @@ public class ProxyService {
 
 	public void setBlockData(List<wb_proxyModel> blockData) {
 		this.blockData = blockData;
+	}
+	public List<wb_proxyModel> getTimeOutData() {
+		return timeOutData;
+	}
+	public void setTimeOutData(List<wb_proxyModel> timeOutData) {
+		this.timeOutData = timeOutData;
 	}
 	
 	
