@@ -70,7 +70,7 @@ public class PinCode {
 		if(error_total == 3){
 			return false;
 		}
-		HttpGet httpget = null;
+		HttpPost httpget = null;
 		
 		// 拉取验证码
 		if(url != null){
@@ -79,11 +79,11 @@ public class PinCode {
 			sinaId = maps.get("sinaid");
 			regtime = maps.get("r");
 			
-			httpget = new HttpGet("http://www.weibo.com"+url);
+			httpget = new HttpPost("http://www.weibo.com"+url);
 			
 			
 		}else{
-			httpget = new HttpGet("http://www.weibo.com/signup/v5/pincode/pincode.php?lang=zh&sinaId="+sinaId+"&r="+regtime);
+			httpget = new HttpPost("http://www.weibo.com/signup/v5/pincode/pincode.php?lang=zh&sinaId="+sinaId+"&r="+regtime);
 		}
 		
 		

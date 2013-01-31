@@ -67,6 +67,10 @@ public class RegisterRunnble implements Runnable {
 			if(register){
 				wb_accountDAO dao = new wb_accountDAO();
 				dao.insert(account);
+			}else{
+				if(!registerService.getFaildData().contains(account) && !registerService.getWaitActivationData().contains(account)){
+					registerService.getFaildData().add(account);
+				}
 			}
 			
 			if(proxy.getChecktime() != 10001 && !proxyService.getTimeOutData().contains(proxy)){
@@ -112,7 +116,8 @@ public class RegisterRunnble implements Runnable {
 		
 		
 		//伪装成Firefox 5, 
-		httpClient.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1); httpClient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY); // 一定要有，否则会生成多个Cookie header送给web server 
+		httpClient.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1); 
+//		httpClient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY); // 一定要有，否则会生成多个Cookie header送给web server 
 		httpClient.getParams().setParameter(CookieSpecPNames.SINGLE_COOKIE_HEADER, true); //
 		httpClient.getParams().setParameter(CoreProtocolPNames.HTTP_CONTENT_CHARSET,"UTF-8"); //这个是和目标网站的编码有关；
 		httpClient.getParams().setParameter(CoreProtocolPNames.HTTP_ELEMENT_CHARSET,"UTF-8"); 
@@ -127,7 +132,7 @@ public class RegisterRunnble implements Runnable {
 		headerList.add(new BasicHeader("Host", "www.weibo.com"));
 		headerList.add(new BasicHeader("Origin", "http://www.weibo.com"));
 		headerList.add(new BasicHeader("Referer", "http://www.weibo.com/signup/mobile.php"));
-		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
+//		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(30000)); 
 		httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT,  new Integer(30000) ); 
 		httpClient.getParams().setParameter(ClientPNames.CONN_MANAGER_TIMEOUT, new Long(30000)); // second;
@@ -312,9 +317,9 @@ public class RegisterRunnble implements Runnable {
 		}
 		
 		
-		// TODO 拉取验证码之后，等待10秒，再进行表单提交
+		// TODO 拉取验证码之后，等待2秒，再进行表单提交
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(2000);
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}

@@ -74,7 +74,7 @@ public class RegisterService {
 	 * @param regcount 注册数量
 	 * @param threadSize 线程数量
 	 */
-	public void startRegister(int regcount, int threadSize){
+	public void startRegister(final int regcount, int threadSize){
 		if(randomData == null){
 			GenerateRandomData(regcount);
 		}
@@ -91,6 +91,29 @@ public class RegisterService {
 		for(int i = 0 ; i < threadSize ; i ++){
 			executorService.execute(new RegisterRunnble(this, proxyService));
 		}
+		
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				boolean bool = true;
+				while(bool){
+					
+					if(randomData.size() == 0 && (waitActivationData.size() + faildData.size()) == regcount){
+						
+						Log.log.debug("Register Complete!");
+						Log.log.debug("Target Count "+regcount);
+						Log.log.debug("waitActivation Count "+waitActivationData.size());
+						Log.log.debug("faildData Count "+faildData.size());
+						bool = false;
+						executorService.shutdown();
+					}
+					
+				}
+			}
+		}).start();
+		
 		
 	}
 	/**
