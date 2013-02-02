@@ -3,6 +3,7 @@ package cn.panshihao.weiboactivation;
 import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLDecoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +15,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
@@ -24,25 +28,6 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 public class ActivationServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	public static ComboPooledDataSource db;
-	
-	static{
-		db = new ComboPooledDataSource();
-		try {
-			db.setDriverClass("com.mysql.jdbc.Driver");
-		} catch (PropertyVetoException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-    	db.setJdbcUrl("jdbc:mysql://localhost:3306/wb_reg?useUnicode=true&characterEncoding=UTF-8");
-    	db.setUser("root");
-    	db.setPassword("root");
-    	db.setMaxPoolSize(100);
-    	db.setInitialPoolSize(5);
-    	db.setMaxIdleTime(60);
-		
-		
-	}
 	
     /**
      * Default constructor. 
@@ -67,32 +52,37 @@ public class ActivationServlet extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		
-		PrintWriter out = response.getWriter();
-		
 		String email = request.getParameter("email");
 		String url = request.getParameter("url");
+
+		
 		
 		if(email == null || url == null){
-			out.write("Paramster error!");
-			out.flush();
-			out.close();
+			Tools.log.error("Paramster Error");
 			return;
 		}
+		email = URLDecoder.decode(email);
+		url = URLDecoder.decode(url);
+		
+		Tools.log.debug("doPost email -> "+email+" ,url -> "+url);
 		
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		int aid = -1;
-		System.out.println(email +" , "+url);
 		try {
-			conn = db.getConnection();
+			conn = Tools.getMysqlConn();
+			if(conn == null){
+				Tools.log.error("get mysql conn error");
+				return;
+			}
 			pstmt = conn.prepareStatement("SELECT aid FROM wb_account WHERE email = ?");
 			pstmt.setString(1, email);
 			rs = pstmt.executeQuery();
 			
 			if(rs.next()){
 				aid = rs.getInt("aid");
-				System.out.println(aid +" , ");
+				Tools.log.debug("aid -> "+aid);
 			}else{
 				return;
 			}
@@ -111,8 +101,10 @@ public class ActivationServlet extends HttpServlet {
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Tools.log.error(e.getMessage(), e);
+			return;
 		} finally {
+			
 			if(rs != null){
 				try {
 					rs.close();
@@ -141,14 +133,11 @@ public class ActivationServlet extends HttpServlet {
 			
 		}
 		
-		out.write("Insert Success!");
-		out.flush();
-		out.close();
-		System.out.println("已插入数据库   aid: "+aid+" ,email: "+email);
+		Tools.log.debug("已插入数据库   aid: "+aid+" ,email: "+email+" ,url: "+url);
 
 		
 		// 启动激活线程
-		new ActivationService(aid, email, url).start();
+//		new ActivationService(aid, email, url).start();
 		
 		
 		

@@ -9,15 +9,19 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
-  
   <servlet>
-  	<servlet-name>ActivationServlet</servlet-name>
-  	<servlet-class>cn.panshihao.weiboactivation.ActivationServlet</servlet-class>
+    <servlet-name>ActivationServlet</servlet-name>
+    <servlet-class>cn.panshihao.weiboactivation.ActivationServlet</servlet-class>
   </servlet>
-  
   <servlet-mapping>
-  	<servlet-name>ActivationServlet</servlet-name>
-  	<url-pattern>/Activation</url-pattern>
+    <servlet-name>ActivationServlet</servlet-name>
+    <url-pattern>/Activation</url-pattern>
   </servlet-mapping>
+  
+  <listener>
+        <listener-class>
+            cn.panshihao.weiboactivation.ServerStartListener
+        </listener-class>
+    </listener>
   
 </web-app>

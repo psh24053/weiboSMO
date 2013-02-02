@@ -123,16 +123,9 @@ public class RegisterRunnble implements Runnable {
 		httpClient.getParams().setParameter(CoreProtocolPNames.HTTP_ELEMENT_CHARSET,"UTF-8"); 
 		List<BasicHeader> headerList = new ArrayList<BasicHeader>(); 
 		headerList.add(new BasicHeader("Accept", "*/*")); 
-		headerList.add(new BasicHeader("Accept-Charset", "GBK,utf-8;q=0.7,*;q=0.3"));
-		headerList.add(new BasicHeader("Accept-Language", "zh-CN,zh;q=0.8"));
-		headerList.add(new BasicHeader("Cache-Control", "no-cache")); 
 		headerList.add(new BasicHeader("Connection", "keep-alive"));
-		headerList.add(new BasicHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8"));
-		headerList.add(new BasicHeader("X-Requested-With", "XMLHttpRequest"));
-		headerList.add(new BasicHeader("Host", "www.weibo.com"));
-		headerList.add(new BasicHeader("Origin", "http://www.weibo.com"));
-		headerList.add(new BasicHeader("Referer", "http://www.weibo.com/signup/mobile.php"));
-//		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
+		headerList.add(new BasicHeader("Referer", "http://www.weibo.com/"));
+		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(30000)); 
 		httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT,  new Integer(30000) ); 
 		httpClient.getParams().setParameter(ClientPNames.CONN_MANAGER_TIMEOUT, new Long(30000)); // second;

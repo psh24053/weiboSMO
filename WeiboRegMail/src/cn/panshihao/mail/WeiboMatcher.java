@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -110,7 +111,7 @@ public class WeiboMatcher extends GenericMatcher {
 	public void ConnectLocalServer(String email, String url){
 		HttpClient httpClient = new DefaultHttpClient();
 		
-		HttpGet httpGet = new HttpGet("http://127.0.0.1:8888/WeiboActivationServer/Activation?email="+email+"&url="+url);
+		HttpGet httpGet = new HttpGet("http://127.0.0.1:8888/WeiboActivationServer/Activation?email="+URLEncoder.encode(email)+"&url="+URLEncoder.encode(url));
 		
 		try {
 			httpClient.execute(httpGet);

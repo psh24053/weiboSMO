@@ -9,7 +9,7 @@ public class main {
 		
 		
 		
-		service.startRegister(10, 10);
+		service.startRegister(100, 100);
 		
 		
 	}
