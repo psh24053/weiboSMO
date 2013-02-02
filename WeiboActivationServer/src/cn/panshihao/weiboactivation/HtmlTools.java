@@ -130,5 +130,27 @@ public class HtmlTools {
 		return result;
 	}
 	
+	/**
+	 * 获取html,String支持换行
+	 * @param entity
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
+	public static String getHtmlByBr(InputStream input) throws UnsupportedEncodingException, IllegalStateException, IOException{
+		BufferedReader in = new BufferedReader(new InputStreamReader(input,"UTF-8"));
+		
+		String temp = "";
+		String result = "";
+		
+		while((temp = in.readLine()) != null){
+			result += temp.trim() + "\n";
+		}
+		
+		in.close();
+		
+		return result;
+	}
 }
 

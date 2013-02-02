@@ -136,8 +136,14 @@ public class ActivationServlet extends HttpServlet {
 		Tools.log.debug("已插入数据库   aid: "+aid+" ,email: "+email+" ,url: "+url);
 
 		
-		// 启动激活线程
-//		new ActivationService(aid, email, url).start();
+		wb_proxyModel proxy = Tools.proxyService.getRandomProxyModel();
+		
+		if(proxy != null){
+			// 启动激活线程
+			new ActivationService(aid, email, url, proxy).start();
+			
+		}
+		
 		
 		
 		

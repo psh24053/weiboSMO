@@ -12,6 +12,8 @@ public class Tools {
 
 	public static ComboPooledDataSource db;
 	public static Logger log = Logger.getLogger(Tools.class);
+	public static ProxyService proxyService;
+	
 	
 	public static Connection getMysqlConn(){
 		

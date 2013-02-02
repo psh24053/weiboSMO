@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
@@ -24,6 +25,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.message.BasicHeader;
@@ -44,12 +46,14 @@ public class ActivationService extends Thread {
 	private String email;
 	private String url;
 	private long start;
+	private wb_proxyModel proxy;
 	
 	
-	public ActivationService(int aid, String email, String url){
+	public ActivationService(int aid, String email, String url, wb_proxyModel proxy){
 		this.aid = aid;
 		this.email = email;
 		this.url = url;
+		this.proxy = proxy;
 	}
 	
 	@Override
@@ -76,6 +80,8 @@ public class ActivationService extends Thread {
 		headerList.add(new BasicHeader("Accept", "*/*")); 
 		headerList.add(new BasicHeader("Connection", "keep-alive"));
 		
+		httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
+        
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		httpClient.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS, false);
 		
@@ -568,12 +574,15 @@ public class ActivationService extends Thread {
 		
 		Tools.log.debug("Activation Success! aid -> "+aid+" , 耗时 "+(System.currentTimeMillis() - start)+" ms");
 		
+		
+		Tools.proxyService.getProxyData().put(System.currentTimeMillis(), proxy);
+		
 		return true;
 	}
 	
 	public static void main(String[] args) throws IOException {
 		
-		new ActivationService(15, "ae7e7694cf@uhomeu.com", "http://weibo.com/signup/v5/active?username=ae7e7694cf@uhomeu.com&rand=b34a0537b73151bd19cfafaa80f7e31a&sinaid=d9d11f830d5283741e8ea9c3b27af129&inviteCode=&invitesource=0&lang=zh-cn&entry=&backurl=").start();
+//		new ActivationService(15, "ae7e7694cf@uhomeu.com", "http://weibo.com/signup/v5/active?username=ae7e7694cf@uhomeu.com&rand=b34a0537b73151bd19cfafaa80f7e31a&sinaid=d9d11f830d5283741e8ea9c3b27af129&inviteCode=&invitesource=0&lang=zh-cn&entry=&backurl=").start();
 		
 		
 //		System.out.println(testHtml());

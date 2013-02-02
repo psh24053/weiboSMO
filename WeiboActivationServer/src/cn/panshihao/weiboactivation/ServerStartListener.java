@@ -42,6 +42,10 @@ public class ServerStartListener implements ServletContextListener {
 //		Tools.db.setMaxPoolSize(100);
 //		Tools.db.setInitialPoolSize(5);
 //		Tools.db.setMaxIdleTime(60);
+    	
+    	Tools.proxyService = new ProxyService();
+    	Tools.proxyService.loadProxyData();
+    	
     }
 
 	/**
