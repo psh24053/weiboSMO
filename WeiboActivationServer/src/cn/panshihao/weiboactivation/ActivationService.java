@@ -151,7 +151,6 @@ public class ActivationService extends Thread {
 		
 		
 		if(html != null){
-			System.out.println(html);
 			
 			Document doc = Jsoup.parse(html);
 			
@@ -186,7 +185,6 @@ public class ActivationService extends Thread {
 				e1.printStackTrace();
 			}
 			
-			System.out.println(ssoHtml);
 			
 			if(ssoHtml != null){
 				
@@ -517,19 +515,6 @@ public class ActivationService extends Thread {
 					e1.printStackTrace();
 				}
 				
-				try {
-					System.out.println("data_5 : "+data_5);
-					System.out.println(HtmlTools.getHtmlByBr(httpResponse.getEntity()));
-				} catch (UnsupportedEncodingException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IllegalStateException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
 				
 			}
 			
