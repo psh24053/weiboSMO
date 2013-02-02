@@ -2,7 +2,8 @@
 SQLyog Ultimate v9.62 
 MySQL - 5.0.90-community-nt : Database - wb_reg
 *********************************************************************
-*/
+*/
+
 
 /*!40101 SET NAMES utf8 */;
 
@@ -30,9 +31,20 @@ CREATE TABLE `wb_account` (
   `status` int(1) default '0',
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `email_unique` (`email`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=35 DEFAULT CHARSET=utf8;
 
-/*Data for the table `wb_account` */
+/*Table structure for table `wb_activation` */
+
+DROP TABLE IF EXISTS `wb_activation`;
+
+CREATE TABLE `wb_activation` (
+  `aid` int(6) NOT NULL auto_increment,
+  `email` varchar(128) default NULL,
+  `url` text,
+  `status` int(1) default NULL,
+  PRIMARY KEY  (`aid`),
+  UNIQUE KEY `email_unique` (`email`)
+) ENGINE=MyISAM AUTO_INCREMENT=33 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `wb_manager` */
 
@@ -47,8 +59,6 @@ CREATE TABLE `wb_manager` (
   UNIQUE KEY `username_unique` (`username`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-/*Data for the table `wb_manager` */
-
 /*Table structure for table `wb_proxy` */
 
 DROP TABLE IF EXISTS `wb_proxy`;
@@ -60,9 +70,20 @@ CREATE TABLE `wb_proxy` (
   `checktime` bigint(21) default NULL,
   PRIMARY KEY  (`proxyid`),
   UNIQUE KEY `ip_unique` (`ip`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1053 DEFAULT CHARSET=utf8;
 
-/*Data for the table `wb_proxy` */
+/*Table structure for table `wb_proxy_cn` */
+
+DROP TABLE IF EXISTS `wb_proxy_cn`;
+
+CREATE TABLE `wb_proxy_cn` (
+  `proxyid` int(6) NOT NULL auto_increment,
+  `ip` varchar(128) default NULL,
+  `port` int(5) default NULL,
+  `checktime` bigint(21) default NULL,
+  PRIMARY KEY  (`proxyid`),
+  UNIQUE KEY `ip_unique` (`ip`)
+) ENGINE=MyISAM AUTO_INCREMENT=322 DEFAULT CHARSET=utf8;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
