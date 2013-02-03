@@ -81,7 +81,10 @@ public class ActivationService extends Thread {
 		headerList.add(new BasicHeader("Accept", "*/*")); 
 		headerList.add(new BasicHeader("Connection", "keep-alive"));
 		
-		httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
+		if(proxy != null){
+			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
+		}
+		
         
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		httpClient.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS, false);
