@@ -47,8 +47,9 @@ import cn.panshihao.register.model.wb_proxyModel;
 public class ProxyService {
 
 	
-	public static final long ProxyDelay = 300000;
+	public static final long ProxyDelay = 720000;
 	public static final long BlockedDelay = 1800000;
+	public static final long refreshDelay = 3600000;
 	
 	/**
 	 * 代理服务器数据
@@ -67,12 +68,26 @@ public class ProxyService {
 	 * 从数据库中加载代理服务器数据
 	 */
 	public void loadProxyData(){
-		wb_proxyDAO dao = new wb_proxyDAO();
-		List<wb_proxyModel> data = dao.selectByAvailable();
+		blockData.clear();
+		timeOutData.clear();
+		ProxyData.clear();
 		
-		for(int i = 0 ; i < data.size() ; i ++){
-			ProxyData.put(System.currentTimeMillis() - ProxyDelay + i, data.get(i));
+		
+		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
+		String[] hosts = html.split("\n");
+		
+		Log.log.debug("Yun Proxy Count "+hosts.length);
+		
+		for(int i = 0 ; i < hosts.length ; i ++){
+			String host = hosts[i];
+			wb_proxyModel item = new wb_proxyModel();
+			item.setIp(host.split(":")[0]);
+			item.setPort(Integer.parseInt(host.split(":")[1]));
+			long time = System.currentTimeMillis() - ProxyDelay + i;
+			item.setChecktime(time);
+			ProxyData.put(time, item);
 		}
+		
 		
 	}
 	/**
@@ -146,7 +161,7 @@ public class ProxyService {
 	 */
 	public void loadFreeProxyLists(){
 		for(int i = 1 ; i < 36 ; i ++){
-			String html = HtmlTools.getFileContent(new File("E:\\proxys\\freeproxylists\\"+i+".htm"));
+			String html = HtmlTools.getFileContent(new File("freeproxylists",i+".htm"));
 			Document doc = Jsoup.parse(html);
 			Elements trs = doc.select(".DataGrid tbody tr");
 			
@@ -188,6 +203,18 @@ public class ProxyService {
 			}
 			
 		}
+	}
+	/**
+	 * 付费HTTP代理
+	 * http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/
+	 */
+	public void loadYunProxy(){
+		
+		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
+		
+		String[] hosts = html.split("\n");
+		
+		System.out.println(hosts.length);
 	}
 	
 	/**
@@ -948,12 +975,14 @@ public class ProxyService {
 //		s.get_xici_wn();
 //		s.get_xici_wt();
 //		s.getCZ88BBS_LOCAL_FILE("proxy.txt");
-		
+//		
 //		s.loadProxy_LinkTool();
 //		s.loadSitedigger();
 //		s.loadCoolProxy();
 //		s.loadFreeProxyLists();
-		s.loadCZ88();
+//		s.loadCZ88();
+		
+		s.loadYunProxy();
 		
 	}
 	

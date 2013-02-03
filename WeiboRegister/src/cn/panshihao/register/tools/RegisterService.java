@@ -85,12 +85,31 @@ public class RegisterService {
 		}
 		executorService = Executors.newFixedThreadPool(threadSize);
 		
-		ProxyService proxyService = new ProxyService();
+		final ProxyService proxyService = new ProxyService();
 		proxyService.loadProxyData();
 		
+		System.out.println("load proxy complete");
 		for(int i = 0 ; i < threadSize ; i ++){
 			executorService.execute(new RegisterRunnble(this, proxyService));
 		}
+		
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				boolean bool = true;
+				long time = System.currentTimeMillis();
+				while(bool){
+					long cur = System.currentTimeMillis();
+					if(cur - time > ProxyService.refreshDelay){
+						proxyService.loadProxyData();
+						time = System.currentTimeMillis();
+					}
+					
+				}
+			}
+		}).start(); 
 		
 		new Thread(new Runnable() {
 			
