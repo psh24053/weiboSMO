@@ -43,7 +43,7 @@ import org.jsoup.select.Elements;
 public class ProxyService {
 
 	
-	public static final long ProxyDelay = 180000;
+	public static final long ProxyDelay = 300000;
 	
 	/**
 	 * 代理服务器数据
