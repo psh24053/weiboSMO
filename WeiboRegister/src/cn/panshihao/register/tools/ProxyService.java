@@ -47,7 +47,7 @@ import cn.panshihao.register.model.wb_proxyModel;
 public class ProxyService {
 
 	
-	public static final long ProxyDelay = 300000;
+	public static final long ProxyDelay = 180000;
 	
 	/**
 	 * 代理服务器数据
@@ -810,7 +810,7 @@ public class ProxyService {
 		}
 		
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			Log.log.error(e.getMessage(), e);
 		}
@@ -836,9 +836,7 @@ public class ProxyService {
 	public synchronized void proxyOnBlocked(wb_proxyModel model){
 		wb_proxyDAO dao = new wb_proxyDAO();
 		
-		model.setChecktime(10001);
-		
-		dao.update(model);
+		model.setChecktime(System.currentTimeMillis() + 600000);
 		
 	}
 	

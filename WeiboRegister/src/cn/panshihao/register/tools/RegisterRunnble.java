@@ -144,6 +144,7 @@ public class RegisterRunnble implements Runnable {
 			return false;
 		} catch (IOException e) {
 			if(e.getMessage().indexOf("refused") != -1){
+				proxy.setChecktime(System.currentTimeMillis());
 				proxyService.getTimeOutData().add(proxy);
 			}
 			
@@ -293,6 +294,52 @@ public class RegisterRunnble implements Runnable {
 		}
 		
 		
+		// 判断该ip是否被禁止
+		
+		httpPost = new HttpPost("http://www.weibo.com/signup/v5/reg");
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity(formParams, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		}
+		
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IOException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		}
+		
+		httpEntity = httpResponse.getEntity();
+		
+		String test_response = null;
+		try {
+			test_response = HtmlTools.getHtmlByBr(httpEntity);
+		} catch (UnsupportedEncodingException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IllegalStateException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		} catch (IOException e) {
+			Log.log.error(e.getMessage());
+			return false;
+		}
+		
+		if(test_response != null && test_response.indexOf("100001") != -1){
+			// 代表该IP已经被禁止！
+			registerService.getFaildData().add(account);
+			proxyService.getBlockData().add(proxy);
+			proxyService.proxyOnBlocked(proxy);
+			Log.log.debug("【Register Faild】 proxy ip Blocked. "+proxy);
+
+			return false;
+		}
+		
 		
 		//拉取验证码
 		PinCode pincode = null;
@@ -307,14 +354,6 @@ public class RegisterRunnble implements Runnable {
 		if(!pincode.loadPinCode(httpClient)){
 			Log.log.error("get pincode error!");
 			return false;
-		}
-		
-		
-		// TODO 拉取验证码之后，等待2秒，再进行表单提交
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
 		}
 		
 		

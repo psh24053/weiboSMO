@@ -43,7 +43,7 @@ import org.jsoup.select.Elements;
 public class ProxyService {
 
 	
-	public static final long ProxyDelay = 300000;
+	public static final long ProxyDelay = 180000;
 	
 	/**
 	 * 代理服务器数据
@@ -942,7 +942,7 @@ public class ProxyService {
 		}
 		
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			Tools.log.error(e.getMessage(), e);
 		}

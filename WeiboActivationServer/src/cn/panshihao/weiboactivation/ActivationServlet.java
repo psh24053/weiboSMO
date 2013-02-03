@@ -27,7 +27,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 @WebServlet("/ActivationServlet")
 public class ActivationServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-
+	public static int total = 0;
 	
     /**
      * Default constructor. 
@@ -49,6 +49,9 @@ public class ActivationServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		total++;
+		System.out.println("当前接收到url: "+total);
+		
 		request.setCharacterEncoding("UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		

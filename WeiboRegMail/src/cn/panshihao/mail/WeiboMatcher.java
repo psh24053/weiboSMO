@@ -60,7 +60,9 @@ import org.jsoup.select.Elements;
 
 public class WeiboMatcher extends GenericMatcher {
 
-	public static final String DOMAIN = "uhomeu.com";
+	public static final String DOMAIN = "ksgym.com";
+	public static int total = 0;
+	
 	
 	@Override
 	public Collection match(Mail mail) throws MessagingException {
@@ -109,9 +111,13 @@ public class WeiboMatcher extends GenericMatcher {
 		return null;
 	}
 	public void ConnectLocalServer(String email, String url){
+		total++;
+		System.out.println("当前接收到激活邮件: "+total);
+		
+		
 		HttpClient httpClient = new DefaultHttpClient();
 		
-		HttpGet httpGet = new HttpGet("http://127.0.0.1:8888/WeiboActivationServer/Activation?email="+URLEncoder.encode(email)+"&url="+URLEncoder.encode(url));
+		HttpGet httpGet = new HttpGet("http://127.0.0.1:8080/WeiboActivationServer/Activation?email="+URLEncoder.encode(email)+"&url="+URLEncoder.encode(url));
 		
 		try {
 			httpClient.execute(httpGet);

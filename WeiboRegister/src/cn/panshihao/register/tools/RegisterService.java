@@ -15,7 +15,7 @@ import cn.panshihao.register.model.wb_accountModel;
 
 public class RegisterService {
 
-	public static final String EmailServerDomain = "uhomeu.com";
+	public static final String EmailServerDomain = "ksgym.com";
 	
 	
 	/**
