@@ -67,7 +67,7 @@ public class ActivationServlet extends HttpServlet {
 		email = URLDecoder.decode(email);
 		url = URLDecoder.decode(url);
 		
-		Tools.log.debug("doPost email -> "+email+" ,url -> "+url);
+		System.out.println("doPost email -> "+email+" ,url -> "+url);
 		
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -76,7 +76,7 @@ public class ActivationServlet extends HttpServlet {
 		try {
 			conn = Tools.getMysqlConn();
 			if(conn == null){
-				Tools.log.error("get mysql conn error");
+				System.out.println("get mysql conn error");
 				return;
 			}
 			pstmt = conn.prepareStatement("SELECT aid FROM wb_account WHERE email = ?");
@@ -136,7 +136,7 @@ public class ActivationServlet extends HttpServlet {
 			
 		}
 		
-		Tools.log.debug("已插入数据库   aid: "+aid+" ,email: "+email+" ,url: "+url);
+		System.out.println("已插入数据库   aid: "+aid+" ,email: "+email+" ,url: "+url);
 
 		
 		wb_proxyModel proxy = Tools.proxyService.getRandomProxyModel();

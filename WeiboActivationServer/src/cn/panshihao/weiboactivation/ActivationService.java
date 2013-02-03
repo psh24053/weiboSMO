@@ -41,6 +41,7 @@ import org.jsoup.select.Elements;
 
 public class ActivationService extends Thread {
 
+	public static int activationedTotal = 0;
 	
 	private int aid;
 	private String email;
@@ -100,7 +101,6 @@ public class ActivationService extends Thread {
 		
 		// 第一次访问的location
 		Header locationHeader = httpResponse.getFirstHeader("Location");
-		System.out.println("name: "+locationHeader.getName()+" , value: "+locationHeader.getValue());
 		
 		String firstUrl = locationHeader.getValue();
 		
@@ -117,13 +117,11 @@ public class ActivationService extends Thread {
 		
 		// 第二次访问的location
 		locationHeader = httpResponse.getFirstHeader("Location");
-		System.out.println("name: "+locationHeader.getName()+" , value: "+locationHeader.getValue());
 		
 		String secondUrl = locationHeader.getValue();
 		
 		httpGet = new HttpGet(locationHeader.getValue());
 		httpGet.addHeader("Referer", "http://www.weibo.com"+firstUrl);
-		System.out.println("Referer url -> http://www.weibo.com"+firstUrl);
 		
 		try {
 			httpResponse = httpClient.execute(httpGet);
@@ -214,7 +212,6 @@ public class ActivationService extends Thread {
 				
 				String ssoLocation = locat.getValue();
 				
-				System.out.println(locat.getValue());
 				
 				httpGet = new HttpGet(ssoLocation);
 				httpGet.setHeader("Referer", ssoUrl);
@@ -271,8 +268,6 @@ public class ActivationService extends Thread {
 	 * @return
 	 */
 	public boolean updateUid(int aid,String html){
-		
-		System.out.println("updateUid "+aid);
 		
 		Document doc = Jsoup.parse(html);
 		Element el = doc.getElementsByTag("script").get(0);
@@ -559,6 +554,8 @@ public class ActivationService extends Thread {
 		
 		Tools.log.debug("Activation Success! aid -> "+aid+" , 耗时 "+(System.currentTimeMillis() - start)+" ms");
 		
+		activationedTotal++;
+		System.out.println("已激活 "+activationedTotal);
 		
 		Tools.proxyService.getProxyData().put(System.currentTimeMillis(), proxy);
 		

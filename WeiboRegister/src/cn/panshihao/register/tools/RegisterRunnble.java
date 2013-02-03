@@ -335,7 +335,7 @@ public class RegisterRunnble implements Runnable {
 			registerService.getFaildData().add(account);
 			proxyService.getBlockData().add(proxy);
 			proxyService.proxyOnBlocked(proxy);
-			Log.log.debug("【Register Faild】 proxy ip Blocked. "+proxy);
+			Log.log.debug(" proxy ip Blocked. "+proxy);
 
 			return false;
 		}
