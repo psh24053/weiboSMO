@@ -48,6 +48,7 @@ public class ProxyService {
 
 	
 	public static final long ProxyDelay = 300000;
+	public static final long BlockedDelay = 1800000;
 	
 	/**
 	 * 代理服务器数据
@@ -836,7 +837,7 @@ public class ProxyService {
 	public synchronized void proxyOnBlocked(wb_proxyModel model){
 		wb_proxyDAO dao = new wb_proxyDAO();
 		
-		model.setChecktime(System.currentTimeMillis() + 600000);
+		model.setChecktime(System.currentTimeMillis() + BlockedDelay);
 		
 	}
 	
