@@ -1,4 +1,4 @@
-package cn.panshihao.register.dao;
+package cn.panshihao.proxysearch;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -7,10 +7,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.panshihao.desktop.commons.Log;
-import cn.panshihao.desktop.commons.SQLConn;
-import cn.panshihao.register.model.wb_proxyModel;
-import cn.panshihao.register.model.wb_proxyModel;
 
 public class wb_proxyDAO {
 
@@ -27,7 +23,8 @@ public class wb_proxyDAO {
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("select * from wb_proxy where checktime != 10001 order by rand()");
 			
 			rs = pstmt.executeQuery();
@@ -50,27 +47,27 @@ public class wb_proxyDAO {
 			
 			
 		} catch (SQLException e) {
-			Log.log.error(e.getMessage(), e);
+			Tools.log.error(e.getMessage(), e);
 		} finally {
 			if(rs != null){
 				try {
 					rs.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			if(pstmt != null){
 				try {
 					pstmt.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			if(conn != null){
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			
@@ -78,9 +75,9 @@ public class wb_proxyDAO {
 		}
 		
 		if(data != null){
-			Log.log.debug("【Success】Select Available wb_proxy Size -> "+data.size());
+			Tools.log.debug("【Success】Select Available wb_proxy Size -> "+data.size());
 		}else{
-			Log.log.debug("【Faild】Select Available wb_proxy");
+			Tools.log.debug("【Faild】Select Available wb_proxy");
 		}
 		
 		
@@ -100,7 +97,7 @@ public class wb_proxyDAO {
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("select * from wb_proxy order by rand()");
 			rs = pstmt.executeQuery();
 			data = new ArrayList<wb_proxyModel>();
@@ -122,27 +119,27 @@ public class wb_proxyDAO {
 			
 			
 		} catch (SQLException e) {
-			Log.log.error(e.getMessage(), e);
+			Tools.log.error(e.getMessage(), e);
 		} finally {
 			if(rs != null){
 				try {
 					rs.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			if(pstmt != null){
 				try {
 					pstmt.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			if(conn != null){
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			
@@ -150,9 +147,9 @@ public class wb_proxyDAO {
 		}
 		
 		if(data != null){
-			Log.log.debug("【Success】Select all wb_proxy Size -> "+data.size());
+			Tools.log.debug("【Success】Select all wb_proxy Size -> "+data.size());
 		}else{
-			Log.log.debug("【Faild】Select all wb_proxy");
+			Tools.log.debug("【Faild】Select all wb_proxy");
 		}
 		
 		
@@ -171,12 +168,12 @@ public class wb_proxyDAO {
 		int resultCount = 0;
 		
 		if(model == null){
-			System.out.println("insert wb_proxyModel is null!");
+			Tools.log.error("insert wb_proxyModel is null!");
 			return false;
 		}
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("insert into wb_proxy(ip, port, checktime) values(?,?,?)");
 			
 			pstmt.setString(1, model.getIp());
@@ -186,20 +183,20 @@ public class wb_proxyDAO {
 			resultCount = pstmt.executeUpdate();
 			
 		} catch (SQLException e) {
-			Log.log.error(e.getMessage(), e);
+			Tools.log.error(e.getMessage(), e);
 		} finally {
 			if(pstmt != null){
 				try {
 					pstmt.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			if(conn != null){
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			
@@ -207,9 +204,9 @@ public class wb_proxyDAO {
 		}
 		
 		if(resultCount > 0){
-			System.out.println("【Success】 insert "+model.toString());
+			Tools.log.debug("【Success】 insert "+model.toString());
 		}else{
-			System.out.println("【Faild】insert "+model.toString());
+			Tools.log.debug("【Faild】insert "+model.toString());
 		}
 		
 		
@@ -227,18 +224,18 @@ public class wb_proxyDAO {
 		int resultCount = 0;
 		
 		if(model == null){
-			Log.log.error("insert wb_proxyModel is null!");
+			Tools.log.error("insert wb_proxyModel is null!");
 			return false;
 		}
 		if(model.getProxyid() == 0){
-			Log.log.error("insert wb_proxyModel Model Proxyid is 0!");
+			Tools.log.error("insert wb_proxyModel Model Proxyid is 0!");
 			return false;
 		}
 		
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("update wb_proxy set ip = ? , port = ? , checktime = ? where proxyid = ?");
 			
 			pstmt.setString(1, model.getIp());
@@ -250,20 +247,20 @@ public class wb_proxyDAO {
 			resultCount = pstmt.executeUpdate();
 			
 		} catch (SQLException e) {
-			Log.log.error(e.getMessage(), e);
+			Tools.log.error(e.getMessage(), e);
 		} finally {
 			if(pstmt != null){
 				try {
 					pstmt.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			if(conn != null){
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					Log.log.error(e.getMessage(), e);
+					Tools.log.error(e.getMessage(), e);
 				}
 			}
 			
@@ -271,9 +268,9 @@ public class wb_proxyDAO {
 		}
 		
 		if(resultCount > 0){
-			Log.log.debug("【Success】update "+model.toString());
+			Tools.log.debug("【Success】update "+model.toString());
 		}else{
-			Log.log.debug("【Faild】update "+model.toString());
+			Tools.log.debug("【Faild】update "+model.toString());
 		}
 		
 		return resultCount > 0;
