@@ -68,8 +68,6 @@ public class ProxyService {
 	 * 从数据库中加载代理服务器数据
 	 */
 	public void loadProxyData(){
-		blockData.clear();
-		timeOutData.clear();
 		ProxyData.clear();
 		
 		
@@ -87,6 +85,8 @@ public class ProxyService {
 			item.setChecktime(time);
 			ProxyData.put(time, item);
 		}
+		blockData.clear();
+		timeOutData.clear();
 		
 		
 	}
