@@ -246,6 +246,9 @@ public class ActivationService {
 		int result = -1;
 		try {
 			conn = Tools.getMysqlConn();
+			if(conn == null){
+				return updateUid(aid, html);
+			}
 			pstmt = conn.prepareStatement("update wb_account set uid = ? , domain = ? , status = 1 where aid = ?");
 			pstmt.setLong(1, uid);
 			pstmt.setString(2, domain);
@@ -388,6 +391,10 @@ public class ActivationService {
 		// 第二次访问的location
 		locationHeader = httpResponse.getFirstHeader("Location");
 		
+		if(locationHeader == null){
+			return null;
+		}
+		
 		String secondUrl = locationHeader.getValue();
 		System.out.println(model.getAid()+" [2] "+secondUrl);
 		
@@ -403,20 +410,20 @@ public class ActivationService {
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
-			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
-			return null;
+			proxy = proxyService.getRandomProxyModel();
+			return runActivation(model, proxy);
 		} catch (IllegalStateException e){
-			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
-			return null;
+			proxy = proxyService.getRandomProxyModel();
+			return runActivation(model, proxy);
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
-			return null;
+			proxy = proxyService.getRandomProxyModel();
+			return runActivation(model, proxy);
 		}
 		
 			
@@ -425,20 +432,20 @@ public class ActivationService {
 		try {
 			html = HtmlTools.getHtmlByBr(httpResponse.getEntity());
 		} catch (UnsupportedEncodingException e) {
-			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
-			return null;
+			proxy = proxyService.getRandomProxyModel();
+			return runActivation(model, proxy);
 		} catch (IllegalStateException e) {
-			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
-			return null;
+			proxy = proxyService.getRandomProxyModel();
+			return runActivation(model, proxy);
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
-			return null;
+			proxy = proxyService.getRandomProxyModel();
+			return runActivation(model, proxy);
 		}
 		
 		if(html != null){

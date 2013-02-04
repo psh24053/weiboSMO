@@ -84,7 +84,7 @@ public class wb_accountDAO {
 	 * 返回所有wb_accountModel对象
 	 * @return
 	 */
-	public List<wb_accountModel> selectALL(){
+	public synchronized List<wb_accountModel> selectALL(){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -233,7 +233,7 @@ public class wb_accountDAO {
 	 * @param model
 	 * @return
 	 */
-	public boolean insert(wb_accountModel model){
+	public synchronized boolean insert(wb_accountModel model){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		int resultCount = 0;
@@ -291,7 +291,7 @@ public class wb_accountDAO {
 	 * @param aid
 	 * @return
 	 */
-	public boolean delete(int aid){
+	public synchronized boolean delete(int aid){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		int resultCount = 0;
@@ -338,7 +338,7 @@ public class wb_accountDAO {
 	 * @param model
 	 * @return
 	 */
-	public boolean update(wb_accountModel model){
+	public synchronized boolean update(wb_accountModel model){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		int resultCount = 0;
