@@ -265,6 +265,7 @@ public class ActivationService implements Runnable {
 				
 				
 				String finalHtml = null;
+					
 				try {
 					finalHtml = HtmlTools.getHtmlByBr(httpResponse.getEntity());
 				} catch (UnsupportedEncodingException e2) {
@@ -323,6 +324,9 @@ public class ActivationService implements Runnable {
 	 * @return
 	 */
 	public boolean updateUid(int aid,String html){
+		if(html == null){
+			return false;
+		}
 		
 		Document doc = Jsoup.parse(html);
 		Element el = doc.getElementsByTag("script").get(0);
