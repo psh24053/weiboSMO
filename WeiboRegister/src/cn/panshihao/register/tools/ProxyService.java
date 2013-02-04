@@ -1008,7 +1008,7 @@ public class ProxyService {
 			
 		}
 		
-		if(timeOutData.size() > 0){
+		if(timeOutData.size() > 0 && timeOutData.get(0) != null){
 			long curTime = System.currentTimeMillis();
 			long key = timeOutData.get(0).getChecktime();
 			if(curTime - key > ProxyDelay){

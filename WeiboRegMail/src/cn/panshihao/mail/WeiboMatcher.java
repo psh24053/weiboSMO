@@ -60,7 +60,8 @@ import org.jsoup.select.Elements;
 
 public class WeiboMatcher extends GenericMatcher {
 
-	public static final String DOMAIN = "ksgym.com";
+	public static final String DOMAIN = "uhomeu.com";
+	public static final String SERVLET = "http://127.0.0.1:8888/WeiboActivationServer/Activation";
 	public static int total = 0;
 	
 	
@@ -86,14 +87,21 @@ public class WeiboMatcher extends GenericMatcher {
 				
 				Elements elements = doc.select("a");
 				
-				String url = elements.get(0).attr("href");
+				final String url = elements.get(0).attr("href");
 				
-				MailAddress recipient = (MailAddress) mail.getRecipients().toArray()[0];
+				final MailAddress recipient = (MailAddress) mail.getRecipients().toArray()[0];
 				
 				System.out.println(url);
 				
+				new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						ConnectLocalServer(recipient.getUser()+"@"+DOMAIN, url);
+					}
+				}).start();
 				
-				ConnectLocalServer(recipient.getUser()+"@"+DOMAIN, url);
 				
 //				insertDB(recipient.getUser()+"@"+DOMAIN, url);
 				
@@ -117,7 +125,7 @@ public class WeiboMatcher extends GenericMatcher {
 		
 		HttpClient httpClient = new DefaultHttpClient();
 		
-		HttpGet httpGet = new HttpGet("http://127.0.0.1:8080/WeiboActivationServer/Activation?email="+URLEncoder.encode(email)+"&url="+URLEncoder.encode(url));
+		HttpGet httpGet = new HttpGet(SERVLET+"?email="+URLEncoder.encode(email)+"&url="+URLEncoder.encode(url));
 		
 		try {
 			httpClient.execute(httpGet);
