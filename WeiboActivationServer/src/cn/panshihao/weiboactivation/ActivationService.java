@@ -313,7 +313,26 @@ public class ActivationService extends Thread {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			if(pstmt != null){
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(conn != null){
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
+		
+		
 		if(result == -1){
 			return false;
 		}
@@ -540,6 +559,8 @@ public class ActivationService extends Thread {
 				pstmt.setInt(1, aid);
 				
 				pstmt.executeUpdate();
+				
+				pstmt.close();
 				
 			} catch (SQLException e1) {
 				// TODO Auto-generated catch block
