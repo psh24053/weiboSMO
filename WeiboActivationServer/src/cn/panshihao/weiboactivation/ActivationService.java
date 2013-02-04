@@ -319,6 +319,7 @@ public class ActivationService implements Runnable {
 	}
 	
 	
+	
 	/**
 	 * 更新Uid
 	 * @param aid

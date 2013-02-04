@@ -52,11 +52,11 @@ public class ActivationServlet extends HttpServlet {
 //			Tools.db.setMaxIdleTime(60);
 //		}
 		
-		if(Tools.proxyService == null){
-			
-			Tools.proxyService = new ProxyService();
-			Tools.proxyService.loadProxyData();
-		}
+//		if(Tools.proxyService == null){
+//			
+//			Tools.proxyService = new ProxyService();
+//			Tools.proxyService.loadProxyData();
+//		}
 		
 		if(Tools.executorService == null){
 			Tools.executorService = Executors.newCachedThreadPool();
@@ -103,13 +103,28 @@ public class ActivationServlet extends HttpServlet {
 		
 		String email = request.getParameter("email");
 		String url = request.getParameter("url");
-
-		
 		
 		if(email == null || url == null){
 			Tools.log.error("Paramster Error");
 			return;
 		}
+		response.flushBuffer();
+		
+		
+		/*
+		 * 执行插入到数据库的逻辑 
+		 */
+		insertDB(email, url, total);
+
+
+	}
+	/**
+	 * 插入到数据库。
+	 * @param email
+	 * @param url
+	 */
+	public void insertDB(String email, String url, int index){
+		
 		email = URLDecoder.decode(email);
 		url = URLDecoder.decode(url);
 		
@@ -131,6 +146,13 @@ public class ActivationServlet extends HttpServlet {
 				aid = rs.getInt("aid");
 				System.out.println("aid -> "+aid);
 			}else{
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				insertDB(email, url, index);
 				return;
 			}
 			
@@ -179,18 +201,12 @@ public class ActivationServlet extends HttpServlet {
 			}
 			
 		}
-		
-		System.out.println("已插入数据库   aid: "+aid+" ,email: "+email);
-
-		wb_proxyModel proxy = Tools.proxyService.getAvailableProxyModel();
-		
-		
-		// 启动激活线程
-		System.out.println("启动激活线程 "+total);
-			
+		wb_proxyModel proxy = Tools.proxyService.getAvailableProxyModel();		
 		Tools.executorService.execute(new ActivationService(aid, email, url, proxy));
 		
+		System.out.println("已插入数据库   aid: "+aid+" ,email: "+email+" ,index: "+index);
 		
 	}
-
+	
+	
 }
