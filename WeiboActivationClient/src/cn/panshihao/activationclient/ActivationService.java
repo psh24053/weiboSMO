@@ -69,7 +69,8 @@ public class ActivationService {
 				for(int i = 0 ; i < data.size() ; i ++){
 					wb_activationModel model = data.get(i);
 					System.out.println("run "+model);
-					wb_proxyModel proxy = proxyService.getAvailableProxyModel();
+					wb_proxyModel proxy = proxyService.getRandomProxyModel();
+					
 					// 首先执行注册URL点击
 					String html = runActivation(model, proxy);
 					
@@ -222,6 +223,7 @@ public class ActivationService {
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		httpClient.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS, false);
 		
+		
 		HttpGet httpGet = new HttpGet(model.getUrl());
 		
 		HttpResponse httpResponse = null;
@@ -232,7 +234,7 @@ public class ActivationService {
 			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
-			proxy = proxyService.getAvailableProxyModel();
+			proxy = proxyService.getRandomProxyModel();
 			return runActivation(model, proxy);
 			
 			
@@ -245,7 +247,7 @@ public class ActivationService {
 			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
-			proxy = proxyService.getAvailableProxyModel();
+			proxy = proxyService.getRandomProxyModel();
 			return runActivation(model, proxy);
 		}
 		
@@ -253,6 +255,8 @@ public class ActivationService {
 		Header locationHeader = httpResponse.getFirstHeader("Location");
 		
 		String firstUrl = locationHeader.getValue();
+		
+		System.out.println(model.getAid()+" [1] "+firstUrl);
 		
 		httpGet = new HttpGet("http://www.weibo.com"+locationHeader.getValue());
 		httpGet.addHeader("Referer", model.getUrl());
@@ -277,6 +281,7 @@ public class ActivationService {
 		locationHeader = httpResponse.getFirstHeader("Location");
 		
 		String secondUrl = locationHeader.getValue();
+		System.out.println(model.getAid()+" [2] "+secondUrl);
 		
 		httpGet = new HttpGet(locationHeader.getValue());
 		httpGet.addHeader("Referer", "http://www.weibo.com"+firstUrl);
@@ -296,9 +301,6 @@ public class ActivationService {
 			proxyService.getTimeOutData().add(proxy);
 			return null;
 		}
-		
-		// 第三次访问的location
-		locationHeader = httpResponse.getFirstHeader("Location");
 		
 			
 		String html = null;
@@ -335,6 +337,8 @@ public class ActivationService {
 			String content = element.html().trim();
 			
 			String replaceUrl = content.substring(18, content.length() - 3);
+			System.out.println(model.getAid()+" [3] "+replaceUrl);
+			
 			
 			httpGet = new HttpGet(replaceUrl);
 			httpGet.addHeader("Referer", secondUrl);
@@ -379,13 +383,17 @@ public class ActivationService {
 				
 				Elements scripts = ssoDoc.getElementsByTag("script");
 				
+				if(scripts.size() == 0){
+					return null;
+				}
+				
 				Element ssoE = scripts.get(1);
 				
 				String ssoJS = ssoE.html();
 				
 				String ssoUrl = ssoJS.substring(ssoJS.indexOf("location.replace")+18, ssoJS.lastIndexOf("'"));
 				
-				
+				System.out.println(model.getAid()+" [4] "+ssoUrl);
 				httpGet = new HttpGet(ssoUrl);
 				httpGet.addHeader("Referer", replaceUrl);
 				
@@ -408,7 +416,7 @@ public class ActivationService {
 				Header locat = httpResponse.getFirstHeader("Location");
 				
 				String ssoLocation = locat.getValue();
-				
+				System.out.println(model.getAid()+" [5] "+ssoLocation);
 				
 				httpGet = new HttpGet(ssoLocation);
 				httpGet.setHeader("Referer", ssoUrl);

@@ -64,27 +64,45 @@ public class ProxyService {
 	 */
 	public void loadProxyData(){
 		
-		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN/");
-		String[] hosts = html.split("\n");
+		wb_proxyDAO dao = new wb_proxyDAO();
 		
-		Tools.log.debug("Yun Proxy Count "+hosts.length);
+		List<wb_proxyModel> data = dao.selectByAvailable();
+		
 		ProxyData.clear();
 		
-		for(int i = 0 ; i < hosts.length ; i ++){
-			String host = hosts[i];
-			wb_proxyModel item = new wb_proxyModel();
-			item.setIp(host.split(":")[0]);
-			item.setPort(Integer.parseInt(host.split(":")[1]));
-			long time = System.currentTimeMillis() - ProxyDelay + i;
-			item.setChecktime(time);
-			ProxyData.put(time, item);
+		for(int i = 0 ; i < data.size() ; i ++){
+			ProxyData.put(System.currentTimeMillis() - ProxyDelay + i, data.get(i));
 		}
+		
+		
+		
+		
 		blockData.clear();
 		timeOutData.clear();
 		
 	}
+	/**
+	 * 验证代理数据，将可用的留下
+	 */
+	public void ValidationProxyData(){
+		
+		for(Long key : ProxyData.keySet()){
+			wb_proxyModel model = ProxyData.get(key);
+			
+			if(!validationProxy(model.getIp(), model.getPort())){
+				model.setChecktime(110);
+			}
+			
+		}
+		
+		
+		System.out.println("Validation Proxy Data Success!");
+		
+	}
 	
 	public void loadYunProxyCN(){
+		ExecutorService executorService = Executors.newFixedThreadPool(100);
+		
 		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN/");
 		String[] hosts = html.split("\n");
 		
@@ -92,10 +110,11 @@ public class ProxyService {
 		
 		for(int i = 0 ; i < hosts.length ; i ++){
 			String host = hosts[i];
+			System.out.println(host);
 			final String ip = host.split(":")[0];
 			final int port = Integer.parseInt(host.split(":")[1]);
 			
-			new Thread(new Runnable() {
+			executorService.execute(new Runnable() {
 				
 				@Override
 				public void run() {
@@ -111,7 +130,7 @@ public class ProxyService {
 						
 					}
 				}
-			}).start();
+			});
 		}
 		
 	}
@@ -942,8 +961,9 @@ public class ProxyService {
 	public static void main(String[] args) {
 		ProxyService s = new ProxyService();
 		
-		s.get_xici_nn();
-		s.get_xici_nt();
+//		s.get_xici_nn();
+//		s.get_xici_nt();
+		s.loadYunProxyCN();
 	}
 	
 	/**
@@ -974,6 +994,10 @@ public class ProxyService {
 		
 		for(Long key : ProxyData.keySet()){
 			long curTime = System.currentTimeMillis();
+			wb_proxyModel model = ProxyData.get(key);
+			if(model.getChecktime() == 110){
+				continue;
+			}
 			
 			if(curTime - key > ProxyDelay){
 				return ProxyData.remove(key);
