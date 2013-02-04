@@ -317,6 +317,8 @@ public class ActivationService implements Runnable {
 		
 		
 	}
+	
+	
 	/**
 	 * 更新Uid
 	 * @param aid
@@ -361,6 +363,11 @@ public class ActivationService implements Runnable {
 			pstmt.setLong(1, uid);
 			pstmt.setString(2, domain);
 			pstmt.setInt(3, aid);
+			
+			result = pstmt.executeUpdate();
+			
+			pstmt = conn.prepareStatement("update wb_activation set status = 1 where aid = ?");
+			pstmt.setInt(1, aid);
 			
 			result = pstmt.executeUpdate();
 			
@@ -632,7 +639,7 @@ public class ActivationService implements Runnable {
 			pstmt.executeUpdate();
 			
 			
-			pstmt = conn.prepareStatement("update wb_activation set status = 1 where aid = ?");
+			pstmt = conn.prepareStatement("update wb_activation set status = 2 where aid = ?");
 			pstmt.setInt(1, aid);
 			
 			pstmt.executeUpdate();
