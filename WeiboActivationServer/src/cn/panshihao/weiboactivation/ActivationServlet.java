@@ -52,11 +52,11 @@ public class ActivationServlet extends HttpServlet {
 //			Tools.db.setMaxIdleTime(60);
 //		}
 		
-		if(Tools.proxyService == null){
-			
-			Tools.proxyService = new ProxyService();
-			Tools.proxyService.loadProxyData();
-		}
+//		if(Tools.proxyService == null){
+//			
+//			Tools.proxyService = new ProxyService();
+//			Tools.proxyService.loadProxyData();
+//		}
 		
 		if(Tools.executorService == null){
 			Tools.executorService = Executors.newCachedThreadPool();
