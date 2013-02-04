@@ -135,7 +135,7 @@ public class ActivationServlet extends HttpServlet {
 		try {
 			conn = Tools.getMysqlConn();
 			if(conn == null){
-				System.out.println("get mysql conn error");
+				insertDB(email, url, index);
 				return;
 			}
 			pstmt = conn.prepareStatement("SELECT aid FROM wb_account WHERE email = ?");
