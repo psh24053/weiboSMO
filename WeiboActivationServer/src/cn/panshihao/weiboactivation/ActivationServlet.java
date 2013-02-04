@@ -52,11 +52,11 @@ public class ActivationServlet extends HttpServlet {
 //			Tools.db.setMaxIdleTime(60);
 //		}
 		
-//		if(Tools.proxyService == null){
-//			
-//			Tools.proxyService = new ProxyService();
-//			Tools.proxyService.loadProxyData();
-//		}
+		if(Tools.proxyService == null){
+			
+			Tools.proxyService = new ProxyService();
+			Tools.proxyService.loadProxyData();
+		}
 		
 		if(Tools.executorService == null){
 			Tools.executorService = Executors.newCachedThreadPool();
@@ -201,10 +201,11 @@ public class ActivationServlet extends HttpServlet {
 			}
 			
 		}
-		wb_proxyModel proxy = Tools.proxyService.getAvailableProxyModel();		
-		Tools.executorService.execute(new ActivationService(aid, email, url, proxy));
-		
 		System.out.println("已插入数据库   aid: "+aid+" ,email: "+email+" ,index: "+index);
+//		wb_proxyModel proxy = Tools.proxyService.getAvailableProxyModel();		
+//		System.out.println("启动激活线程   aid: "+aid+" ,email: "+email+" ,index: "+index);
+//		Tools.executorService.execute(new ActivationService(aid, email, url, proxy));
+		
 		
 	}
 	
