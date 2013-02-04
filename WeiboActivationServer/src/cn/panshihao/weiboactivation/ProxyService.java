@@ -968,7 +968,8 @@ public class ProxyService {
 	 */
 	public synchronized wb_proxyModel getRandomProxyModel(){
 		if(ProxyData.size() == 0){
-			return null;
+			loadProxyData();
+			return getRandomProxyModel();
 		}
 		
 		for(Long key : ProxyData.keySet()){
