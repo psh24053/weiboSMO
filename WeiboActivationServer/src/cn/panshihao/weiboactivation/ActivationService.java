@@ -258,7 +258,7 @@ public class ActivationService extends Thread {
 			
 		
 		
-		
+		httpClient.getConnectionManager().shutdown();
 		
 		
 		
@@ -542,7 +542,6 @@ public class ActivationService extends Thread {
 			break;
 		}
 		
-		httpClient.getConnectionManager().shutdown();
 		
 		Connection conn = Tools.getMysqlConn();
 		

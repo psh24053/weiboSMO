@@ -11,6 +11,7 @@ import java.util.Map;
 
 import cn.panshihao.desktop.commons.Log;
 import cn.panshihao.desktop.commons.SQLConn;
+import cn.panshihao.desktop.commons.Tools;
 import cn.panshihao.register.model.wb_accountModel;
 
 
@@ -28,7 +29,7 @@ public class wb_accountDAO {
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("select email,nickname from wb_account");
 			rs = pstmt.executeQuery();
 			data = new HashMap<String, String>();
@@ -91,7 +92,7 @@ public class wb_accountDAO {
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("select * from wb_account");
 			rs = pstmt.executeQuery();
 			data = new ArrayList<wb_accountModel>();
@@ -164,7 +165,7 @@ public class wb_accountDAO {
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("select * from wb_account where status = ?");
 			
 			pstmt.setInt(1, status);
@@ -243,7 +244,7 @@ public class wb_accountDAO {
 		}
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("insert into wb_account(uid,email,password,nickname,domain,status) values(?,?,?,?,?,?)");
 			
 			pstmt.setInt(1, model.getUid());
@@ -296,7 +297,7 @@ public class wb_accountDAO {
 		int resultCount = 0;
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("delete from wb_account where aid = ?");
 			
 			pstmt.setInt(1, aid);
@@ -354,7 +355,7 @@ public class wb_accountDAO {
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("update wb_account set uid = ? , email = ? , password = ? , nickname = ? , domain = ? , status = ? where aid = ?");
 			
 			pstmt.setInt(1, model.getUid());

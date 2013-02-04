@@ -9,6 +9,7 @@ import java.util.List;
 
 import cn.panshihao.desktop.commons.Log;
 import cn.panshihao.desktop.commons.SQLConn;
+import cn.panshihao.desktop.commons.Tools;
 import cn.panshihao.register.model.wb_proxyModel;
 import cn.panshihao.register.model.wb_proxyModel;
 
@@ -27,7 +28,7 @@ public class wb_proxyDAO {
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("select * from wb_proxy where checktime != 10001 order by rand()");
 			
 			rs = pstmt.executeQuery();
@@ -100,7 +101,7 @@ public class wb_proxyDAO {
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("select * from wb_proxy order by rand()");
 			rs = pstmt.executeQuery();
 			data = new ArrayList<wb_proxyModel>();
@@ -176,7 +177,7 @@ public class wb_proxyDAO {
 		}
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("insert into wb_proxy(ip, port, checktime) values(?,?,?)");
 			
 			pstmt.setString(1, model.getIp());
@@ -238,7 +239,7 @@ public class wb_proxyDAO {
 		
 		
 		try {
-			conn = SQLConn.db.getConnection();
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("update wb_proxy set ip = ? , port = ? , checktime = ? where proxyid = ?");
 			
 			pstmt.setString(1, model.getIp());

@@ -22,6 +22,6 @@
         <listener-class>
             cn.panshihao.weiboactivation.ServerStartListener
         </listener-class>
-    </listener>
+  </listener>
   
 </web-app>

@@ -29,22 +29,7 @@ public class ServerStartListener implements ServletContextListener {
      */
     public void contextInitialized(ServletContextEvent arg0) {
         // TODO Auto-generated method stub
-//    	Tools.db = new ComboPooledDataSource();
-//		try {
-//			Tools.db.setDriverClass("com.mysql.jdbc.Driver");
-//		} catch (PropertyVetoException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//		Tools.db.setJdbcUrl("jdbc:mysql://localhost:3306/wb_reg?useUnicode=true&characterEncoding=UTF-8");
-//		Tools.db.setUser("root");
-//		Tools.db.setPassword("root");
-//		Tools.db.setMaxPoolSize(100);
-//		Tools.db.setInitialPoolSize(5);
-//		Tools.db.setMaxIdleTime(60);
     	
-    	Tools.proxyService = new ProxyService();
-    	Tools.proxyService.loadProxyData();
     	
     }
 
