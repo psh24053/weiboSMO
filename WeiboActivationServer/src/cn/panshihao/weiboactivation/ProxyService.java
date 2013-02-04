@@ -40,6 +40,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 
+
 public class ProxyService {
 
 	
@@ -62,27 +63,59 @@ public class ProxyService {
 	 * 从数据库中加载代理服务器数据
 	 */
 	public void loadProxyData(){
-		wb_proxyDAO dao = new wb_proxyDAO();
-		List<wb_proxyModel> data = dao.selectByAvailable();
 		
-		for(int i = 0 ; i < data.size() ; i ++){
-			ProxyData.put(System.currentTimeMillis() - ProxyDelay + i, data.get(i));
+		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN/");
+		String[] hosts = html.split("\n");
+		
+		Tools.log.debug("Yun Proxy Count "+hosts.length);
+		ProxyData.clear();
+		
+		for(int i = 0 ; i < hosts.length ; i ++){
+			String host = hosts[i];
+			wb_proxyModel item = new wb_proxyModel();
+			item.setIp(host.split(":")[0]);
+			item.setPort(Integer.parseInt(host.split(":")[1]));
+			long time = System.currentTimeMillis() - ProxyDelay + i;
+			item.setChecktime(time);
+			ProxyData.put(time, item);
+		}
+		blockData.clear();
+		timeOutData.clear();
+		
+	}
+	
+	public void loadYunProxyCN(){
+		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN/");
+		String[] hosts = html.split("\n");
+		
+		Tools.log.debug("Yun Proxy Count "+hosts.length);
+		
+		for(int i = 0 ; i < hosts.length ; i ++){
+			String host = hosts[i];
+			final String ip = host.split(":")[0];
+			final int port = Integer.parseInt(host.split(":")[1]);
+			
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					if(validationProxy(ip, port)){
+						wb_proxyDAO dao = new wb_proxyDAO();
+						wb_proxyModel model = new wb_proxyModel();
+						model.setChecktime(System.currentTimeMillis());
+						model.setIp(ip);
+						model.setPort(port);
+						
+						dao.insert(model);
+						
+					}
+				}
+			}).start();
 		}
 		
 	}
-	/**
-	 * 从网络上搜索代理服务器数据
-	 * 经过验证可用后加入到数据库中，同时写入内存中
-	 * @return total 搜索到的数量
-	 */
-	public int searchProxyData(){
-		
-		
-		
-		
-		
-		return 0;
-	}
+	
 	/**
 	 * 获取xici_wt的http代理
 	 * url:http://www.xici.net.co/wt
@@ -913,6 +946,20 @@ public class ProxyService {
 		s.get_xici_nt();
 	}
 	
+	/**
+	 * 获取一个可用的proxy
+	 * @return
+	 */
+	public wb_proxyModel getAvailableProxyModel(){
+		wb_proxyModel model = getRandomProxyModel();
+		
+		if(validationProxy(model.getIp(), model.getPort())){
+			return model;
+		}
+		getTimeOutData().add(model);
+		
+		return getAvailableProxyModel();
+	}
 	
 	/**
 	 * 获取一个代理服务器对象

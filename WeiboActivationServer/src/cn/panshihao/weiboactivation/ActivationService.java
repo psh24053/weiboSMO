@@ -39,7 +39,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class ActivationService extends Thread {
+public class ActivationService implements Runnable {
 
 	public static int activationedTotal = 0;
 	
@@ -57,9 +57,7 @@ public class ActivationService extends Thread {
 		this.proxy = proxy;
 	}
 	
-	@Override
-	public void run() {
-		
+	public boolean runActivation(){
 		start = System.currentTimeMillis();
 		
 		PoolingClientConnectionManager connectionManager = new PoolingClientConnectionManager();
@@ -97,9 +95,17 @@ public class ActivationService extends Thread {
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
-			return;
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			proxy = Tools.proxyService.getRandomProxyModel();
+			runActivation();
+			
+			
 		} catch (IOException e) {
-			return;
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			proxy = Tools.proxyService.getRandomProxyModel();
+			runActivation();
 		}
 		
 		// 第一次访问的location
@@ -113,9 +119,13 @@ public class ActivationService extends Thread {
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
-			return;
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			return false;
 		} catch (IOException e) {
-			return;
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			return false;
 		}
 		
 		// 第二次访问的location
@@ -129,9 +139,13 @@ public class ActivationService extends Thread {
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
-			return;
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			return false;
 		} catch (IOException e) {
-			return;
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			return false;
 		}
 		
 		// 第三次访问的location
@@ -143,11 +157,17 @@ public class ActivationService extends Thread {
 		try {
 			html = HtmlTools.getHtmlByBr(httpResponse.getEntity());
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			return false;
 		} catch (IllegalStateException e) {
-			e.printStackTrace();
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			return false;
 		} catch (IOException e) {
-			e.printStackTrace();
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			return false;
 		}
 		
 		
@@ -156,6 +176,10 @@ public class ActivationService extends Thread {
 			Document doc = Jsoup.parse(html);
 			
 			Elements e = doc.getElementsByTag("script");
+			
+			if(e.size() == 0){
+				return false;
+			}
 			
 			Element element = e.get(0);
 			
@@ -169,9 +193,13 @@ public class ActivationService extends Thread {
 			try {
 				httpResponse = httpClient.execute(httpGet);
 			} catch (ClientProtocolException e1) {
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			} catch (IOException e1) {
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			}
 			
 			String ssoHtml = null;
@@ -206,9 +234,13 @@ public class ActivationService extends Thread {
 				try {
 					httpResponse = httpClient.execute(httpGet);
 				} catch (ClientProtocolException e1) {
-					e1.printStackTrace();
+					httpClient.getConnectionManager().shutdown();
+					Tools.proxyService.getTimeOutData().add(proxy);
+					return false;
 				} catch (IOException e1) {
-					e1.printStackTrace();
+					httpClient.getConnectionManager().shutdown();
+					Tools.proxyService.getTimeOutData().add(proxy);
+					return false;
 				}
 				
 				Header locat = httpResponse.getFirstHeader("Location");
@@ -222,9 +254,13 @@ public class ActivationService extends Thread {
 				try {
 					httpResponse = httpClient.execute(httpGet);
 				} catch (ClientProtocolException e1) {
-					e1.printStackTrace();
+					httpClient.getConnectionManager().shutdown();
+					Tools.proxyService.getTimeOutData().add(proxy);
+					return false;
 				} catch (IOException e1) {
-					e1.printStackTrace();
+					httpClient.getConnectionManager().shutdown();
+					Tools.proxyService.getTimeOutData().add(proxy);
+					return false;
 				}
 				
 				
@@ -243,7 +279,9 @@ public class ActivationService extends Thread {
 				}
 				if(updateUid(aid, finalHtml)){
 					
-					writeInfo(httpClient, finalHtml, ssoLocation, aid);
+					if(!writeInfo(httpClient, finalHtml, ssoLocation, aid)){
+						return false;
+					}
 					
 				}
 					
@@ -261,6 +299,20 @@ public class ActivationService extends Thread {
 		httpClient.getConnectionManager().shutdown();
 		
 		
+		return true;
+	}
+	
+	
+	@Override
+	public void run() {
+		
+		
+		if(runActivation()){
+			Tools.proxyService.revertProxyModel(proxy, System.currentTimeMillis());
+			
+		}else{
+			System.out.println("Faild -> "+aid+" ,email");
+		}
 		
 		
 	}
@@ -296,13 +348,11 @@ public class ActivationService extends Thread {
 			e.printStackTrace();
 		}
 		
-		Connection conn = Tools.getMysqlConn();
-		if(conn == null){
-			return false;
-		}
+		Connection conn = null;
 		PreparedStatement pstmt = null;
 		int result = -1;
 		try {
+			conn = Tools.getMysqlConn();
 			pstmt = conn.prepareStatement("update wb_account set uid = ? , domain = ? , status = 1 where aid = ?");
 			pstmt.setLong(1, uid);
 			pstmt.setString(2, domain);
@@ -404,10 +454,14 @@ public class ActivationService extends Thread {
 			httpResponse = httpClient.execute(httpPost);
 		} catch (ClientProtocolException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			return false;
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			httpClient.getConnectionManager().shutdown();
+			Tools.proxyService.getTimeOutData().add(proxy);
+			return false;
 		}
 		String nguide_1_html = null;
 		try {
@@ -461,10 +515,14 @@ public class ActivationService extends Thread {
 				httpResponse = httpClient.execute(httpPost);
 			} catch (ClientProtocolException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			}
 			
 			String data_2 = "http://weibo.com/nguide/aj/stepstatus/relationstep?_t=0&__rnd="+System.currentTimeMillis();
@@ -477,10 +535,14 @@ public class ActivationService extends Thread {
 				httpResponse = httpClient.execute(httpPost);
 			} catch (ClientProtocolException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			}
 			
 			String data_3 = "http://weibo.com/nguide/aj/finish?num=0&interestnum=0&interesttype=1&user_tag=0&_t=0&__rnd="+System.currentTimeMillis();
@@ -493,10 +555,14 @@ public class ActivationService extends Thread {
 				httpResponse = httpClient.execute(httpPost);
 			} catch (ClientProtocolException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			}
 			
 			//第四步
@@ -508,10 +574,14 @@ public class ActivationService extends Thread {
 				httpResponse = httpClient.execute(httpPost);
 			} catch (ClientProtocolException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				Tools.proxyService.getTimeOutData().add(proxy);
+				return false;
 			}
 			
 			Header location = httpResponse.getFirstHeader("Location");
@@ -526,10 +596,14 @@ public class ActivationService extends Thread {
 					httpResponse = httpClient.execute(httpPost);
 				} catch (ClientProtocolException e1) {
 					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					httpClient.getConnectionManager().shutdown();
+					Tools.proxyService.getTimeOutData().add(proxy);
+					return false;
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					httpClient.getConnectionManager().shutdown();
+					Tools.proxyService.getTimeOutData().add(proxy);
+					return false;
 				}
 				
 				
@@ -543,28 +617,38 @@ public class ActivationService extends Thread {
 		}
 		
 		
-		Connection conn = Tools.getMysqlConn();
-		
-		if(conn != null){
+		Connection conn = null;
+		PreparedStatement pstmt = null;
 			
-			try {
-				PreparedStatement pstmt = conn.prepareStatement("update wb_account set status = 2 where aid = ?");
-				pstmt.setInt(1, aid);
+		try {
+			conn = Tools.getMysqlConn();
+			pstmt = conn.prepareStatement("update wb_account set status = 2 where aid = ?");
+			pstmt.setInt(1, aid);
+			
+			pstmt.executeUpdate();
+			
+			
+			pstmt = conn.prepareStatement("update wb_activation set status = 1 where aid = ?");
+			pstmt.setInt(1, aid);
+			
+			pstmt.executeUpdate();
+			
+			pstmt.close();
+			
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} finally {
+			if(pstmt != null){
+				try {
+					pstmt.close();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			if(conn != null){
 				
-				pstmt.executeUpdate();
-				
-				
-				pstmt = conn.prepareStatement("update wb_activation set status = 1 where aid = ?");
-				pstmt.setInt(1, aid);
-				
-				pstmt.executeUpdate();
-				
-				pstmt.close();
-				
-			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} finally {
 				try {
 					conn.close();
 				} catch (SQLException e1) {
@@ -572,8 +656,8 @@ public class ActivationService extends Thread {
 					e1.printStackTrace();
 				}
 			}
-			
 		}
+			
 		
 		Tools.log.debug("Activation Success! aid -> "+aid+" , 耗时 "+(System.currentTimeMillis() - start)+" ms");
 		

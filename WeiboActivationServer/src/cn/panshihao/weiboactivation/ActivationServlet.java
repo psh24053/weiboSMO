@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.Executors;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -57,8 +58,21 @@ public class ActivationServlet extends HttpServlet {
 			Tools.proxyService.loadProxyData();
 		}
 		
+		if(Tools.executorService == null){
+			Tools.executorService = Executors.newCachedThreadPool();
+		}
+		
     	
 		
+	}
+	
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		super.destroy();
+		if(Tools.executorService == null){
+			Tools.executorService.shutdown();
+		}
 	}
 	
     /**
@@ -99,8 +113,6 @@ public class ActivationServlet extends HttpServlet {
 		email = URLDecoder.decode(email);
 		url = URLDecoder.decode(url);
 		
-		System.out.println("doPost email -> "+email+" ,url -> "+url);
-		
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -117,7 +129,7 @@ public class ActivationServlet extends HttpServlet {
 			
 			if(rs.next()){
 				aid = rs.getInt("aid");
-				Tools.log.debug("aid -> "+aid);
+				System.out.println("aid -> "+aid);
 			}else{
 				return;
 			}
@@ -136,7 +148,7 @@ public class ActivationServlet extends HttpServlet {
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			Tools.log.error(e.getMessage(), e);
+			System.out.println(e.getMessage());
 			return;
 		} finally {
 			
@@ -168,16 +180,15 @@ public class ActivationServlet extends HttpServlet {
 			
 		}
 		
-		System.out.println("已插入数据库   aid: "+aid+" ,email: "+email+" ,url: "+url);
+		System.out.println("已插入数据库   aid: "+aid+" ,email: "+email);
 
+		wb_proxyModel proxy = Tools.proxyService.getAvailableProxyModel();
 		
-//		wb_proxyModel proxy = Tools.proxyService.getRandomProxyModel();
 		
-			// 启动激活线程
-			new ActivationService(aid, email, url, null).start();
+		// 启动激活线程
+		System.out.println("启动激活线程 "+total);
 			
-		
-		
+		Tools.executorService.execute(new ActivationService(aid, email, url, proxy));
 		
 		
 	}

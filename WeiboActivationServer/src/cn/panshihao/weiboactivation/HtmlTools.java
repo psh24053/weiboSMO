@@ -22,7 +22,46 @@ public class HtmlTools {
 		System.out.println(getHtml("http://weibo.com/nguide/relation"));
 		
 	}
-	
+	/**
+	 * 传入url，获取html内容
+	 * @param url
+	 * @return
+	 */
+	public static String getHtmlByBr(String url){
+		
+		HttpClient httpclient = new DefaultHttpClient();
+		
+		HttpGet httpGet = new HttpGet(url);
+		
+		HttpResponse httpResponse = null;
+		
+		try {
+			httpResponse = httpclient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(httpResponse != null){
+			try {
+				return getHtmlByBr(httpResponse.getEntity());
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return null;
+	}
 	/**
 	 * 传入url，获取html内容
 	 * @param url

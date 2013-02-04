@@ -3,6 +3,7 @@ package cn.panshihao.weiboactivation;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.log4j.Logger;
 
@@ -13,6 +14,7 @@ public class Tools {
 	public static ComboPooledDataSource db;
 	public static Logger log = Logger.getLogger(Tools.class);
 	public static ProxyService proxyService;
+	public static ExecutorService executorService;
 	
 	
 	public static Connection getMysqlConn(){
