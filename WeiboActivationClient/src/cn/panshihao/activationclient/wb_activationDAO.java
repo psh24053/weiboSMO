@@ -158,7 +158,7 @@ public class wb_activationDAO {
 	 * @param model
 	 * @return
 	 */
-	public boolean update(wb_activationModel model){
+	public synchronized boolean update(wb_activationModel model){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		int resultCount = 0;
@@ -176,6 +176,9 @@ public class wb_activationDAO {
 		
 		try {
 			conn = Tools.getMysqlConn();
+			if(conn == null){
+				return update(model);
+			}
 			pstmt = conn.prepareStatement("update wb_activation set status = ? where aid = ?");
 			
 			pstmt.setInt(1, model.getStatus());
