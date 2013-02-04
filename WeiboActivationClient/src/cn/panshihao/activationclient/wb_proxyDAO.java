@@ -167,7 +167,7 @@ public class wb_proxyDAO {
 		int resultCount = 0;
 		
 		if(model == null){
-			Tools.log.error("insert wb_proxyModel is null!");
+			System.out.println("insert wb_proxyModel is null!");
 			return false;
 		}
 		
@@ -203,9 +203,9 @@ public class wb_proxyDAO {
 		}
 		
 		if(resultCount > 0){
-			Tools.log.debug("【Success】 insert "+model.toString());
+			System.out.println("【Success】 insert "+model.toString());
 		}else{
-			Tools.log.debug("【Faild】insert "+model.toString());
+			System.out.println("【Faild】insert "+model.toString());
 		}
 		
 		

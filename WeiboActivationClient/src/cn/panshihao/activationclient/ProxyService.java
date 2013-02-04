@@ -110,7 +110,6 @@ public class ProxyService {
 		
 		for(int i = 0 ; i < hosts.length ; i ++){
 			String host = hosts[i];
-			System.out.println(host);
 			final String ip = host.split(":")[0];
 			final int port = Integer.parseInt(host.split(":")[1]);
 			

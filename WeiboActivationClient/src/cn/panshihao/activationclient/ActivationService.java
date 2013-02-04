@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -45,6 +46,13 @@ public class ActivationService {
 	private ProxyService proxyService;
 	private HttpClient httpClient;
 	
+	public static void main(String[] args) {
+		ActivationService service = new ActivationService();
+		service.startActivation();
+		
+		
+		
+	}
 	/**
 	 * 开始激活
 	 */
@@ -52,11 +60,20 @@ public class ActivationService {
 		proxyService = new ProxyService();
 		proxyService.loadProxyData();
 		System.out.println("Load Proxy Data Complete! "+proxyService.getProxyData().size());
-		wb_activationDAO dao = new wb_activationDAO();
+		executorService = Executors.newFixedThreadPool(1);
+		final wb_activationDAO dao = new wb_activationDAO();
 		/*
 		 * 激活逻辑：
 		 * 1.从wb_activation表中找出status为0的记录；
 		 * 2.访问激活url，根据状态来完成操作
+		 * 
+		 * wb_Activation:
+		 * status为0，代表未注册状态（多半是刚接收到注册邮件的，也有可能是之前版本遗留的已激活类型）
+		 * status为1，代表已激活状态，等待设置基本资料（也包含大部分已经注册成功的）
+		 * status为2，代表注册完成
+		 * status为3，代表激活失败
+		 * status为4，代表未知状态（可能是已激活，也可能是激活失败）
+		 * 
 		 */
 		while(true){
 			List<wb_activationModel> data = dao.selectActivation();
@@ -67,41 +84,116 @@ public class ActivationService {
 				
 				// 循环
 				for(int i = 0 ; i < data.size() ; i ++){
-					wb_activationModel model = data.get(i);
+					final wb_activationModel model = data.get(i);
 					System.out.println("run "+model);
 					wb_proxyModel proxy = proxyService.getRandomProxyModel();
 					
 					// 首先执行注册URL点击
 					String html = runActivation(model, proxy);
 					
-					System.out.println(html);
-					
-					// 当点击成功，html就不会为null，开始执行填写资料操作
-					if(html != null){
-						
-						if(updateUid(model.getAid(), html)){
-							//执行填写资料操作
-							if(runModifyInfo(model, proxy, httpClient, html)){
-								model.setStatus(2);
-								dao.update(model);
-							}
-							
-						}else{
-							model.setStatus(1);
+					if(html == null){
+						//执行失败，将目标model的status设置为3
+						model.setStatus(33);
+						dao.update(model);
+					}else{
+						// 代表是验证账号错误，该种错误无法自动确定是否注册成功
+						// 需要手动验证，将目标model的status设置为4
+						if(html.equals("{Error:01}")){
+							System.out.println(model.getAid()+" "+html);
+							model.setStatus(44);
+							dao.update(model);
+						} else if(html.equals("{Reg:01}")){
+							System.out.println(model.getAid()+" [3] Activation Success! wait Update Uid");
+							model.setStatus(11);
 							dao.update(model);
 							
+						} else {
+							System.out.println(model.getAid()+" [6] html length "+html.length());
+							if(updateUid(model.getAid(), html)){
+								//执行填写资料操作
+								if(runModifyInfo(model, proxy, httpClient, html)){
+									System.out.println(model.getAid()+" [8] ModifyInfo Success!");
+									model.setStatus(22);
+									dao.update(model);
+								}else{
+									System.out.println(model.getAid()+" [8] ModifyInfo Error, but activation Success!");
+									model.setStatus(11);
+									dao.update(model);
+								}
+								
+							}else{
+								System.out.println(model.getAid()+" [7] Update Uid Error, but activation Success!");
+								model.setStatus(11);
+								dao.update(model);
+								
+							}
 						}
-						
-						
-					}else{
-						//执行失败，将目标model的status设置为3
-						model.setStatus(3);
-						dao.update(model);
 						
 					}
 					
 					
+					
+					
 					proxyService.revertProxyModel(proxy, System.currentTimeMillis());
+					
+					
+//					executorService.execute(new Runnable() {
+//						
+//						@Override
+//						public void run() {
+//							// TODO Auto-generated method stub
+//							System.out.println("run "+model);
+//							wb_proxyModel proxy = proxyService.getRandomProxyModel();
+//							
+//							// 首先执行注册URL点击
+//							String html = runActivation(model, proxy);
+//							
+//							if(html == null){
+//								//执行失败，将目标model的status设置为3
+//								model.setStatus(33);
+//								dao.update(model);
+//							}else{
+//								// 代表是验证账号错误，该种错误无法自动确定是否注册成功
+//								// 需要手动验证，将目标model的status设置为4
+//								if(html.equals("{Error:01}")){
+//									System.out.println(model.getAid()+" "+html);
+//									model.setStatus(44);
+//									dao.update(model);
+//								} else if(html.equals("{Reg:01}")){
+//									System.out.println(model.getAid()+" [3] Activation Success! wait Update Uid");
+//									model.setStatus(11);
+//									dao.update(model);
+//									
+//								} else {
+//									System.out.println(model.getAid()+" [6] html length "+html.length());
+//									if(updateUid(model.getAid(), html)){
+//										//执行填写资料操作
+//										if(runModifyInfo(model, proxy, httpClient, html)){
+//											System.out.println(model.getAid()+" [8] ModifyInfo Success!");
+//											model.setStatus(22);
+//											dao.update(model);
+//										}else{
+//											System.out.println(model.getAid()+" [8] ModifyInfo Error, but activation Success!");
+//											model.setStatus(11);
+//											dao.update(model);
+//										}
+//										
+//									}else{
+//										System.out.println(model.getAid()+" [7] Update Uid Error, but activation Success!");
+//										model.setStatus(11);
+//										dao.update(model);
+//										
+//									}
+//								}
+//								
+//							}
+//							
+//							
+//							
+//							
+//							proxyService.revertProxyModel(proxy, System.currentTimeMillis());
+//						}
+//					});
 				}
 				
 				
@@ -186,7 +278,7 @@ public class ActivationService {
 		if(result == -1){
 			return false;
 		}
-		
+		System.out.println(aid+" [7] Update Uid Success!");
 		return true;
 	}
 	
@@ -254,6 +346,11 @@ public class ActivationService {
 		// 第一次访问的location
 		Header locationHeader = httpResponse.getFirstHeader("Location");
 		
+		if(locationHeader == null){
+			return null;
+			
+		}
+		
 		String firstUrl = locationHeader.getValue();
 		
 		System.out.println(model.getAid()+" [1] "+firstUrl);
@@ -264,17 +361,28 @@ public class ActivationService {
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
+			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
 			return null;
 		} catch (IllegalStateException e){
+			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
 			return null;
 		} catch (IOException e) {
+			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
 			return null;
+		}
+		
+		// 在这里失败，通常是网络错误，重新获取一个代理继续访问
+		if(httpResponse == null){
+			httpClient.getConnectionManager().shutdown();
+			proxyService.getTimeOutData().add(proxy);
+			proxy = proxyService.getRandomProxyModel();
+			return runActivation(model, proxy);
 		}
 		
 		// 第二次访问的location
@@ -283,20 +391,29 @@ public class ActivationService {
 		String secondUrl = locationHeader.getValue();
 		System.out.println(model.getAid()+" [2] "+secondUrl);
 		
+		// 包含error则代表这个账号验证错误，返回特殊标记
+		if(secondUrl.indexOf("/signup/v5/error") != -1){
+			return "{Error:01}";
+		}
+		
+		
 		httpGet = new HttpGet(locationHeader.getValue());
 		httpGet.addHeader("Referer", "http://www.weibo.com"+firstUrl);
 		
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
+			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
 			return null;
 		} catch (IllegalStateException e){
+			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
 			return null;
 		} catch (IOException e) {
+			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
 			return null;
@@ -308,19 +425,21 @@ public class ActivationService {
 		try {
 			html = HtmlTools.getHtmlByBr(httpResponse.getEntity());
 		} catch (UnsupportedEncodingException e) {
+			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
 			return null;
 		} catch (IllegalStateException e) {
+			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
 			return null;
 		} catch (IOException e) {
+			System.out.println(e.getMessage());
 			httpClient.getConnectionManager().shutdown();
 			proxyService.getTimeOutData().add(proxy);
 			return null;
 		}
-		
 		
 		if(html != null){
 			
@@ -346,14 +465,17 @@ public class ActivationService {
 			try {
 				httpResponse = httpClient.execute(httpGet);
 			} catch (ClientProtocolException e1) {
+				System.out.println(e1.getMessage());
 				httpClient.getConnectionManager().shutdown();
 				proxyService.getTimeOutData().add(proxy);
 				return null;
 			} catch (IllegalStateException e1){
+				System.out.println(e1.getMessage());
 				httpClient.getConnectionManager().shutdown();
 				proxyService.getTimeOutData().add(proxy);
 				return null;
 			} catch (IOException e1) {
+				System.out.println(e1.getMessage());
 				httpClient.getConnectionManager().shutdown();
 				proxyService.getTimeOutData().add(proxy);
 				return null;
@@ -364,14 +486,17 @@ public class ActivationService {
 			try {
 				ssoHtml = HtmlTools.getHtmlByBr(httpResponse.getEntity());
 			} catch (UnsupportedEncodingException e1) {
+				System.out.println(e1.getMessage());
 				httpClient.getConnectionManager().shutdown();
 				proxyService.getTimeOutData().add(proxy);
 				return null;
 			} catch (IllegalStateException e1) {
+				System.out.println(e1.getMessage());
 				httpClient.getConnectionManager().shutdown();
 				proxyService.getTimeOutData().add(proxy);
 				return null;
 			} catch (IOException e1) {
+				System.out.println(e1.getMessage());
 				httpClient.getConnectionManager().shutdown();
 				proxyService.getTimeOutData().add(proxy);
 				return null;
@@ -400,14 +525,17 @@ public class ActivationService {
 				try {
 					httpResponse = httpClient.execute(httpGet);
 				} catch (ClientProtocolException e1) {
+					System.out.println(e1.getMessage());
 					httpClient.getConnectionManager().shutdown();
 					proxyService.getTimeOutData().add(proxy);
 					return null;
 				} catch (IllegalStateException e1) {
+					System.out.println(e1.getMessage());
 					httpClient.getConnectionManager().shutdown();
 					proxyService.getTimeOutData().add(proxy);
 					return null;
 				}  catch (IOException e1) {
+					System.out.println(e1.getMessage());
 					httpClient.getConnectionManager().shutdown();
 					proxyService.getTimeOutData().add(proxy);
 					return null;
@@ -424,14 +552,17 @@ public class ActivationService {
 				try {
 					httpResponse = httpClient.execute(httpGet);
 				} catch (ClientProtocolException e1) {
+					System.out.println(e1.getMessage());
 					httpClient.getConnectionManager().shutdown();
 					proxyService.getTimeOutData().add(proxy);
 					return null;
 				} catch (IllegalStateException e1) {
+					System.out.println(e1.getMessage());
 					httpClient.getConnectionManager().shutdown();
 					proxyService.getTimeOutData().add(proxy);
 					return null;
 				}  catch (IOException e1) {
+					System.out.println(e1.getMessage());
 					httpClient.getConnectionManager().shutdown();
 					proxyService.getTimeOutData().add(proxy);
 					return null;
@@ -443,14 +574,17 @@ public class ActivationService {
 				try {
 					finalHtml = HtmlTools.getHtmlByBr(httpResponse.getEntity());
 				} catch (UnsupportedEncodingException e2) {
+					System.out.println(e2.getMessage());
 					httpClient.getConnectionManager().shutdown();
 					proxyService.getTimeOutData().add(proxy);
 					return null;
 				} catch (IllegalStateException e2) {
+					System.out.println(e2.getMessage());
 					httpClient.getConnectionManager().shutdown();
 					proxyService.getTimeOutData().add(proxy);
 					return null;
 				} catch (IOException e2) {
+					System.out.println(e2.getMessage());
 					httpClient.getConnectionManager().shutdown();
 					proxyService.getTimeOutData().add(proxy);
 					return null;
