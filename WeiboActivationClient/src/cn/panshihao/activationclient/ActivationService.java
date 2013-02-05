@@ -538,6 +538,10 @@ public class ActivationService {
 				
 				String ssoUrl = ssoJS.substring(ssoJS.indexOf("location.replace")+18, ssoJS.lastIndexOf("'"));
 				
+				if(ssoUrl.indexOf("function") != -1){
+					return null;
+				}
+				
 				System.out.println(model.getAid()+" [4] "+ssoUrl);
 				httpGet = new HttpGet(ssoUrl);
 				httpGet.addHeader("Referer", replaceUrl);
