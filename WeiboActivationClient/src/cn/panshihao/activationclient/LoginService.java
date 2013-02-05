@@ -435,18 +435,21 @@ public class LoginService {
 				PinCode pincode = new PinCode(codeImgUrl);
 				
 				// 如果验证码拉取失败，则返回
-				if(!pincode.loadPinCodeBy3G(loginService.httpClient, capId)){
+			 	String codeValue = pincode.getCode(loginService.httpClient, capId, codeImgUrl);
+				System.out.println(codeValue);
+				
+				if(codeValue == null){
 					return null;
 				}
 				
-				formPairs.add(new BasicNameValuePair("code", pincode.getPincode()));
+				formPairs.add(new BasicNameValuePair("code", codeValue));
 			}
 			
 			
 		}
 		
 		// 发送登陆表单
-		HttpPost httpPost = new HttpPost(actionUrl);
+		HttpPost httpPost = new HttpPost("http://3g.sina.com.cn/prog/wapsite/sso/"+actionUrl);
 		try {
 			httpPost.setEntity(new UrlEncodedFormEntity(formPairs,"utf-8"));
 		} catch (UnsupportedEncodingException e) {
@@ -466,25 +469,139 @@ public class LoginService {
 		
 		
 		if(loginService.httpResponse == null){
+			System.out.println("httpResponse is null");
+			return null;
+		}
+		
+		Header location = loginService.httpResponse.getFirstHeader("Location");
+		
+		if(location == null){
+			System.out.println("location is null");
+			return null;
+		}
+		
+		System.out.println(location.getValue());
+		
+		HttpGet httpGet = new HttpGet(location.getValue());
+		try {
+			loginService.httpResponse = loginService.httpClient.execute(httpGet);
+		} catch (ClientProtocolException e1) {
+			System.out.println(e1.getMessage());
+			return null;
+		} catch (IOException e1) {
+			System.out.println(e1.getMessage());
 			return null;
 		}
 		
 		
-		try {
-			System.out.println(HtmlTools.getHtmlByBr(loginService.httpResponse.getEntity()));
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if(loginService.httpResponse == null){
+			return null;
 		}
 		
 		
-		return null;
+		String sina_succHtml = null;
+		try {
+			sina_succHtml = HtmlTools.getHtmlByBr(loginService.httpResponse.getEntity());
+		} catch (UnsupportedEncodingException e1) {
+			System.out.println(e1.getMessage());
+			return null;
+		} catch (IllegalStateException e1) {
+			System.out.println(e1.getMessage());
+			return null;
+		} catch (IOException e1) {
+			System.out.println(e1.getMessage());
+			return null;
+		}
+		
+		
+		doc = Jsoup.parse(sina_succHtml);
+		Elements a = doc.select("a");
+		
+		// 判断a标签的数量
+		if(a.size() == 0 || a.size() > 1){
+			return null;
+		}
+		
+		// 准备进行第二次跳转
+		String hrefUrl = a.get(0).attr("href");
+		
+		httpGet = new HttpGet(hrefUrl);
+		
+		try {
+			loginService.httpResponse = loginService.httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			System.out.println(e.getMessage());
+			return null;
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+		
+		if(loginService.httpResponse == null){
+			return null;
+		}
+		
+		// 获取三大ID
+		String sinaMainHtml = null;
+		try {
+			sinaMainHtml = HtmlTools.getHtmlByBr(loginService.httpResponse.getEntity());
+		} catch (UnsupportedEncodingException e) {
+			System.out.println(e.getMessage());
+			return null;
+		} catch (IllegalStateException e) {
+			System.out.println(e.getMessage());
+			return null;
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+		
+		if(sinaMainHtml == null){
+			return null;
+		}
+		
+		doc = Jsoup.parse(sinaMainHtml);
+		
+		Elements scripts = doc.select("script");
+		
+		if(scripts.size() == 0){
+			return null;
+		}
+		
+		String scriptContent = scripts.get(0).html();
+		
+		if(!scriptContent.contains("var gsid")){
+			return null;
+		}
+		String[] vars = scriptContent.split("\n");
+		
+		for(int i = 0 ; i < vars.length ; i ++){
+			String var = vars[i];
+			
+			if(loginService.sid == null && var.contains("sid")){
+				loginService.sid = var.substring(var.indexOf("'")+1, var.lastIndexOf("'"));
+				continue;
+			}
+			
+			if(loginService.gsid == null && var.contains("gsid")){
+				loginService.gsid = var.substring(var.indexOf("'")+1, var.lastIndexOf("'"));
+				continue;
+			}
+			
+			if(loginService.uid == null && var.contains("uid")){
+				loginService.uid = var.substring(var.indexOf("'")+1, var.lastIndexOf("'"));
+				continue;
+			}
+			
+		}
+		
+		// 验证三大ID 是否获取成功
+		if(loginService.sid == null || loginService.gsid == null || loginService.uid == null){
+			return null;
+		}
+		
+		
+		return loginService;
 	}
 	
 	
@@ -507,7 +624,7 @@ public class LoginService {
 		}
 		
 		// 执行请求
-		HttpGet httpGet = new HttpGet(url);
+		HttpGet httpGet = new HttpGet(requestURL);
 		
 		try {
 			httpResponse = httpClient.execute(httpGet);
@@ -557,7 +674,7 @@ public class LoginService {
 		
 		
 		// 执行请求
-		HttpGet httpGet = new HttpGet(url);
+		HttpGet httpGet = new HttpGet(requestURL);
 		
 		if(proxy != null){
 			httpGet.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
@@ -608,7 +725,7 @@ public class LoginService {
 		
 		
 		// 执行请求
-		HttpGet httpGet = new HttpGet(url);
+		HttpGet httpGet = new HttpGet(requestURL);
 		
 		if(proxy != null){
 			httpGet.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
@@ -662,7 +779,7 @@ public class LoginService {
 		
 		
 		// 执行请求
-		HttpGet httpGet = new HttpGet(url);
+		HttpGet httpGet = new HttpGet(requestURL);
 		
 		try {
 			httpResponse = httpClient.execute(httpGet);

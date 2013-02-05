@@ -23,8 +23,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
 
 
 
@@ -60,6 +64,123 @@ public class PinCode {
 	public PinCode(String url){
 		this.url = url;
 	}
+	
+	public String getCode(HttpClient httpClient, String capId, String url){
+		
+		HttpGet httpGet = new HttpGet(url);
+		HttpResponse httpresponse = null;
+		try {
+			httpresponse = httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			System.out.println(e.getMessage());
+			return null;
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			return null;
+		} 
+		
+		File file = new File(tempDir, capId+".jpg");
+		FileOutputStream out = null;
+		try {
+			out = new FileOutputStream(file);
+		} catch (FileNotFoundException e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+		try {
+			httpresponse.getEntity().writeTo(out);
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+		
+		FileBody filebody = new FileBody(file);
+		
+		MultipartEntity mulEntity = new MultipartEntity();
+		try {
+			mulEntity.addPart("info[lz_user]", new StringBody("psh24053"));
+			mulEntity.addPart("info[lz_pass]", new StringBody("2227976"));
+			mulEntity.addPart("pesubmit", new StringBody(""));
+			mulEntity.addPart("imagepath",filebody);
+		} catch (UnsupportedEncodingException e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+		
+		HttpPost httpPost = new HttpPost("http://api.yzmbuy.com/index.php/demo");
+		httpPost.setEntity(mulEntity);
+		
+		try {
+			httpresponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			System.out.println(e.getMessage());
+			return null;
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+		
+		if(httpresponse == null){
+			return null;
+		}
+		
+		String demoHtml = null;
+		try {
+			demoHtml = HtmlTools.getHtml(httpresponse.getEntity());
+		} catch (UnsupportedEncodingException e) {
+			System.out.println(e.getMessage());
+			return null;
+		} catch (IllegalStateException e) {
+			System.out.println(e.getMessage());
+			return null;
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+		if(demoHtml == null){
+			return null;
+		}
+		
+		String id = demoHtml.substring(demoHtml.indexOf("demo/") + 5, demoHtml.indexOf("demo/") + 13);
+		String result = null;
+
+		while(true){
+			URL u = null;
+			try {
+				u = new URL("http://api.yzmbuy.com/index.php?mod=demo&act=result&id="+id);
+			} catch (MalformedURLException e1) {
+				e1.printStackTrace();
+			}
+			
+			
+			try {
+				result = HtmlTools.getHtml(u.openStream());
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			result = decodeUnicode(result);
+			String code = null;
+			if (result.indexOf("打码成功") != -1)
+			{
+				code = result.substring(result.indexOf("\"result\":") + 10, result.indexOf(",\"damaworker\"") - 1);
+				return code;
+			}
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+	}
+	
+	
 	
 	public boolean loadPinCodeBy3G(HttpClient httpClient, String capId){
 		if(error_total == 3){
@@ -343,5 +464,89 @@ public class PinCode {
     return mapRequest;    
     }
 	
-	
+    /**
+	 * unicode 转换成 中文
+	 * 
+	 * @param theString
+	 * @return
+	 */
+	public static String decodeUnicode(String theString)
+	{
+		char aChar;
+		int len = theString.length();
+		StringBuffer outBuffer = new StringBuffer(len);
+		for (int x = 0; x < len;)
+		{
+			aChar = theString.charAt(x++);
+			if (aChar == '\\')
+			{
+				aChar = theString.charAt(x++);
+				if (aChar == 'u')
+				{
+					int value = 0;
+					for (int i = 0; i < 4; i++)
+					{
+						aChar = theString.charAt(x++);
+						switch (aChar)
+						{
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+								value = (value << 4) + aChar - '0';
+								break;
+							case 'a':
+							case 'b':
+							case 'c':
+							case 'd':
+							case 'e':
+							case 'f':
+								value = (value << 4) + 10 + aChar - 'a';
+								break;
+							case 'A':
+							case 'B':
+							case 'C':
+							case 'D':
+							case 'E':
+							case 'F':
+								value = (value << 4) + 10 + aChar - 'A';
+								break;
+							default:
+								throw new IllegalArgumentException("Malformed      encoding.");
+						}
+
+					}
+					outBuffer.append((char) value);
+				} else
+				{
+					if (aChar == 't')
+					{
+						aChar = '\t';
+					} else if (aChar == 'r')
+					{
+						aChar = '\r';
+					} else if (aChar == 'n')
+					{
+						aChar = '\n';
+					} else if (aChar == 'f')
+					{
+						aChar = '\f';
+					}
+					outBuffer.append(aChar);
+				}
+			} else
+			{
+				outBuffer.append(aChar);
+			}
+
+		}
+		return outBuffer.toString();
+
+	}
 }
