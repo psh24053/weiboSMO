@@ -60,8 +60,8 @@ import org.jsoup.select.Elements;
 
 public class WeiboMatcher extends GenericMatcher {
 
-	public static final String DOMAIN = "uhomeu.com";
-	public static final String SERVLET = "http://127.0.0.1:8888/WeiboActivationServer/Activation";
+	public static final String DOMAIN = "ksgym.com";
+	public static final String SERVLET = "http://127.0.0.1:8080/WeiboActivationServer/Activation";
 	public static int total = 0;
 	
 	

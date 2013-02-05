@@ -45,7 +45,7 @@ public class ActivationService {
 	private ExecutorService executorService;
 	private ProxyService proxyService;
 	private HttpClient httpClient;
-	
+	private int complete = 0;
 	public static void main(String[] args) {
 		ActivationService service = new ActivationService();
 		service.startActivation();
@@ -60,7 +60,7 @@ public class ActivationService {
 		proxyService = new ProxyService();
 		proxyService.loadProxyData();
 		System.out.println("Load Proxy Data Complete! "+proxyService.getProxyData().size());
-		executorService = Executors.newFixedThreadPool(1);
+		executorService = Executors.newFixedThreadPool(10);
 		final wb_activationDAO dao = new wb_activationDAO();
 		/*
 		 * 激活逻辑：
@@ -75,130 +75,91 @@ public class ActivationService {
 		 * status为4，代表未知状态（可能是已激活，也可能是激活失败）
 		 * 
 		 */
+		
+		
+		List<wb_activationModel> data = dao.selectActivation();
+		System.out.println("Load ActivationModel "+data.size());
+		
+		
+		
 		while(true){
-			List<wb_activationModel> data = dao.selectActivation();
 			
-			System.out.println("Load ActivationModel "+data.size());
-			
-			if(data != null && data.size() > 0){
+			// 当目标数量已经与完成数量相等，则重新开始逻辑
+			if(data != null && complete == data.size() && data.size() > 0){
+				complete = 0;
+				data = dao.selectActivation();
 				
+			}
+			
+			if(complete == 0){
 				// 循环
 				for(int i = 0 ; i < data.size() ; i ++){
 					final wb_activationModel model = data.get(i);
-					System.out.println("run "+model);
-					wb_proxyModel proxy = proxyService.getRandomProxyModel();
-					
-					// 首先执行注册URL点击
-					String html = runActivation(model, proxy);
-					
-					if(html == null){
-						//执行失败，将目标model的status设置为3
-						model.setStatus(33);
-						dao.update(model);
-					}else{
-						// 代表是验证账号错误，该种错误无法自动确定是否注册成功
-						// 需要手动验证，将目标model的status设置为4
-						if(html.equals("{Error:01}")){
-							System.out.println(model.getAid()+" "+html);
-							model.setStatus(44);
-							dao.update(model);
-						} else if(html.equals("{Reg:01}")){
-							System.out.println(model.getAid()+" [3] Activation Success! wait Update Uid");
-							model.setStatus(11);
-							dao.update(model);
+					// 启动线程
+					executorService.execute(new Runnable() {
+						
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							System.out.println("run "+model);
+							wb_proxyModel proxy = proxyService.getRandomProxyModel();
 							
-						} else {
-							System.out.println(model.getAid()+" [6] html length "+html.length());
-							if(updateUid(model.getAid(), html)){
-								//执行填写资料操作
-								if(runModifyInfo(model, proxy, httpClient, html)){
-									System.out.println(model.getAid()+" [8] ModifyInfo Success!");
-									model.setStatus(22);
+							// 首先执行注册URL点击
+							String html = runActivation(model, proxy);
+							
+							if(html == null){
+								//执行失败，将目标model的status设置为3
+								model.setStatus(33);
+								dao.update(model);
+							}else{
+								// 代表是验证账号错误，该种错误无法自动确定是否注册成功
+								// 需要手动验证，将目标model的status设置为4
+								if(html.equals("{Error:01}")){
+									System.out.println(model.getAid()+" "+html);
+									model.setStatus(44);
 									dao.update(model);
-								}else{
-									System.out.println(model.getAid()+" [8] ModifyInfo Error, but activation Success!");
+								} else if(html.equals("{Reg:01}")){
+									System.out.println(model.getAid()+" [3] Activation Success! wait Update Uid");
 									model.setStatus(11);
 									dao.update(model);
+									
+								} else {
+									System.out.println(model.getAid()+" [6] html length "+html.length());
+									if(updateUid(model.getAid(), html)){
+										//执行填写资料操作
+										if(runModifyInfo(model, proxy, httpClient, html)){
+											System.out.println(model.getAid()+" [8] ModifyInfo Success!");
+											model.setStatus(22);
+											dao.update(model);
+										}else{
+											System.out.println(model.getAid()+" [8] ModifyInfo Error, but activation Success!");
+											model.setStatus(11);
+											dao.update(model);
+										}
+										
+									}else{
+										System.out.println(model.getAid()+" [7] Update Uid Error, but activation Success!");
+										model.setStatus(11);
+										dao.update(model);
+										
+									}
 								}
 								
-							}else{
-								System.out.println(model.getAid()+" [7] Update Uid Error, but activation Success!");
-								model.setStatus(11);
-								dao.update(model);
-								
 							}
+							
+							
+							
+							
+							proxyService.revertProxyModel(proxy, System.currentTimeMillis());
+							plusComplete();
 						}
-						
-					}
+					});
 					
-					
-					
-					
-					proxyService.revertProxyModel(proxy, System.currentTimeMillis());
-					
-					
-//					executorService.execute(new Runnable() {
-//						
-//						@Override
-//						public void run() {
-//							// TODO Auto-generated method stub
-//							System.out.println("run "+model);
-//							wb_proxyModel proxy = proxyService.getRandomProxyModel();
-//							
-//							// 首先执行注册URL点击
-//							String html = runActivation(model, proxy);
-//							
-//							if(html == null){
-//								//执行失败，将目标model的status设置为3
-//								model.setStatus(33);
-//								dao.update(model);
-//							}else{
-//								// 代表是验证账号错误，该种错误无法自动确定是否注册成功
-//								// 需要手动验证，将目标model的status设置为4
-//								if(html.equals("{Error:01}")){
-//									System.out.println(model.getAid()+" "+html);
-//									model.setStatus(44);
-//									dao.update(model);
-//								} else if(html.equals("{Reg:01}")){
-//									System.out.println(model.getAid()+" [3] Activation Success! wait Update Uid");
-//									model.setStatus(11);
-//									dao.update(model);
-//									
-//								} else {
-//									System.out.println(model.getAid()+" [6] html length "+html.length());
-//									if(updateUid(model.getAid(), html)){
-//										//执行填写资料操作
-//										if(runModifyInfo(model, proxy, httpClient, html)){
-//											System.out.println(model.getAid()+" [8] ModifyInfo Success!");
-//											model.setStatus(22);
-//											dao.update(model);
-//										}else{
-//											System.out.println(model.getAid()+" [8] ModifyInfo Error, but activation Success!");
-//											model.setStatus(11);
-//											dao.update(model);
-//										}
-//										
-//									}else{
-//										System.out.println(model.getAid()+" [7] Update Uid Error, but activation Success!");
-//										model.setStatus(11);
-//										dao.update(model);
-//										
-//									}
-//								}
-//								
-//							}
-//							
-//							
-//							
-//							
-//							proxyService.revertProxyModel(proxy, System.currentTimeMillis());
-//						}
-//					});
+
 				}
-				
-				
-				
 			}
+			
+			
 			
 			
 			try {
@@ -209,6 +170,12 @@ public class ActivationService {
 			}
 		}
 		
+	}
+	/**
+	 * 报告完成
+	 */
+	public synchronized void plusComplete(){
+		complete ++;
 	}
 	/**
 	 * 更新uid和其他基本信息
@@ -471,7 +438,8 @@ public class ActivationService {
 			
 			String replaceUrl = content.substring(18, content.length() - 3);
 			System.out.println(model.getAid()+" [3] "+replaceUrl);
-			if(replaceUrl.indexOf("getElementById") != -1){
+			if(replaceUrl.indexOf("getElementById") != -1 || replaceUrl.indexOf("$CONFIG") != -1){
+//				System.out.println(html);
 				return null;
 			}
 			
@@ -729,8 +697,9 @@ public class ActivationService {
 			try {
 				nguide_1_json = new JSONObject(nguide_1_html);
 			} catch (JSONException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				proxyService.getTimeOutData().add(proxy);
+				return false;
 			}
 		}
 		int code = -1;
@@ -738,8 +707,9 @@ public class ActivationService {
 			try {
 				code = nguide_1_json.getInt("code");
 			} catch (JSONException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				httpClient.getConnectionManager().shutdown();
+				proxyService.getTimeOutData().add(proxy);
+				return false;
 			}
 		}
 		

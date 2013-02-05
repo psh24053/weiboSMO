@@ -101,8 +101,8 @@ public class ActivationServlet extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		
-		String email = request.getParameter("email");
-		String url = request.getParameter("url");
+		final String email = request.getParameter("email");
+		final String url = request.getParameter("url");
 		
 		if(email == null || url == null){
 			Tools.log.error("Paramster Error");
@@ -111,10 +111,11 @@ public class ActivationServlet extends HttpServlet {
 		response.flushBuffer();
 		
 		
-		/*
-		 * 执行插入到数据库的逻辑 
-		 */
 		insertDB(email, url, total);
+		
+		
+		
+		
 
 
 	}
@@ -135,34 +136,15 @@ public class ActivationServlet extends HttpServlet {
 		try {
 			conn = Tools.getMysqlConn();
 			if(conn == null){
-				insertDB(email, url, index);
 				return;
 			}
-			pstmt = conn.prepareStatement("SELECT aid FROM wb_account WHERE email = ?");
+			
+			pstmt = conn.prepareStatement("insert into wb_activation(aid,email,url,status) SELECT aid,?,?,? FROM wb_account WHERE email = ? LIMIT 1");
+			
 			pstmt.setString(1, email);
-			rs = pstmt.executeQuery();
-			
-			if(rs.next()){
-				aid = rs.getInt("aid");
-				System.out.println("aid -> "+aid);
-			}else{
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				insertDB(email, url, index);
-				return;
-			}
-			
-			
-			pstmt = conn.prepareStatement("insert into wb_activation(aid,email,url,status) values(?,?,?,?)");
-			
-			pstmt.setInt(1, aid);
-			pstmt.setString(2, email);
-			pstmt.setString(3, url);
-			pstmt.setInt(4, 0);
+			pstmt.setString(2, url);
+			pstmt.setInt(3, 0);
+			pstmt.setString(4, email);
 			
 			pstmt.executeUpdate();
 			

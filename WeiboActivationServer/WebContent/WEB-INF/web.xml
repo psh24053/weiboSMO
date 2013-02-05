@@ -17,11 +17,9 @@
     <servlet-name>ActivationServlet</servlet-name>
     <url-pattern>/Activation</url-pattern>
   </servlet-mapping>
-  
   <listener>
-        <listener-class>
+    <listener-class>
             cn.panshihao.weiboactivation.ServerStartListener
         </listener-class>
   </listener>
-  
 </web-app>

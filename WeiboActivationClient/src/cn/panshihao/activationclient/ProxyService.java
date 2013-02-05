@@ -103,7 +103,7 @@ public class ProxyService {
 	public void loadYunProxyCN(){
 		ExecutorService executorService = Executors.newFixedThreadPool(100);
 		
-		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN/");
+		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,CN,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
 		String[] hosts = html.split("\n");
 		
 		Tools.log.debug("Yun Proxy Count "+hosts.length);

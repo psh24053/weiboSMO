@@ -15,7 +15,7 @@ import cn.panshihao.register.model.wb_accountModel;
 
 public class RegisterService {
 
-	public static final String EmailServerDomain = "uhomeu.com";
+	public static final String EmailServerDomain = "ksgym.com";
 	
 	
 	/**
@@ -106,7 +106,12 @@ public class RegisterService {
 						proxyService.loadProxyData();
 						time = System.currentTimeMillis();
 					}
-					
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		}).start(); 
@@ -127,6 +132,12 @@ public class RegisterService {
 						Log.log.debug("faildData Count "+faildData.size());
 						bool = false;
 						executorService.shutdown();
+					}
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 					
 				}

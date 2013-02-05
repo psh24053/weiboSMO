@@ -161,7 +161,7 @@ public class wb_proxyDAO {
 	 * @param model
 	 * @return
 	 */
-	public boolean insert(wb_proxyModel model){
+	public synchronized boolean insert(wb_proxyModel model){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		int resultCount = 0;
@@ -217,7 +217,7 @@ public class wb_proxyDAO {
 	 * @param model
 	 * @return
 	 */
-	public boolean update(wb_proxyModel model){
+	public synchronized boolean update(wb_proxyModel model){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		int resultCount = 0;

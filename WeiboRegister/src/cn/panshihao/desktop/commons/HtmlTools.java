@@ -292,6 +292,10 @@ public class HtmlTools {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static String getHtml(HttpEntity entity) throws UnsupportedEncodingException, IllegalStateException, IOException{
+		if(entity == null){
+			return null;
+		}
+		
 		BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent(),"UTF-8"));
 		
 		String temp = "";
