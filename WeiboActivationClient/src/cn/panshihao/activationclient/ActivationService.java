@@ -218,7 +218,14 @@ public class ActivationService {
 	 */
 	public boolean updateUid(int aid, String html){
 		Document doc = Jsoup.parse(html);
-		Element el = doc.getElementsByTag("script").get(0);
+		
+		Elements scripts = doc.getElementsByTag("script");
+		
+		if(scripts.size() == 0){
+			return false;
+		}
+		
+		Element el = scripts.get(0);
 		
 		String eHtml = el.html();
 		
@@ -464,7 +471,9 @@ public class ActivationService {
 			
 			String replaceUrl = content.substring(18, content.length() - 3);
 			System.out.println(model.getAid()+" [3] "+replaceUrl);
-			
+			if(replaceUrl.indexOf("getElementById") != -1){
+				return null;
+			}
 			
 			httpGet = new HttpGet(replaceUrl);
 			httpGet.addHeader("Referer", secondUrl);
@@ -523,6 +532,10 @@ public class ActivationService {
 				
 				String ssoJS = ssoE.html();
 				
+				if(ssoJS.indexOf("location.replace") == -1){
+					return null;
+				}
+				
 				String ssoUrl = ssoJS.substring(ssoJS.indexOf("location.replace")+18, ssoJS.lastIndexOf("'"));
 				
 				System.out.println(model.getAid()+" [4] "+ssoUrl);
@@ -549,6 +562,10 @@ public class ActivationService {
 				}
 				
 				Header locat = httpResponse.getFirstHeader("Location");
+				
+				if(locat == null){
+					return null;
+				}
 				
 				String ssoLocation = locat.getValue();
 				System.out.println(model.getAid()+" [5] "+ssoLocation);
