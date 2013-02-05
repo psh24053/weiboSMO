@@ -436,7 +436,6 @@ public class LoginService {
 				
 				// 如果验证码拉取失败，则返回
 			 	String codeValue = pincode.getCode(loginService.httpClient, capId, codeImgUrl);
-				System.out.println(codeValue);
 				
 				if(codeValue == null){
 					return null;
@@ -479,8 +478,6 @@ public class LoginService {
 			System.out.println("location is null");
 			return null;
 		}
-		
-		System.out.println(location.getValue());
 		
 		HttpGet httpGet = new HttpGet(location.getValue());
 		try {
