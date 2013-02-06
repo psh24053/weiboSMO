@@ -42,6 +42,7 @@ import org.jsoup.select.Elements;
 
 
 
+
 public class ProxyService {
 
 	
@@ -979,14 +980,312 @@ public class ProxyService {
 		
 		return true;
 	}
+	/**
+	 * http://www.cz88.net/proxy/index.aspx
+	 */
+	public void loadCZ88(){
+		for(int i = 1 ; i < 11 ; i ++){
+			String html = null;
+			if(i == 1){
+				html = HtmlTools.getHtml("http://www.cz88.net/proxy/index.aspx");
+			}else{
+				html = HtmlTools.getHtml("http://www.cz88.net/proxy/http_"+i+".aspx");
+			}
+			
+			Document doc = Jsoup.parse(html);
+			
+			Elements trs = doc.select("tbody tr");
+			
+			for(int j = 1 ; j < trs.size() ; j ++){
+				Element tr = trs.get(j);
+				Elements tds = tr.select("td");
+				
+				if(tds.size() < 2){
+					continue;
+				}
+				
+				final String ip = tds.get(0).text();
+				final int port = Integer.parseInt(tds.get(1).text());
+				final String address = tds.get(4).text();
+				
+				new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						if(validationCountry(address)){
+							if(validationProxy(ip, port)){
+								wb_proxyDAO dao = new wb_proxyDAO();
+								wb_proxyModel model = new wb_proxyModel();
+								model.setChecktime(System.currentTimeMillis());
+								model.setIp(ip);
+								model.setPort(port);
+								
+								dao.insert(model);
+								
+							}
+						}
+						
+						
+					}
+				}).start();
+				
+				
+			}
+			
+			
+			
+		}
+	}
 	
+	
+//	/**
+//	 * http://www.freeproxylists.net/zh/?page=1
+//	 */
+//	public void loadFreeProxyLists(){
+//		for(int i = 1 ; i < 36 ; i ++){
+//			String html = HtmlTools.getFileContent(new File("freeproxylists",i+".htm"));
+//			Document doc = Jsoup.parse(html);
+//			Elements trs = doc.select(".DataGrid tbody tr");
+//			
+//			
+//			for(int j = 1 ; j < trs.size() ; j ++){
+//				Element tr = trs.get(j);
+//				Elements tds = tr.select("td");
+//				
+//				if(tds.size() < 2){
+//					continue;
+//				}
+//				
+//				final String ip = tds.get(0).text();
+//				final int port = Integer.parseInt(tds.get(1).text());
+//				
+//				String address = tds.get(4).text();
+//				if(address.equals("中国")){
+//					continue;
+//				}
+//				
+//				new Thread(new Runnable() {
+//					
+//					@Override
+//					public void run() {
+//						// TODO Auto-generated method stub
+//						if(validationProxy(ip, port)){
+//							wb_proxyDAO dao = new wb_proxyDAO();
+//							wb_proxyModel model = new wb_proxyModel();
+//							model.setChecktime(System.currentTimeMillis());
+//							model.setIp(ip);
+//							model.setPort(port);
+//							
+//							dao.insert(model);
+//							
+//						}
+//					}
+//				}).start();
+//				
+//			}
+//			
+//		}
+//	}
+	
+	/**
+	 * http://www.cool-proxy.net/proxies/http_proxy_list/page:1/sort:ip/direction:asc
+	 */
+	public void loadCoolProxy(){
+		for(int i = 1 ; i < 21 ; i ++){
+			String html = HtmlTools.getHtml("http://www.cool-proxy.net/proxies/http_proxy_list/page:"+i+"/sort:ip/direction:asc");
+			
+			Document doc = Jsoup.parse(html);
+			Elements trs = doc.select("tbody tr");
+			
+			for(int j = 1 ; j < trs.size() ; j ++){
+				Element tr = trs.get(j);
+				Elements tds = tr.select("td");
+				
+				if(tds.size() < 2){
+					continue;
+				}
+				
+				Element iptd = tds.get(0);
+				Element porttd = tds.get(1);
+				
+				Elements spans = iptd.getElementsByAttribute("class");
+				
+				final String ip = spans.get(0).text() + "."+spans.get(1).text()+ "."+spans.get(2).text()+ "."+spans.get(3).text();
+				final int port = Integer.parseInt(porttd.text());
+				
+				String address = tds.get(3).text();
+				
+				if(address.equals("China")){
+					continue;
+				}
+				new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						if(validationProxy(ip, port)){
+							wb_proxyDAO dao = new wb_proxyDAO();
+							wb_proxyModel model = new wb_proxyModel();
+							model.setChecktime(System.currentTimeMillis());
+							model.setIp(ip);
+							model.setPort(port);
+							
+							dao.insert(model);
+							
+						}
+					}
+				}).start();
+				
+				
+			}
+			
+			
+		}
+		
+		
+	}
+	/**
+	 * http://www.site-digger.com/html/articles/20110516/proxieslist.html
+	 */
+	public void loadSitedigger(){
+		String html = HtmlTools.getHtml("http://www.site-digger.com/html/articles/20110516/proxieslist.html");
+		
+		Document doc = Jsoup.parse(html);
+		
+		Elements trs = doc.select("tbody tr");
+		
+		for(int i = 0 ; i < trs.size() ; i ++){
+			Element tr = trs.get(i);
+			
+			Elements tds = tr.select("td");
+			
+			String host = tds.get(0).text();
+			
+			String address = tds.get(2).text().trim();
+			
+			if(address.equals("China")){
+				continue;
+			}
+			
+			final String ip = host.split(":")[0];
+			final int port = Integer.parseInt(host.split(":")[1]);
+			
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					if(validationProxy(ip, port)){
+						wb_proxyDAO dao = new wb_proxyDAO();
+						wb_proxyModel model = new wb_proxyModel();
+						model.setChecktime(System.currentTimeMillis());
+						model.setIp(ip);
+						model.setPort(port);
+						
+						dao.insert(model);
+						
+					}
+				}
+			}).start();
+			
+		}
+		
+		
+		
+	}
+//	/**
+//	 * http://proxy.linktool.org/
+//	 */
+//	public void loadProxy_LinkTool(){
+//		ExecutorService service = Executors.newFixedThreadPool(100);
+//		URL url = null;
+//		try {
+//			url = new URL("http://proxy.linktool.org/");
+//		} catch (MalformedURLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		String html = null;
+//		try {
+//			html = HtmlTools.getHtml(url.openStream());
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		Document doc = Jsoup.parse(html);
+//		Elements elements = doc.select("dd");
+//		
+//		for(int i = 0 ; i < elements.size() ; i ++){
+//			Element e = elements.get(i);
+//			String host = e.text();
+//			
+//			final String ip = host.split(":")[0];
+//			final int port = Integer.parseInt(host.split(":")[1]);
+//			service.execute(new Runnable() {
+//			
+//			@Override
+//			public void run() {
+//				// TODO Auto-generated method stub
+//				if(validationCountry(ipAddress(ip))){
+//					if(validationProxy(ip, port)){
+//						wb_proxyDAO dao = new wb_proxyDAO();
+//						wb_proxyModel model = new wb_proxyModel();
+//						model.setChecktime(System.currentTimeMillis());
+//						model.setIp(ip);
+//						model.setPort(port);
+//						
+//						dao.insert(model);
+//						
+//					}
+//				}
+//			}
+//			});
+//			
+//			
+//		}
+//		
+//		service.shutdown();
+//	}
+	
+//	/**
+//	 * 根据ip来获取地址
+//	 * @param ip
+//	 * @return
+//	 */
+//	public String ipAddress(String ip){
+//		String html = HtmlTools.getHtml("http://ip138.com/ips138.asp?ip="+ip,"GBK");
+//		
+//		Document doc = Jsoup.parse(html);
+//		
+//		Elements es = doc.select(".ul1 li");
+//		
+//		if(es.size() < 1){
+//			return "未知";
+//		}
+//		
+//		String address = es.get(0).html();
+//		
+//		
+//		return address.substring(address.indexOf("：")+1);
+//	}
 	
 	public static void main(String[] args) {
 		ProxyService s = new ProxyService();
 		
-//		s.get_xici_nn();
-//		s.get_xici_nt();
 		s.loadYunProxyCN();
+		s.get_xici_nn();
+		s.get_xici_nt();
+		s.get_51daili_fast();
+		s.get_51daili_anonymous();
+		s.get_51daili_non_anonymous();
+		s.get_xici_wn();
+		s.get_xici_wt();
+		s.getCZ88BBS_LOCAL_FILE("proxy.txt");
+		
+		s.loadSitedigger();
+		s.loadCoolProxy();
 	}
 	
 	/**

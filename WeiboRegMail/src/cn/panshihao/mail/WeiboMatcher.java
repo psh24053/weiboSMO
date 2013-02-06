@@ -129,8 +129,8 @@ public class WeiboMatcher extends GenericMatcher {
 	public static void addUser(String username){
 		
 		
-		BufferedReader m_reader;  
-        OutputStreamWriter m_writer;  
+		BufferedReader m_reader = null;  
+        OutputStreamWriter m_writer = null;  
         TelnetClient m_telnetClient = new TelnetClient();  
         try {  
             //设置Telnet超时  
@@ -191,8 +191,17 @@ public class WeiboMatcher extends GenericMatcher {
             System.out.println(e.getMessage());
         } catch (IOException e) {
         	System.out.println(e.getMessage());
-        }  
+        } finally {
+        	 try {
+				m_writer.close();
+				m_reader.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        } 
 		
+       
 		
 	}
 	
