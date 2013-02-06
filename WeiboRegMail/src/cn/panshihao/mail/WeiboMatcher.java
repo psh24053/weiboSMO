@@ -125,6 +125,7 @@ public class WeiboMatcher extends GenericMatcher {
 	public static final String LINE_SEPARATOR = System.getProperties()  
             .getProperty("line.separator"); 
 	
+	
 	public static void addUser(String username){
 		
 		
