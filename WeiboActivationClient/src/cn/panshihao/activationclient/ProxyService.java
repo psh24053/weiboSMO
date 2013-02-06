@@ -41,6 +41,7 @@ import org.jsoup.select.Elements;
 
 
 
+
 public class ProxyService {
 
 	
@@ -59,28 +60,51 @@ public class ProxyService {
 	
 	private List<wb_proxyModel> timeOutData = new ArrayList<wb_proxyModel>();
 	
-	/**
-	 * 从数据库中加载代理服务器数据
-	 */
 	public void loadProxyData(){
+		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,CN,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
+		String[] hosts = html.split("\n");
 		
-		wb_proxyDAO dao = new wb_proxyDAO();
-		
-		List<wb_proxyModel> data = dao.selectByAvailable();
-		
+		System.out.println("Yun Proxy Count "+hosts.length);
 		ProxyData.clear();
 		
-		for(int i = 0 ; i < data.size() ; i ++){
-			ProxyData.put(System.currentTimeMillis() - ProxyDelay + i, data.get(i));
+		for(int i = 0 ; i < hosts.length ; i ++){
+			String host = hosts[i];
+			wb_proxyModel item = new wb_proxyModel();
+			item.setIp(host.split(":")[0]);
+			item.setPort(Integer.parseInt(host.split(":")[1]));
+			long time = System.currentTimeMillis() - ProxyDelay + i;
+			item.setChecktime(time);
+			ProxyData.put(time, item);
 		}
-		
 		
 		
 		
 		blockData.clear();
 		timeOutData.clear();
-		
 	}
+	
+//	/**
+//	 * 从数据库中加载代理服务器数据
+//	 */
+//	public void loadProxyData(){
+//		
+//		wb_proxyDAO dao = new wb_proxyDAO();
+//		
+//		List<wb_proxyModel> data = dao.selectByAvailable();
+//		
+//		ProxyData.clear();
+//		
+//		for(int i = 0 ; i < data.size() ; i ++){
+//			ProxyData.put(System.currentTimeMillis() - ProxyDelay + i, data.get(i));
+//		}
+//		
+//		
+//		
+//		
+//		blockData.clear();
+//		timeOutData.clear();
+//		
+//	}
 	/**
 	 * 验证代理数据，将可用的留下
 	 */

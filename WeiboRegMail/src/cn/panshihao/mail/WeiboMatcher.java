@@ -125,7 +125,7 @@ public class WeiboMatcher extends GenericMatcher {
 	public static final String LINE_SEPARATOR = System.getProperties()  
             .getProperty("line.separator"); 
 	
-	public void addUser(String username){
+	public static void addUser(String username){
 		
 		
 		BufferedReader m_reader;  
@@ -157,11 +157,11 @@ public class WeiboMatcher extends GenericMatcher {
             m_writer.flush();  
             System.out.println(m_reader.readLine());  
             //输入root用户密码  
-            m_writer.write("caicai520" + LINE_SEPARATOR);  
+            m_writer.write("2227976" + LINE_SEPARATOR);  
             m_writer.flush();  
             System.out.println(m_reader.readLine());  
             //输入Telnet命令添加用户  
-            m_writer.write("adduser helloman 881213" + LINE_SEPARATOR);  
+            m_writer.write("adduser "+username+" "+username+"" + LINE_SEPARATOR);  
             m_writer.flush();  
             System.out.println(m_reader.readLine());  
             //输出用户列表  
@@ -171,6 +171,15 @@ public class WeiboMatcher extends GenericMatcher {
             try {  
                 for (;;) {  
                     System.out.println(m_reader.readLine());  
+                    String result = m_reader.readLine();
+                    
+                    if(result != null && result.contains("added")){
+                    	System.out.println("添加用户 "+username+" 成功");
+                    }
+                    if(result != null && result.contains("already")){
+                    	System.out.println("用户 "+username+" 已经存在");
+                    }
+                    
                     if(m_reader.readLine() != null){
                     	break;
                     }
@@ -178,11 +187,9 @@ public class WeiboMatcher extends GenericMatcher {
             } catch (Exception e) {  
             }  
         } catch (SocketException e) {  
-            // TODO Auto-generated catch block  
-            e.printStackTrace();  
-        } catch (IOException e) {  
-            // TODO Auto-generated catch block  
-            e.printStackTrace();  
+            System.out.println(e.getMessage());
+        } catch (IOException e) {
+        	System.out.println(e.getMessage());
         }  
 		
 		
