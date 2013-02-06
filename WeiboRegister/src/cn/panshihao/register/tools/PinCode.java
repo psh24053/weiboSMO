@@ -86,6 +86,7 @@ public class PinCode {
 			httpget = new HttpPost("http://www.weibo.com/signup/v5/pincode/pincode.php?lang=zh&sinaId="+sinaId+"&r="+regtime);
 		}
 		
+		httpget.addHeader("Referer", "http://www.weibo.com/signup/mobile.php");
 		
 		HttpResponse httpresponse = null;
 		try {

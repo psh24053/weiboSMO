@@ -143,7 +143,7 @@ public class ActivationServlet extends HttpServlet {
 			
 			pstmt.setString(1, email);
 			pstmt.setString(2, url);
-			pstmt.setInt(3, 0);
+			pstmt.setInt(3, 88);
 			pstmt.setString(4, email);
 			
 			pstmt.executeUpdate();
