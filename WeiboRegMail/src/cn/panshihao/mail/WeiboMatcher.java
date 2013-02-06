@@ -4,8 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.Connection;
@@ -24,6 +26,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.apache.commons.net.telnet.TelnetClient;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -98,6 +101,7 @@ public class WeiboMatcher extends GenericMatcher {
 					@Override
 					public void run() {
 						// TODO Auto-generated method stub
+						addUser(recipient.getUser());
 						ConnectLocalServer(recipient.getUser()+"@"+DOMAIN, url);
 					}
 				}).start();
@@ -118,6 +122,73 @@ public class WeiboMatcher extends GenericMatcher {
 		
 		return null;
 	}
+	public static final String LINE_SEPARATOR = System.getProperties()  
+            .getProperty("line.separator"); 
+	
+	public void addUser(String username){
+		
+		
+		BufferedReader m_reader;  
+        OutputStreamWriter m_writer;  
+        TelnetClient m_telnetClient = new TelnetClient();  
+        try {  
+            //设置Telnet超时  
+            m_telnetClient.setDefaultTimeout(1000);  
+            //设置Telnet服务器地址及端口  
+            m_telnetClient.connect("localhost", 4555);  
+            //创建读取缓冲对象  
+            m_reader = new BufferedReader(new InputStreamReader(m_telnetClient  
+                    .getInputStream()));  
+            //创建用于发送Telnet命令对象  
+            m_writer = new OutputStreamWriter(m_telnetClient.getOutputStream());  
+            //不断接收登陆成功的信号，超时抛出异常，则跳至一下条代码执行  
+            try {  
+                for (;;) {  
+                    System.out.println(m_reader.readLine());  
+                    if(m_reader.readLine() != null){
+                    	break;
+                    }
+                }  
+            } catch (Exception e) {  
+            	System.out.println("..");
+            }  
+            //输入James服务器用户名,此为管理员用户名，而非普通用户，默认为root  
+            m_writer.write("psh24053" + LINE_SEPARATOR);  
+            m_writer.flush();  
+            System.out.println(m_reader.readLine());  
+            //输入root用户密码  
+            m_writer.write("caicai520" + LINE_SEPARATOR);  
+            m_writer.flush();  
+            System.out.println(m_reader.readLine());  
+            //输入Telnet命令添加用户  
+            m_writer.write("adduser helloman 881213" + LINE_SEPARATOR);  
+            m_writer.flush();  
+            System.out.println(m_reader.readLine());  
+            //输出用户列表  
+            m_writer.write("listusers" + LINE_SEPARATOR);  
+            m_writer.flush();  
+            //显示用户列表  
+            try {  
+                for (;;) {  
+                    System.out.println(m_reader.readLine());  
+                    if(m_reader.readLine() != null){
+                    	break;
+                    }
+                }  
+            } catch (Exception e) {  
+            }  
+        } catch (SocketException e) {  
+            // TODO Auto-generated catch block  
+            e.printStackTrace();  
+        } catch (IOException e) {  
+            // TODO Auto-generated catch block  
+            e.printStackTrace();  
+        }  
+		
+		
+	}
+	
+	
 	public void ConnectLocalServer(String email, String url){
 		total++;
 		System.out.println("当前接收到激活邮件: "+total);
