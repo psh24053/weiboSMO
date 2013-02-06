@@ -16,5 +16,6 @@
 	<classpathentry kind="lib" path="lib/mchange-commons-java-0.2.3.3.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.12-bin.jar"/>
 	<classpathentry kind="lib" path="lib/jna-3.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-net-3.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
