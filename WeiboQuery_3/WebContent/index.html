@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+
+.mainDiv{
+	
+	width: 1300px;
+	height: 570px;
+	margin-top: 20px;
+	margin-left: 20px;
+	border: 1px solid #ccc;
+	
+}
+
+.head{
+	
+	width: 1290;
+	height: 60px;
+	border: 1px solid #ccc;
+	
+
+}
+
+.center{
+	
+	width: 1290;
+	height: 509px;
+	border: 1px solid #ccc;
+
+}
+
+.left{
+	
+	width: 240px;
+	height: 507px;
+	border: 1px solid #ccc;
+	float: left;
+	overflow: auto;
+
+}
+
+.right{
+	
+	margin-left:2px;
+	width: 1047px;
+	height: 507px;
+	border: 1px solid #ccc;
+	float: left;
+
+}
+
+.head_3{
+	
+	width: 240px;
+	height: 12px;
+	
+}
+
+.leftContent{
+	
+	font-size: 14px;
+	
+}
+
+.list{
+	
+	list-style: none;
+	cursor: pointer;
+
+}
+
+.list:hover {color: #FF00FF}
+
+</style>
+
+<title>操作网页</title>
+
+<!-- JQuery UI JSLib -->
+<script type="text/javascript" src="jquery-1.8.1.min.js"></script>
+<script type="text/javascript"
+	src="jqueryui/js/jquery-ui-1.9.2.custom.min.js"></script>
+<!-- JqGrid lib -->
+<script type="text/javascript" src="js/i18n/grid.locale-cn.js"></script>
+<script type="text/javascript" src="js/jquery.jqGrid.min.js"></script>
+
+<link rel="stylesheet" type="text/css"
+	href="jqueryui/css/flick/jquery-ui-1.9.2.custom.min.css" />
+<link type="text/css" rel="stylesheet" href="css/ui.jqgrid.css" />
+
+
+<script type="text/javascript">
+	
+$(document).ready(function(){
+	
+	$("#accordion").accordion();
+	
+});
+
+
+</script>
+
+</head>
+<body>
+
+	<div class="mainDiv">
+		
+		<div class="head">
+		
+		</div>
+		
+		<div class="center">
+
+			<div class="left">
+
+				<div id="accordion">
+					<h3 class="head_3">类别一</h3>
+					<div>
+						<ul class="leftContent">
+							<li class="list">类别一分组一</li>
+							<li class="list">类别一分组二</li>
+							<li class="list">类别一分组三</li>
+						</ul>
+					</div>
+					<h3 class="head_3">类别二</h3>
+					<div>
+						<ul class="leftContent">
+							<li class="list">类别二分组一</li>
+							<li class="list">类别二分组二</li>
+							<li class="list">类别二分组三</li>
+						</ul>
+					</div>
+					<h3 class="head_3">类别三</h3>
+					<div>
+						<ul class="leftContent">
+							<li class="list">类别三分组一</li>
+							<li class="list">类别三分组二</li>
+							<li class="list">类别三分组三</li>
+						</ul>
+					</div>
+					<h3 class="head_3">类别四</h3>
+					<div>
+						<ul class="leftContent">
+							<li class="list">类别四分组一</li>
+							<li class="list">类别四分组二</li>
+							<li class="list">类别四分组三</li>
+						</ul>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="right">
+			
+			
+			</div>
+		
+		</div>
+	
+	
+	</div>
+	
+	
+
+</body>
+</html>
