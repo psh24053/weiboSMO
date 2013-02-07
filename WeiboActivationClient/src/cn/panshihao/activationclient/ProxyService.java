@@ -62,20 +62,47 @@ public class ProxyService {
 	private List<wb_proxyModel> timeOutData = new ArrayList<wb_proxyModel>();
 	
 	public void loadProxyData(){
-		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,CN,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
+//		ProxyData.clear();
+//		blockData.clear();
+//		timeOutData.clear();
+//		
+//		wb_proxyDAO dao = new wb_proxyDAO();
+//		List<wb_proxyModel> data = dao.selectByAvailable();
+//		
+//		for(int i = 0 ; i < data.size() ; i ++){
+//			ProxyData.put(System.currentTimeMillis() - ProxyDelay + i, data.get(i));
+//		}
+		
+		
+		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN/");
 		String[] hosts = html.split("\n");
 		
 		System.out.println("Yun Proxy Count "+hosts.length);
 		ProxyData.clear();
+		ExecutorService s = Executors.newFixedThreadPool(100);
 		
 		for(int i = 0 ; i < hosts.length ; i ++){
 			String host = hosts[i];
-			wb_proxyModel item = new wb_proxyModel();
-			item.setIp(host.split(":")[0]);
-			item.setPort(Integer.parseInt(host.split(":")[1]));
-			long time = System.currentTimeMillis() - ProxyDelay + i;
-			item.setChecktime(time);
-			ProxyData.put(time, item);
+			final String ip = host.split(":")[0];
+			final int port = Integer.parseInt(host.split(":")[1]);
+			final int index = i;
+			s.execute(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					wb_proxyModel item = new wb_proxyModel();
+					item.setIp(ip);
+					item.setPort(port);
+					long time = System.currentTimeMillis() - ProxyDelay + index;
+					item.setChecktime(time);
+					if(validationProxy(ip, port)){
+						System.out.println("add Proxy "+ip +" , "+port);
+						ProxyData.put(time, item);
+					}
+				}
+			});
+			
 		}
 		
 		
@@ -898,9 +925,9 @@ public class ProxyService {
 		headerList.add(new BasicHeader("Origin", "http://www.weibo.com"));
 		headerList.add(new BasicHeader("Referer", "http://www.weibo.com/signup/mobile.php"));
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
-		httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(30000)); 
-		httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT,  new Integer(30000) ); 
-		httpClient.getParams().setParameter(ClientPNames.CONN_MANAGER_TIMEOUT, new Long(30000)); // second;
+		httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(3000)); 
+		httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT,  new Integer(3000) ); 
+		httpClient.getParams().setParameter(ClientPNames.CONN_MANAGER_TIMEOUT, new Long(3000)); // second;
 		httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0");
 		
 		//设置代理对象 ip/代理名称,端口     

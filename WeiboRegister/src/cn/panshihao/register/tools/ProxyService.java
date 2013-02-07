@@ -49,7 +49,7 @@ public class ProxyService {
 	
 	public static final long ProxyDelay = 720000;
 	public static final long BlockedDelay = 1800000;
-	public static final long refreshDelay = 3600000;
+	public static final long refreshDelay = 1800000;
 	
 	/**
 	 * 代理服务器数据

@@ -17,9 +17,12 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.net.telnet.TelnetClient;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
@@ -30,6 +33,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.message.BasicHeader;
@@ -48,13 +52,13 @@ import cn.panshihao.activationclient.mail.SimpleMailSender;
 
 public class NewActivationService {
 
-	public static ProxyService proxyService;
-	
+	public static long startTime ;
+	public static int complete = 0;
 	
 	/**
 	 * 开始激活
 	 */
-	public static void runActivation(wb_activationModel model, wb_proxyModel proxy){
+	public boolean runActivation(wb_activationModel model, wb_proxyModel proxy){
 		
 		wb_activationDAO dao = new wb_activationDAO();
 		
@@ -77,6 +81,11 @@ public class NewActivationService {
 		headerList.add(new BasicHeader("Accept", "*/*")); 
 		headerList.add(new BasicHeader("Connection", "keep-alive"));
 
+		if(proxy != null){
+			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
+		}
+		
+		
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		httpClient.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS, false);
 		
@@ -84,10 +93,7 @@ public class NewActivationService {
 		
 		if(result == null){
 			System.out.println("["+model.getAid()+"] "+"注册失败");
-			// status为95代表注册失败
-			model.setStatus(95);
-			dao.update(model);
-			return;
+			return false;
 		}
 		
 		if(result.equals("{SendMail}")){
@@ -96,7 +102,7 @@ public class NewActivationService {
 			// status为89代表账号激活异常，但已经发送激活邮件到新浪
 			model.setStatus(89);
 			dao.update(model);
-			return;
+			return true;
 		}
 		
 		if(result.equals("{Success}")){
@@ -105,7 +111,7 @@ public class NewActivationService {
 		
 		
 		
-		return;
+		return true;
 	}
 	
 	/**
@@ -116,7 +122,7 @@ public class NewActivationService {
 	 * @param aid
 	 * @return
 	 */
-	public static String toLocation(HttpClient httpClient, String url, String email, int aid){
+	public String toLocation(HttpClient httpClient, String url, String email, int aid){
 		
 		
 		// 准备开始访问激活连接
@@ -136,8 +142,6 @@ public class NewActivationService {
 		
 		if(httpResponse == null){
 			System.out.println("["+aid+"] "+"访问激活连接失败，更换代理重试");
-//					proxyService.getTimeOutData().add(proxy);
-//					runActivation(aid, email, url, proxyService.getRandomProxyModel());
 			return null;
 		}
 		
@@ -177,7 +181,7 @@ public class NewActivationService {
 				return toCrossDomain(httpClient, url, email, responseString, aid);
 			}
 			
-			
+			System.out.println(responseString);
 			
 			return null;
 		}
@@ -206,7 +210,7 @@ public class NewActivationService {
 	 * @param aid
 	 * @return
 	 */
-	public static String toCrossDomain(HttpClient httpClient, String url, String email, String html, int aid){
+	public String toCrossDomain(HttpClient httpClient, String url, String email, String html, int aid){
 		
 		Document doc = Jsoup.parse(html);
 		Elements scripts = doc.select("script");
@@ -287,7 +291,7 @@ public class NewActivationService {
 	 * @param aid
 	 * @return
 	 */
-	public static String toCrossDomainSuccess(HttpClient httpClient, String url, String email, String html, int aid){
+	public String toCrossDomainSuccess(HttpClient httpClient, String url, String email, String html, int aid){
 	
 		
 		String replaceUrl = html.substring(html.indexOf("location.replace('") + 18, html.lastIndexOf("'"));
@@ -335,7 +339,7 @@ public class NewActivationService {
 	 * @param aid
 	 * @return
 	 */
-	public static String toGonguide(HttpClient httpClient, String url, String email, String html, int aid){
+	public String toGonguide(HttpClient httpClient, String url, String email, String html, int aid){
 		HttpGet httpGet = new HttpGet(url);
 		HttpResponse httpResponse = null;
 		
@@ -359,6 +363,11 @@ public class NewActivationService {
 		if(location == null){
 			
 			String nguideHtml = HtmlTools.getHtmlByBr(httpResponse);
+			
+			if(nguideHtml == null){
+				System.out.println("["+aid+"] "+"nguide界面拉取失败");
+				return null;
+			}
 			
 			if(nguideHtml.contains("自我介绍") && nguideHtml.contains("自我介绍一下")){
 				System.out.println("["+aid+"] "+"开始nguide的第一步啦 360行");
@@ -390,7 +399,7 @@ public class NewActivationService {
 	 * @param aid
 	 * @return
 	 */
-	public static String toUpdateUid(HttpClient httpClient, String url, String email, String html, int aid){
+	public String toUpdateUid(HttpClient httpClient, String url, String email, String html, int aid){
 		Document doc = Jsoup.parse(html);
 		
 		Elements scripts = doc.select("script");
@@ -444,7 +453,7 @@ public class NewActivationService {
 	 * @param aid
 	 * @return
 	 */
-	public static String toCompleteActivation(HttpClient httpClient, String url, String email, String html, int aid){
+	public String toCompleteActivation(HttpClient httpClient, String url, String email, String html, int aid){
 		
 		String AjNguideUrl = "http://weibo.com/nguide/aj/register?__rnd="+System.currentTimeMillis();
 		
@@ -756,7 +765,8 @@ public class NewActivationService {
 	 * @param aid
 	 * @return
 	 */
-	public static String toSendWeibo(HttpClient httpClient, String url, String email, String html, int aid){
+	public String toSendWeibo(HttpClient httpClient, String url, String email, String html, int aid){
+		
 		
 		HttpPost httpPost = new HttpPost("http://weibo.com/aj/mblog/add?_wv=5&__rnd="+System.currentTimeMillis());
 		
@@ -784,6 +794,11 @@ public class NewActivationService {
 			System.out.println(e.getMessage());
 			return null;
 		}
+		
+//		System.out.println(httpResponse.getFirstHeader("Location"));
+//		System.out.println(HtmlTools.getHtmlByBr(httpResponse));
+		
+		
 			
 		
 		return updateStatusForSuccess(aid);
@@ -793,7 +808,7 @@ public class NewActivationService {
 	 * @param aid
 	 * @return
 	 */
-	public static String updateStatusForSuccess(int aid){
+	public String updateStatusForSuccess(int aid){
 		Connection conn = Tools.getMysqlConn();
 		PreparedStatement pstmt = null;
 		int result = -1;
@@ -844,7 +859,7 @@ public class NewActivationService {
 	 * @param domain
 	 * @return
 	 */
-	public static boolean updateUid(int aid, String uid, String domain){
+	public boolean updateUid(int aid, String uid, String domain){
 		Connection conn = Tools.getMysqlConn();
 		PreparedStatement pstmt = null;
 		int result = -1;
@@ -897,11 +912,11 @@ public class NewActivationService {
 	 * @param index
 	 * @return
 	 */
-	public static String toSendMail(HttpClient httpClient, String url, String email, int index){
+	public String toSendMail(HttpClient httpClient, String url, String email, int index){
 		
 		   //这个类主要是设置邮件   
 	      MailSenderInfo mailInfo = new MailSenderInfo();    
-	      mailInfo.setMailServerHost("ksgym.com");    
+	      mailInfo.setMailServerHost("localhost");    
 	      mailInfo.setMailServerPort("25");    
 	      mailInfo.setValidate(true);    
 	      mailInfo.setUserName(email.substring(0, email.indexOf("@")));    
@@ -917,19 +932,75 @@ public class NewActivationService {
 		return "{SendMail}";
 	}
 	
+	public synchronized static void pulsComplete(){
+		complete ++;
+	}
 	
 	
 	public static void main(String[] args) {
-		wb_activationModel model = new wb_activationModel();
-		model.setAid(40918);
-		model.setEmail("c6b3a9ac16@ksgym.com");
-		model.setUrl("http://weibo.com/signup/v5/active?username=c6b3a9ac16@ksgym.com&rand=f54d84aad8d0a28718188e580ed6f058&sinaid=1a4947d9d522e561019e66edf31bfcfe&inviteCode=&invitesource=0&lang=zh-cn&entry=&backurl=");
-		
-		runActivation(model, null);
+		wb_activationDAO dao = new wb_activationDAO();
+		final ProxyService proxyService = new ProxyService();
+		proxyService.loadProxyData();
 		
 		
-//		String html = HtmlTools.getFileContent(new File("f:\\1.txt"));
-//		System.out.println(html.substring(html.indexOf("{"), html.lastIndexOf("}")+1));
+		List<wb_activationModel> data  = dao.selectActivation();
+		
+		ExecutorService executorService = Executors.newFixedThreadPool(5);
+		
+		startTime = System.currentTimeMillis();
+		System.out.println("开始账号激活");
+		while(true){
+			// 当目标数量已经与完成数量相等，则重新开始逻辑
+			if(data != null && complete == data.size() && data.size() > 0){
+				complete = 0;
+				data = dao.selectActivation();
+				System.out.println("待激活账号 "+data.size());
+				
+			}
+			
+			if(complete == 0){
+				for(int i = 0 ; i < data.size() ; i ++){
+					final wb_activationModel model = data.get(i);
+					
+					executorService.execute(new Runnable() {
+						
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							NewActivationService s = new NewActivationService();
+							wb_proxyModel proxy = proxyService.getRandomProxyModel();
+							if(s.runActivation(model, proxy)){
+								proxyService.revertProxyModel(proxy, System.currentTimeMillis());
+							}
+							pulsComplete();
+							long curTime = System.currentTimeMillis();
+							
+							if(curTime - startTime > 3600000){
+								startTime = System.currentTimeMillis();
+								proxyService.loadProxyData();
+							}
+						}
+					});
+					
+					
+				}
+			}
+			
+			
+			
+			
+			
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+		
 		
 	}
 }

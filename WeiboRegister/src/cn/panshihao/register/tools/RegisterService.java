@@ -116,33 +116,33 @@ public class RegisterService {
 			}
 		}).start(); 
 		
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				boolean bool = true;
-				while(bool){
-					
-					if(randomData.size() == 0 && (waitActivationData.size() + faildData.size()) == regcount){
-						
-						Log.log.debug("Register Complete!");
-						Log.log.debug("Target Count "+regcount);
-						Log.log.debug("waitActivation Count "+waitActivationData.size());
-						Log.log.debug("faildData Count "+faildData.size());
-						bool = false;
-						executorService.shutdown();
-					}
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-				}
-			}
-		}).start();
+//		new Thread(new Runnable() {
+//			
+//			@Override
+//			public void run() {
+//				// TODO Auto-generated method stub
+//				boolean bool = true;
+//				while(bool){
+//					
+//					if(randomData.size() == 0 && (waitActivationData.size() + faildData.size()) == regcount){
+//						
+//						Log.log.debug("Register Complete!");
+//						Log.log.debug("Target Count "+regcount);
+//						Log.log.debug("waitActivation Count "+waitActivationData.size());
+//						Log.log.debug("faildData Count "+faildData.size());
+//						bool = false;
+//						executorService.shutdown();
+//					}
+//					try {
+//						Thread.sleep(1000);
+//					} catch (InterruptedException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//					
+//				}
+//			}
+//		}).start();
 		
 		
 	}
