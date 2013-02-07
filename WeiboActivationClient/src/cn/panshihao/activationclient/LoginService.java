@@ -1,6 +1,11 @@
 package cn.panshihao.activationclient;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +29,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -844,24 +850,59 @@ public class LoginService {
 	}
 	
 	public static void main(String[] args) {
+		int success = 0;
+		int faild = 0;
+		File file = new File("f:\\user.txt");
 		
-		LoginService login = LoginService.Login_3G_Sina("f99f5ca3d7@ksgym.com", "50e8c677fb");
-		
-		if(login == null){
-			return;
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+			
+			String temp = null;
+			try {
+				while((temp = reader.readLine()) != null){
+					String[] users = temp.split("	");
+					String user = users[0];
+					String pass = users[1];
+					
+					LoginService login = LoginService.Login_3G_Sina(user, pass);
+					
+					if(login == null){
+						faild ++;
+						continue;
+					}
+					
+					
+					System.out.println(login.getGsid());
+					System.out.println(login.getSid());
+					System.out.println(login.getUid());
+					
+					
+					JSONObject json = login.executeJSON("http://m.weibo.cn/setting/userInfoSetting?uid="+login.getUid());
+					
+					if(json != null){
+						System.out.println(json.toString());
+						success ++;
+					}else{
+						faild ++;
+					}
+					
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		
-		System.out.println(login.getGsid());
-		System.out.println(login.getSid());
-		System.out.println(login.getUid());
-		
-		
-		JSONObject json = login.executeJSON("http://m.weibo.cn/searchs/user?q=%E6%88%90%E9%83%BD&page=1");
-		
-		if(json != null){
-			System.out.println(json.toString());
-		}
+		System.out.println("成功 "+success);
+		System.out.println("失败 "+faild);
 		
 	}
 	

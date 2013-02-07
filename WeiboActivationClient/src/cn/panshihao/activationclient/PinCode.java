@@ -95,6 +95,7 @@ public class PinCode {
 			System.out.println(e.getMessage());
 			return null;
 		}
+		System.out.println(file.exists());
 		
 		FileBody filebody = new FileBody(file);
 		
@@ -142,8 +143,9 @@ public class PinCode {
 		if(demoHtml == null){
 			return null;
 		}
-		
+		System.out.println(demoHtml);
 		String id = demoHtml.substring(demoHtml.indexOf("demo/") + 5, demoHtml.indexOf("demo/") + 13);
+		
 		String result = null;
 
 		while(true){

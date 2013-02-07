@@ -29,6 +29,9 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 
+import cn.panshihao.activationclient.mail.MailSenderInfo;
+import cn.panshihao.activationclient.mail.SimpleMailSender;
+
 public class NewActivationService {
 
 	public static ProxyService proxyService;
@@ -62,14 +65,24 @@ public class NewActivationService {
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		httpClient.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS, false);
 		
-		toLocation(httpClient, url, 0);
+		String result = toLocation(httpClient, url, email, 0);
+		
+		if(result == null){
+			System.out.println("注册失败");
+			return;
+		}
+		
+		if(result.equals("{SendMail}")){
+			// 激活需要发送一封邮件到新浪才能完成
+			System.out.println("已经发送一封邮件到新浪");
+		}
 		
 		
 		
 		return;
 	}
 	
-	public static String toLocation(HttpClient httpClient, String url, int index){
+	public static String toLocation(HttpClient httpClient, String url, String email, int index){
 		
 		index ++;
 		
@@ -101,8 +114,10 @@ public class NewActivationService {
 		if(location == null){
 			System.out.println("访问激活连接失败，可能是跳转到其他地方去？");
 			
+			String responseString = null;
+			
 			try {
-				System.out.println(HtmlTools.getHtmlByBr(httpResponse.getEntity()));
+				responseString = HtmlTools.getHtmlByBr(httpResponse.getEntity());
 			} catch (UnsupportedEncodingException e) {
 				System.out.println(e.getMessage());
 				return null;
@@ -113,6 +128,16 @@ public class NewActivationService {
 				System.out.println(e.getMessage());
 				return null;
 			}
+			
+			if(responseString == null){
+				return null;
+			}
+			
+			// 如果包含这个字符串，表示这个账号激活出现问题，需要发一个邮件到新浪的邮箱去验证
+			if(responseString.contains("发任意内容邮件")){
+				return toSendMail(httpClient, url, email, index);
+			}
+			
 			
 			return null;
 		}
@@ -130,76 +155,35 @@ public class NewActivationService {
 			activeUrl = "http://weibo.com" + activeUrl;
 		}
 		
-		return toLocation(httpClient, activeUrl, index);
+		return toLocation(httpClient, activeUrl, email, index);
+	}
+	
+	public static String toSendMail(HttpClient httpClient, String url, String email, int index){
+		
+		   //这个类主要是设置邮件   
+	      MailSenderInfo mailInfo = new MailSenderInfo();    
+	      mailInfo.setMailServerHost("ksgym.com");    
+	      mailInfo.setMailServerPort("25");    
+	      mailInfo.setValidate(true);    
+	      mailInfo.setUserName(email.substring(0, email.indexOf("@")));    
+	      mailInfo.setPassword(email.substring(0, email.indexOf("@")));//您的邮箱密码    
+	      mailInfo.setFromAddress(email);    
+	      mailInfo.setToAddress("ixgsoft@163.com");    
+	      mailInfo.setSubject(RandomString.getMD5(System.currentTimeMillis()+""));    
+	      mailInfo.setContent("激活我的账号啊" + RandomString.getMD5(System.currentTimeMillis()+""));    
+	         //这个类主要来发送邮件   
+	      SimpleMailSender sms = new SimpleMailSender();   
+	      sms.sendTextMail(mailInfo);//发送文体格式    
+		
+		return "{SendMail}";
 	}
 	
 	
 	
 	public static void main(String[] args) {
 		
-//		proxyService = new ProxyService();
-//		proxyService.loadProxyData();
+		runActivation(37997, "2c6fc662e5@ksgym.com", "http://weibo.com/signup/v5/active?username=2c6fc662e5@ksgym.com&rand=a50cd08540d41c6163f80d06b69142df&sinaid=314de8dfe18a60cf69c83d7295716b2e&inviteCode=&invitesource=0&lang=zh-cn&entry=&backurl=", null);
 		
-//		runActivation(37997, "2c6fc662e5@ksgym.com", "http://weibo.com/signup/v5/active?username=2c6fc662e5@ksgym.com&rand=a50cd08540d41c6163f80d06b69142df&sinaid=314de8dfe18a60cf69c83d7295716b2e&inviteCode=&invitesource=0&lang=zh-cn&entry=&backurl=", null);
 		
-		 BufferedReader m_reader;  
-	        OutputStreamWriter m_writer;  
-	        TelnetClient m_telnetClient = new TelnetClient();  
-	        try {  
-	            //设置Telnet超时  
-	            m_telnetClient.setDefaultTimeout(100000);  
-	            //设置Telnet服务器地址及端口  
-	            m_telnetClient.connect("uhomeu.com", 4555);  
-	            //创建读取缓冲对象  
-	            m_reader = new BufferedReader(new InputStreamReader(m_telnetClient  
-	                    .getInputStream()));  
-	            //创建用于发送Telnet命令对象  
-	            m_writer = new OutputStreamWriter(m_telnetClient.getOutputStream());  
-	            //不断接收登陆成功的信号，超时抛出异常，则跳至一下条代码执行  
-	            try {  
-	                for (;;) {  
-	                    System.out.println(m_reader.readLine());  
-	                    if(m_reader.readLine() != null){
-	                    	break;
-	                    }
-	                }  
-	            } catch (Exception e) {  
-	            	System.out.println("..");
-	            }  
-	            //输入James服务器用户名,此为管理员用户名，而非普通用户，默认为root  
-	            m_writer.write("psh24053" + LINE_SEPARATOR);  
-	            m_writer.flush();  
-	            System.out.println(m_reader.readLine());  
-	            //输入root用户密码  
-	            m_writer.write("caicai520" + LINE_SEPARATOR);  
-	            m_writer.flush();  
-	            System.out.println(m_reader.readLine());  
-	            //输入Telnet命令添加用户  
-	            m_writer.write("adduser helloman 881213" + LINE_SEPARATOR);  
-	            m_writer.flush();  
-	            System.out.println(m_reader.readLine());  
-	            //输出用户列表  
-	            m_writer.write("listusers" + LINE_SEPARATOR);  
-	            m_writer.flush();  
-	            //显示用户列表  
-	            try {  
-	                for (;;) {  
-	                    System.out.println(m_reader.readLine());  
-	                    if(m_reader.readLine() != null){
-	                    	break;
-	                    }
-	                }  
-	            } catch (Exception e) {  
-	            }  
-	        } catch (SocketException e) {  
-	            // TODO Auto-generated catch block  
-	            e.printStackTrace();  
-	        } catch (IOException e) {  
-	            // TODO Auto-generated catch block  
-	            e.printStackTrace();  
-	        }  
 	}
-	public static final String LINE_SEPARATOR = System.getProperties()  
-            .getProperty("line.separator");  
-	
 }
