@@ -21,7 +21,11 @@ public class ExcelService {
 	private ExcelBean excelBean;
 	private String idx;
 	private int gid;
+	private HSSFWorkbook hssfworkbook;
+	
+	
 	private ExcelService(){}
+	
 	
 	public static ExcelService createExcel(String idx, int gid){
 		ExcelService excel = new ExcelService();
@@ -36,12 +40,15 @@ public class ExcelService {
 	 * @return
 	 */
 	public List<ExcelBean> parseExcel(){
-		File excelFile = new File(UploadExcelDIR);
+		File excelFile = new File(UploadExcelDIR, idx);
 		
 		
 		try {
 			FileInputStream in = new FileInputStream(excelFile);
 			HSSFWorkbook hssfworkbook = new HSSFWorkbook(in);
+			
+//			hssfworkbook.getNumberOfSheets()
+			
 		} catch (IOException e) {
 			PshLogger.logger.error(e.getMessage());
 			return null;
