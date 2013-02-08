@@ -9,7 +9,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -421,5 +423,31 @@ public class HtmlTools {
 		
 		return result;
 	}
+	
+	
+	public static Map<String, String> parseURLParamster(String url){
+		Map<String, String> map = new HashMap<String, String>();
+		
+		String[] s = url.split("\\?");
+		
+		if(s.length < 2){
+			return null;
+		}
+		String[] prms = s[1].split("&"); 
+		
+		for(int i = 0 ; i < prms.length ; i ++){
+			String[] content = prms[i].split("=");
+			if(content.length < 2){
+				continue;
+			}
+			String key = content[0];
+			String value = content[1];
+			map.put(key, value);
+		}
+		
+		
+		return map;
+	}
+	
 }
 

@@ -132,7 +132,7 @@ public class GetFirstQueryUser extends Thread{
 		}
 		
 			
-		JSONObject json = LoginService.login.executeJSON(url+pageNumber, false);
+		JSONObject json = LoginService.login.executeJSON(url+pageNumber, false, null);
 		
 		if(json == null){
 			return -1;

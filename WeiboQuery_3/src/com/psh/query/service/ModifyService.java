@@ -93,16 +93,12 @@ public class ModifyService {
 		if(login == null){
 			return;
 		}
-		DefaultHttpClient h = (DefaultHttpClient) login.getHttpClient();
-		
-		CookieStore store = h.getCookieStore();
-		
-		for(int i = 0 ; i < store.getCookies().size() ; i ++){
-			System.out.println(store.getCookies().get(i));
-		}		
 				
 				
-		String response = login.execute("http://m.weibo.cn/settingDeal/tagAdd?tag="+URLEncoder.encode("西瓜哥威武"), true);
+				
+//		String response = login.execute("http://m.weibo.cn/settingDeal/tagAdd?tag="+URLEncoder.encode("西瓜哥威武"), false, "http://m.weibo.cn/users/"+login.getUid()+"?");
+		
+		String response = login.execute("http://m.weibo.cn/settingDeal/inforSave?screen_name=IxgSoft6&province=51&city=3&gender=f&year=1989&month=4&day=2&description=aaaaa2323", false, "http://m.weibo.cn/users/"+login.getUid()+"?vt="+login.getVt()+"&wm="+login.getWm()+"&gsid="+login.getGsid());
 		
 		System.out.println(response);
 		
