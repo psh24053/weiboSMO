@@ -15,6 +15,48 @@ import com.psh.query.bean.GroupBean;
 public class GroupModel extends SuperModel {
 
 	/**
+	 * 获取分组对象
+	 * @return
+	 */
+	public GroupBean getGroup(int gid){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return null;
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("select * from wb_group where gid = ?");
+			
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()){
+				GroupBean bean = new GroupBean();
+				bean.setCid(rs.getInt("cid"));
+				bean.setGid(rs.getInt("gid"));
+				bean.setName(rs.getString("name"));
+				bean.setStatus(rs.getString("status"));
+				
+				return bean;
+			}
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return null;
+	}
+	
+	/**
 	 * 获取分组数量
 	 * @return
 	 */
@@ -174,8 +216,8 @@ public class GroupModel extends SuperModel {
 		}
 		
 		try {
-			pstmt = conn.prepareStatement("select * from wb_group");
-			
+			pstmt = conn.prepareStatement("select * from wb_group where cid = ?");
+			pstmt.setInt(1, cid);
 			rs = pstmt.executeQuery();
 			
 			while(rs.next()){
