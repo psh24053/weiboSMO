@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script type="text/javascript">
+function onUploadExcelComplete(idx, gid){
+	alert('idx '+idx+"\n"+"gid "+gid);
+}
+
+</script>
+</head>
+<body>
+
+	<form action="UploadExcel?gid=1&idx=asdkjwisjskdwisj" enctype="MULTIPART/FORM-DATA" target="post_frame" method="POST">
+		<iframe name="post_frame" id="post_frame" style="display:none;" mce_style="display:none;"></iframe>
+		<input name="FilePath" type="file" value="选择文件"/>
+		<input type="submit" value="上传图片"/>
+	</form>
+
+</body>
+</html>

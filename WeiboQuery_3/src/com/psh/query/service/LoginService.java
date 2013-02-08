@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -53,6 +54,8 @@ public class LoginService {
 	private String cookie_gsid;
 	private String uid;
 	private String st;
+	private String wm;
+	private String vt;
 	public static LoginService login;
 	
 	private LoginService(){}
@@ -372,7 +375,11 @@ public class LoginService {
 		
 		
 		String weiboUrl = doc.select("#wb_cnt").attr("href");
-		System.out.println(weiboUrl);
+		
+		Map<String, String> weiboUrlParamster = HtmlTools.parseURLParamster(weiboUrl);
+		
+		loginService.vt = weiboUrlParamster.get("vt");
+		
 		httpGet = new HttpGet(weiboUrl);
 		httpGet.addHeader("Referer", hrefUrl);
 		
@@ -394,7 +401,7 @@ public class LoginService {
 				System.out.println(location);
 			}
 			
-			System.out.println(HtmlTools.getHtmlByBr(loginService.httpResponse));
+//			System.out.println(HtmlTools.getHtmlByBr(loginService.httpResponse));
 			
 			
 		}
@@ -422,19 +429,30 @@ public class LoginService {
 			return null;
 		}
 		
-		int stIndex = scriptConfig.indexOf("st =");
 		
-		loginService.st = scriptConfig.substring(stIndex+ 6, stIndex + 10);
-		if(scriptConfig.indexOf("st") == 18){
-			System.out.println(scriptConfig);
+		String JSVar = scriptConfig.substring(0, scriptConfig.indexOf("userInfo"));
+		String[] JSVarsplit = JSVar.split(",");
+		
+		for(int i = 0 ; i < JSVarsplit.length ; i ++){
+			String[] items = JSVarsplit[i].trim().split("=");
+			if(items.length != 2){
+				continue;
+			}
 			
-		}else{
-			int startindex = scriptConfig.indexOf("gsid =")+ 8;
-			int endindex = scriptConfig.indexOf(", st =") - 1;
+			String key = items[0].replace("var", "").trim();
+			String value = items[1].trim().replace("'", "");
 			
-			System.out.println(scriptConfig);
+			if(key.equals("gsid")){
+				loginService.gsid = value;
+			}
+			if(key.equals("sf")){
+				loginService.st = value;
+			}
+			if(key.equals("WM")){
+				loginService.wm = value;
+			}
 			
-			loginService.cookie_gsid = scriptConfig.substring(startindex, endindex);
+			
 		}
 		
 		
@@ -711,7 +729,10 @@ public class LoginService {
 		}
 		
 		String weiboUrl = doc.select("#wb_cnt").attr("href");
-		System.out.println(weiboUrl);
+		Map<String, String> weiboUrlParamster = HtmlTools.parseURLParamster(weiboUrl);
+		
+		loginService.vt = weiboUrlParamster.get("vt");
+		
 		httpGet = new HttpGet(weiboUrl);
 		httpGet.addHeader("Referer", hrefUrl);
 		
@@ -761,20 +782,28 @@ public class LoginService {
 			return null;
 		}
 		
-		int stIndex = scriptConfig.indexOf("st =");
+		String JSVar = scriptConfig.substring(0, scriptConfig.indexOf("userInfo"));
+		String[] JSVarsplit = JSVar.split(",");
 		
-		loginService.st = scriptConfig.substring(stIndex+ 6, stIndex + 10);
-		
-		if(scriptConfig.indexOf("st") == 18){
-			System.out.println(scriptConfig);
+		for(int i = 0 ; i < JSVarsplit.length ; i ++){
+			String[] items = JSVarsplit[i].trim().split("=");
+			if(items.length != 2){
+				continue;
+			}
 			
-		}else{
-			int startindex = scriptConfig.indexOf("gsid =")+ 8;
-			int endindex = scriptConfig.indexOf(", st =") - 1;
+			String key = items[0].replace("var", "").trim();
+			String value = items[1].trim().replace("'", "");
 			
-			System.out.println(scriptConfig);
+			if(key.equals("gsid")){
+				loginService.gsid = value;
+			}
+			if(key.equals("sf")){
+				loginService.st = value;
+			}
+			if(key.equals("WM")){
+				loginService.wm = value;
+			}
 			
-			loginService.cookie_gsid = scriptConfig.substring(startindex, endindex);
 		}
 		
 		
@@ -815,7 +844,7 @@ public class LoginService {
 	 * @param url 请求地址
 	 * @return String 响应内容
 	 */
-	public String execute(String url, boolean isgsid){
+	public String execute(String url, boolean isgsid, String referer){
 		
 		String requestURL = url;
 		// 加入时间戳和gsid
@@ -836,7 +865,9 @@ public class LoginService {
 		
 		// 执行请求
 		HttpGet httpGet = new HttpGet(requestURL);
-		
+		if(referer != null){
+			httpGet.addHeader("Referer", referer);
+		}
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
@@ -874,7 +905,7 @@ public class LoginService {
 	 * @param proxy http代理对象
 	 * @return String 响应内容
 	 */
-	public String execute(String url, ProxyBean proxy, boolean isgsid){
+	public String execute(String url, ProxyBean proxy, boolean isgsid, String referer){
 		String requestURL = url;
 		// 加入时间戳和gsid
 		if(isgsid){
@@ -895,7 +926,9 @@ public class LoginService {
 		
 		// 执行请求
 		HttpGet httpGet = new HttpGet(requestURL);
-		
+		if(referer != null){
+			httpGet.addHeader("Referer", referer);
+		}
 		if(proxy != null){
 			httpGet.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
 		}
@@ -933,7 +966,7 @@ public class LoginService {
 	 * @param url 请求地址
 	 * @return JSONObject 响应内容,JSONObject
 	 */
-	public JSONObject executeJSON(String url, ProxyBean proxy, boolean isgsid){
+	public JSONObject executeJSON(String url, ProxyBean proxy, boolean isgsid, String referer){
 		String requestURL = url;
 		// 加入时间戳和gsid
 		if(isgsid){
@@ -953,7 +986,9 @@ public class LoginService {
 		
 		// 执行请求
 		HttpGet httpGet = new HttpGet(requestURL);
-		
+		if(referer != null){
+			httpGet.addHeader("Referer", referer);
+		}
 		if(proxy != null){
 			httpGet.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
 		}
@@ -994,7 +1029,7 @@ public class LoginService {
 	 * @param url 请求地址
 	 * @return JSONObject 响应内容,JSONObject
 	 */
-	public JSONObject executeJSON(String url, boolean isgsid){
+	public JSONObject executeJSON(String url, boolean isgsid, String referer){
 		String requestURL = url;
 		// 加入时间戳和gsid
 		if(isgsid){
@@ -1015,7 +1050,9 @@ public class LoginService {
 		
 		// 执行请求
 		HttpGet httpGet = new HttpGet(requestURL);
-		
+		if(referer != null){
+			httpGet.addHeader("Referer", referer);
+		}
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
@@ -1046,7 +1083,17 @@ public class LoginService {
 			return null;
 		}
 	}
-	
+
+
+	public void showCookieStore(){
+		DefaultHttpClient h = (DefaultHttpClient) getHttpClient();
+		
+		CookieStore store = h.getCookieStore();
+		
+		for(int i = 0 ; i < store.getCookies().size() ; i ++){
+			System.out.println(store.getCookies().get(i));
+		}
+	}
 
 
 
@@ -1081,20 +1128,58 @@ public class LoginService {
 		this.uid = uid;
 	}
 	
+	
+	public String getCookie_gsid() {
+		return cookie_gsid;
+	}
+
+	public void setCookie_gsid(String cookie_gsid) {
+		this.cookie_gsid = cookie_gsid;
+	}
+
+	public String getSt() {
+		return st;
+	}
+
+	public void setSt(String st) {
+		this.st = st;
+	}
+
+	public String getWm() {
+		return wm;
+	}
+
+	public void setWm(String wm) {
+		this.wm = wm;
+	}
+
+	public String getVt() {
+		return vt;
+	}
+
+	public void setVt(String vt) {
+		this.vt = vt;
+	}
+
 	public static void main(String[] args) {
-		String str = HtmlTools.getFileContent(new File("e:\\a.txt"));
+//		String str = HtmlTools.getFileContent(new File("e:\\a.txt"));
+//		
+//		String content = str.substring(0, str.indexOf("isClient"));
+//		String[] split = content.split(",");
+//		
+//		for(int i = 0 ; i < split.length ; i ++){
+//			String[] items = split[i].trim().split("=");
+//			
+//			String key = items[0].replace("var", "").trim();
+//			String value = items[1].trim().replace("'", "");
+//			
+//			System.out.println(key+","+value);
+//		}
 		
-		String content = str.substring(0, str.indexOf("isClient"));
-		String[] split = content.split(",");
+		String str = "http://m.weibo.cn/?s2w=index_wbrk_0_wz_dh&wz=dh&from=index&wm=ig_0001_index&from=index&pos=108&vt=4&gsid=3_58a34843ff34b65583867d06c2972051b2846553#";
 		
-		for(int i = 0 ; i < split.length ; i ++){
-			String[] items = split[i].trim().split("=");
-			
-			String key = items[0].trim();
-			String value = items[1].trim();
-			
-			System.out.println(key);
-		}
+		
+		System.out.println(HtmlTools.parseURLParamster(str));
 		
 	}
 	
