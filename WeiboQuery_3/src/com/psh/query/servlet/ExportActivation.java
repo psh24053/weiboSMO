@@ -50,7 +50,9 @@ public class ExportActivation extends HttpServlet {
 		
 		String type = request.getParameter("type");
 		
-		String fileContent = "";
+		StringBuffer fileContent = new StringBuffer();
+		
+		fileContent.append("email\tpassowrd\tnickname\r\n");
 		
 		if(type.equals("1")){
 			// 导出所有可用的账号
@@ -63,11 +65,11 @@ public class ExportActivation extends HttpServlet {
 				
 				rs = pstmt.executeQuery();
 				while(rs.next()){
-					String item = rs.getString("email");
-					item += rs.getString("password");
-					item += rs.getString("nickname");
-					item += "\n";
-					fileContent += item;
+					String item = rs.getString("email") + "\t";
+					item += rs.getString("password") + "\t";
+					item += rs.getString("nickname") + "\t";
+					item += "\r";
+					fileContent.append(item + "\n");
 				}
 				
 				
@@ -112,11 +114,11 @@ public class ExportActivation extends HttpServlet {
 				
 				rs = pstmt.executeQuery();
 				while(rs.next()){
-					String item = rs.getString("email");
-					item += rs.getString("password");
-					item += rs.getString("nickname");
-					item += "\n";
-					fileContent += item;
+					String item = rs.getString("email") + "\t";
+					item += rs.getString("password") + "\t";
+					item += rs.getString("nickname") + "\t";
+					item += "\r";
+					fileContent.append(item + "\n");
 				}
 				
 				
@@ -160,11 +162,11 @@ public class ExportActivation extends HttpServlet {
 				
 				rs = pstmt.executeQuery();
 				while(rs.next()){
-					String item = rs.getString("email");
-					item += rs.getString("password");
-					item += rs.getString("nickname");
-					item += "\n";
-					fileContent += item;
+					String item = rs.getString("email") + "\t";
+					item += rs.getString("password") + "\t";
+					item += rs.getString("nickname") + "\t";
+					item += "\r";
+					fileContent.append(item + "\n");
 				}
 				
 				
@@ -207,11 +209,11 @@ public class ExportActivation extends HttpServlet {
 				
 				rs = pstmt.executeQuery();
 				while(rs.next()){
-					String item = rs.getString("email");
-					item += rs.getString("password");
-					item += rs.getString("nickname");
-					item += "\n";
-					fileContent += item;
+					String item = rs.getString("email") + "\t";
+					item += rs.getString("password") + "\t";
+					item += rs.getString("nickname") + "\t";
+					item += "\r";
+					fileContent.append(item + "\n");
 				}
 				
 				
@@ -255,7 +257,7 @@ public class ExportActivation extends HttpServlet {
 
 		response.addHeader("Content-disposition", "attachment;filename=account.txt"); 
 		out = response.getWriter(); 
-		out.write(fileContent); 
+		out.write(fileContent.toString()); 
 		out.flush();
 		out.close();
 		
