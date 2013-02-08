@@ -1,5 +1,7 @@
 package com.psh.query.action;
 
+import java.util.List;
+
 import com.psh.base.common.PshAction;
 import com.psh.base.common.RequestMessageParser;
 import com.psh.base.common.ResponseMessageGenerator;
@@ -9,11 +11,13 @@ import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
 import com.psh.base.util.PshLogger;
 import com.psh.query.bean.QueryTaskBean;
+import com.psh.query.bean.TextTypeBean;
 import com.psh.query.model.CityModel;
 import com.psh.query.model.GetFirstQueryPageNumber;
 import com.psh.query.model.GetFirstQueryUser;
 import com.psh.query.model.ProvModel;
 import com.psh.query.model.QueryTaskModel;
+import com.psh.query.model.TextTypeModel;
 import com.psh.query.model.UserQueryTaskModel;
 
 
@@ -43,15 +47,20 @@ public class GetTextTypeListAction extends PshAction{
 	
 		JSONObject payload = new JSONObject();
 		
+		TextTypeModel model = new TextTypeModel();
+		List<TextTypeBean> data = model.getTextTypeList();
+		
 		JSONArray list = new JSONArray();
 		
 		
 		
 		try {
-			for(int i = 0 ; i < 3 ; i ++){
+			for(int i = 0 ; i < data.size() ; i ++){
 				JSONObject item = new JSONObject();
-				item.put("ttid", i);
-				item.put("name", "asd");
+				TextTypeBean bean = data.get(i);
+						
+				item.put("ttid", bean.getTtid());
+				item.put("name", bean.getName());
 				
 				list.put(item);
 			}

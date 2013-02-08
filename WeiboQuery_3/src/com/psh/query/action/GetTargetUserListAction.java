@@ -20,8 +20,8 @@ public class GetTargetUserListAction extends PshAction{
 	
 	public GetTargetUserListAction(){
 		
-		super.code = 2000;
-		super.name = "QueryAction";
+		super.code = 3000;
+		super.name = "GetTargetUserListAction";
 		
 	}
 	

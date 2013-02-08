@@ -12,6 +12,7 @@ import com.psh.query.bean.QueryTaskBean;
 import com.psh.query.model.CityModel;
 import com.psh.query.model.GetFirstQueryPageNumber;
 import com.psh.query.model.GetFirstQueryUser;
+import com.psh.query.model.GroupModel;
 import com.psh.query.model.ProvModel;
 import com.psh.query.model.QueryTaskModel;
 import com.psh.query.model.UserQueryTaskModel;
@@ -63,23 +64,21 @@ public class SetGroupUserAction extends PshAction{
 		
 	
 		JSONObject payload = new JSONObject();
+		GroupModel model = new GroupModel();
 		
 		JSONArray list = new JSONArray();
 		
 		
 		
-//		try {
-//			for(int i = 0 ; i < 3 ; i ++){
-//				list.put(i+"sd");
-//			}
-//			payload.put("list", list);
-//		} catch (JSONException e) {
-//			PshLogger.logger.error("JSONException failed.");
-//			PshLogger.logger.error(e.getMessage());
-//			return generator.toError(parser, 
-//					ErrorCode.ERROR_CODE, 
-//					"JSONException error, reason: " + e.getMessage());
-//		}
+		try {
+			payload.put("total", model.setGroupUser(gid, count));
+		} catch (JSONException e) {
+			PshLogger.logger.error("JSONException failed.");
+			PshLogger.logger.error(e.getMessage());
+			return generator.toError(parser, 
+					ErrorCode.ERROR_CODE, 
+					"JSONException error, reason: " + e.getMessage());
+		}
 		
 		return generator.toSuccess(parser, payload);
 	}

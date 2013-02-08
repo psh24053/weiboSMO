@@ -15,6 +15,42 @@ import com.psh.query.bean.GroupBean;
 public class GroupModel extends SuperModel {
 
 	/**
+	 * 获取分组数量
+	 * @return
+	 */
+	public int getGroupUserCount(int gid){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return 0;
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("select count(*) from wb_account where gid = ?");
+			
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()){
+				return rs.getInt("count");
+			}
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return 0;
+	}
+	
+	/**
 	 * 增加分组
 	 * @param group
 	 * @return

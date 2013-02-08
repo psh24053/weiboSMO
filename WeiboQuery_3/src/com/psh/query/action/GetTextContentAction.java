@@ -9,11 +9,13 @@ import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
 import com.psh.base.util.PshLogger;
 import com.psh.query.bean.QueryTaskBean;
+import com.psh.query.bean.TextBean;
 import com.psh.query.model.CityModel;
 import com.psh.query.model.GetFirstQueryPageNumber;
 import com.psh.query.model.GetFirstQueryUser;
 import com.psh.query.model.ProvModel;
 import com.psh.query.model.QueryTaskModel;
+import com.psh.query.model.TextModel;
 import com.psh.query.model.UserQueryTaskModel;
 
 
@@ -50,20 +52,14 @@ public class GetTextContentAction extends PshAction{
 		}
 	
 		JSONObject payload = new JSONObject();
+		TextModel model = new TextModel();
+		TextBean bean = model.getTextContent(tid);
 		
-		JSONArray list = new JSONArray();
 		
 		
 		
 		try {
-//			for(int i = 0 ; i < 3 ; i ++){
-//				JSONObject item = new JSONObject();
-//				item.put("cid", i+1);
-//				item.put("name", i);
-//				list.put(item);
-//			}
-//			payload.put("list", list);
-			payload.put("text", "text...");
+			payload.put("text", bean.getText());
 		} catch (JSONException e) {
 			PshLogger.logger.error("JSONException failed.");
 			PshLogger.logger.error(e.getMessage());
