@@ -7,7 +7,9 @@ import com.psh.base.common.ErrorCode;
 import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
 import com.psh.base.util.PshLogger;
+import com.psh.query.bean.CategoryBean;
 import com.psh.query.bean.QueryTaskBean;
+import com.psh.query.model.CategoryModel;
 import com.psh.query.model.CityModel;
 import com.psh.query.model.GetFirstQueryPageNumber;
 import com.psh.query.model.GetFirstQueryUser;
@@ -60,21 +62,21 @@ public class AddCategoryAction extends PshAction{
 					ErrorCode.ERROR_CODE);
 		}
 	
+		CategoryBean category = new CategoryBean();
+		category.setName(name);
+		category.setDesc(desc);
+		
+		CategoryModel model = new CategoryModel();
+		boolean result = model.addCategory(category);
+		
 		JSONObject payload = new JSONObject();
 		
+		if(result){
+			return generator.toSuccess(parser, payload);
+		}
 		
-//		try {
-//			payload.put("count", count);
-////			payload.put("array", array);
-//		} catch (JSONException e) {
-//			PshLogger.logger.error("JSONException failed.");
-//			PshLogger.logger.error(e.getMessage());
-//			return generator.toError(parser, 
-//					ErrorCode.ERROR_CODE, 
-//					"JSONException error, reason: " + e.getMessage());
-//		}
+		return generator.toError(parser, ErrorCode.ERROR_CODE, "增加分类失败");
 		
-		return generator.toSuccess(parser, payload);
 	}
 	
 	

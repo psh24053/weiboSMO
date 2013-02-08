@@ -9,6 +9,7 @@ import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
 import com.psh.base.util.PshLogger;
 import com.psh.query.bean.QueryTaskBean;
+import com.psh.query.model.AccountModel;
 import com.psh.query.model.CityModel;
 import com.psh.query.model.GetFirstQueryPageNumber;
 import com.psh.query.model.GetFirstQueryUser;
@@ -38,29 +39,15 @@ public class GetDBUserCountAction extends PshAction{
 					ErrorCode.ERROR_CODE);
 		}
 		
-//		String idx = null;
-//		
-//		try {
-//			idx = parameter.getString("idx");
-//		} catch (JSONException e) {
-//			PshLogger.logger.error("Missing: \"idx\"" );
-//			PshLogger.logger.error(e.getMessage());
-//			return generator.toError(parser, 
-//					ErrorCode.ERROR_CODE);
-//		}
 	
 		JSONObject payload = new JSONObject();
 		
-		JSONArray list = new JSONArray();
 		
+		AccountModel model = new AccountModel();
 		
 		
 		try {
-//			for(int i = 0 ; i < 3 ; i ++){
-//				list.put("");
-//			}
-//			payload.put("list", list);
-			payload.put("count", 1000);
+			payload.put("count", model.getDBUserCount());
 		} catch (JSONException e) {
 			PshLogger.logger.error("JSONException failed.");
 			PshLogger.logger.error(e.getMessage());

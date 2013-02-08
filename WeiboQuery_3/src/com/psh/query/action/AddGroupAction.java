@@ -7,10 +7,14 @@ import com.psh.base.common.ErrorCode;
 import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
 import com.psh.base.util.PshLogger;
+import com.psh.query.bean.CategoryBean;
+import com.psh.query.bean.GroupBean;
 import com.psh.query.bean.QueryTaskBean;
+import com.psh.query.model.CategoryModel;
 import com.psh.query.model.CityModel;
 import com.psh.query.model.GetFirstQueryPageNumber;
 import com.psh.query.model.GetFirstQueryUser;
+import com.psh.query.model.GroupModel;
 import com.psh.query.model.ProvModel;
 import com.psh.query.model.QueryTaskModel;
 import com.psh.query.model.UserQueryTaskModel;
@@ -62,19 +66,20 @@ public class AddGroupAction extends PshAction{
 	
 		JSONObject payload = new JSONObject();
 		
+		GroupBean group = new GroupBean();
+		group.setName(name);
+		group.setCid(cid);
+		group.setStatus("空闲");
 		
-//		try {
-//			payload.put("count", count);
-////			payload.put("array", array);
-//		} catch (JSONException e) {
-//			PshLogger.logger.error("JSONException failed.");
-//			PshLogger.logger.error(e.getMessage());
-//			return generator.toError(parser, 
-//					ErrorCode.ERROR_CODE, 
-//					"JSONException error, reason: " + e.getMessage());
-//		}
+		GroupModel model = new GroupModel();
 		
-		return generator.toSuccess(parser, payload);
+		boolean result = model.addGroup(group);
+		
+		if(result){
+			return generator.toSuccess(parser, payload);
+		}
+		
+		return generator.toError(parser, ErrorCode.ERROR_CODE, "增加分组失败");
 	}
 	
 	
