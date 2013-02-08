@@ -1245,9 +1245,33 @@ function getGroupByCategory(cid){
 						var domID = "#category_ul_" + cid;
 						console.log(groupList.length);
 						for(var i = 0 ; i < groupList.length ; i++){
+							
+							var count = 0;
+							//获得该分组的数量
+							$.post(
+									
+									"/WeiboQuery_3/Main",
+									"{cod:3016,prm:{gid:" + groupList[i].gid + "}}",
+									function(data){
+										
+										if(data.res){
+											
+											count = data.pld.count;
+											
+										}else{
+											
+											
+										}
+										
+									},
+									"json"
+									
+									
+							);
+							
 							console.log(domID);
 							$(domID).html("");
-							$(domID).append('<li class="list" onclick="selectGroup(' + groupList[i].gid + ',\'' + groupList[i].name + '\')">' + groupList[i].name + ' (状态:' + groupList[i].status + ')<button style="font-size:12px;" onclick="nowSelectGroup(' + groupList[i].gid + ')">设置</button></li>');
+							$(domID).append('<li class="list" onclick="selectGroup(' + groupList[i].gid + ',\'' + groupList[i].name + '\')">' + groupList[i].name + ' (状态:' + groupList[i].status + ',用户数:' + count + ')<button style="font-size:12px;" onclick="nowSelectGroup(' + groupList[i].gid + ')">设置</button></li>');
 							
 							
 						}
