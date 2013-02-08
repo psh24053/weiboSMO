@@ -10,7 +10,7 @@ public class AccountBean {
 	private String prov;
 	private String city;
 	private String sex;
-	private String emation;
+	private String emotion;
 	private String birthday;
 	private String blood;
 	private String info;
@@ -69,11 +69,11 @@ public class AccountBean {
 	public void setSex(String sex) {
 		this.sex = sex;
 	}
-	public String getEmation() {
-		return emation;
+	public String getEmotion() {
+		return emotion;
 	}
-	public void setEmation(String emation) {
-		this.emation = emation;
+	public void setEmotion(String emoation) {
+		this.emotion = emotion;
 	}
 	public String getBirthday() {
 		return birthday;
