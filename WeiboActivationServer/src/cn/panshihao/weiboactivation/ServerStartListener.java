@@ -38,7 +38,6 @@ public class ServerStartListener implements ServletContextListener {
      */
     public void contextDestroyed(ServletContextEvent arg0) {
         // TODO Auto-generated method stub
-    	Tools.db.close();
     }
 	
 }

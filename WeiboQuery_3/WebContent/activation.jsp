@@ -18,6 +18,15 @@ int accountCount = model.getAccount();
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Insert title here</title>
+<script type="text/javascript">
+window.onload = function(){
+	var refresh = document.getElementById("refresh");
+	refresh.onclick = function(){
+		location.reload();
+	};
+};
+
+</script>
 </head>
 <body>
 
@@ -29,6 +38,7 @@ int accountCount = model.getAccount();
 	</ul>
 
 
+	<button id="refresh">刷新</button>
 
 </body>
 </html>

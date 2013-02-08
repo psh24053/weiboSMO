@@ -126,6 +126,9 @@ public class ActivationServlet extends HttpServlet {
 	 */
 	public void insertDB(String email, String url, int index){
 		
+		String em = email;
+		String u = url;
+		
 		email = URLDecoder.decode(email);
 		url = URLDecoder.decode(url);
 		
@@ -133,12 +136,12 @@ public class ActivationServlet extends HttpServlet {
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		int aid = -1;
+		int updateresult = -1;
 		try {
 			conn = Tools.getMysqlConn();
 			if(conn == null){
 				return;
 			}
-			
 			pstmt = conn.prepareStatement("insert into wb_activation(aid,email,url,status) SELECT aid,?,?,? FROM wb_reg_account WHERE email = ? LIMIT 1");
 			
 			pstmt.setString(1, email);
@@ -146,9 +149,7 @@ public class ActivationServlet extends HttpServlet {
 			pstmt.setInt(3, 88);
 			pstmt.setString(4, email);
 			
-			pstmt.executeUpdate();
-			
-			
+			updateresult = pstmt.executeUpdate();
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -183,7 +184,21 @@ public class ActivationServlet extends HttpServlet {
 			}
 			
 		}
-		System.out.println("已插入数据库   aid: "+aid+" ,email: "+email+" ,index: "+index);
+		
+		if(updateresult == 0 || updateresult == -1){
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			insertDB(em, u, index);
+			return;
+		}else{
+			System.out.println("已插入数据库   aid: "+aid+" ,email: "+email+" ,index: "+index);
+		}
+		
+		
 //		wb_proxyModel proxy = Tools.proxyService.getAvailableProxyModel();		
 //		System.out.println("启动激活线程   aid: "+aid+" ,email: "+email+" ,index: "+index);
 //		Tools.executorService.execute(new ActivationService(aid, email, url, proxy));
