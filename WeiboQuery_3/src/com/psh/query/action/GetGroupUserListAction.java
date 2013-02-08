@@ -60,6 +60,7 @@ public class GetGroupUserListAction extends PshAction{
 				JSONObject item = new JSONObject();
 				item.put("uid", i+1);
 				item.put("nck", i+"");
+				item.put("status", i+"");
 				list.put(item);
 			}
 			payload.put("list", list);
