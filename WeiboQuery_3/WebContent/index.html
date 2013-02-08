@@ -185,7 +185,7 @@ $(document).ready(function(){
 	//获取分类列表
 	$.post(
 			
-			"/WeiboQuery_3/Main",
+			"/WeiboManager/Main",
 			"{\"cod\":3003,\"prm\":{}}",
 			function(data){
 				
@@ -1074,7 +1074,7 @@ function queryToDatabase(){
 	
 	$.ajax({
 			
-			url:"/WeiboQuery_3/Main",
+			url:"/WeiboManager/Main",
 			data:"{cod:3000,prm:{nck:'" + nickName + "',tag:'" + tags + "',school:'" + school + "',company:'" + company + "',prov:'" + prov + "',city:'" + city + "',age:'" + age + "',sex:'" + sex + "',fans:'" + fans + "',att:'" + att + "',info:'" + info + "'}}",
 			cache:false,
 			async:false,
@@ -1121,7 +1121,7 @@ function confirmAddCategory(){
 	//添加分类
 	$.post(
 				
-				"/WeiboQuery_3/Main",
+				"/WeiboManager/Main",
 				"{cod:3001,prm:{name:'" + name + "',desc:'" + desc + "'}}",
 				function(data){
 					
@@ -1152,7 +1152,7 @@ function addGroup(){
 	//获取分类列表
 	$.post(
 			
-			"/WeiboQuery_3/Main",
+			"/WeiboManager/Main",
 			"{\"cod\":3003,\"prm\":{}}",
 			function(data){
 				
@@ -1203,7 +1203,7 @@ function confirmAddGroup(){
 	//添加分组
 	$.post(
 				
-				"/WeiboQuery_3/Main",
+				"/WeiboManager/Main",
 				"{cod:3002,prm:{name:'" + groupName + "',cid:" + categoryID + "}}",
 				function(data){
 					
@@ -1234,7 +1234,7 @@ function getGroupByCategory(cid){
 	
 	$.post(
 				
-				"/WeiboQuery_3/Main",
+				"/WeiboManager/Main",
 				"{cod:3004,prm:{cid:" + cid + "}}",
 				function(data){
 					
@@ -1296,7 +1296,7 @@ function distributeFromDatabase(gid){
 	//分配用户
 	$.post(
 				
-				"/WeiboQuery_3/Main",
+				"/WeiboManager/Main",
 				"{cod:3010,prm:{gid:" + gid + ",count:" + count + "}}",
 				function(data){
 					
@@ -1322,7 +1322,7 @@ function loadCurSelectGroup(){
 	
 	$.post(
 				
-				"/WeiboQuery_3/Main",
+				"/WeiboManager/Main",
 				"{cod:3011,prm:{gid:" + selectGroupNow + "}}",
 				function(data){
 					
@@ -1414,6 +1414,7 @@ function uplodExeFile(){
 					<li class="tabsTitle"><a href="#tabs-2">发送微博</a></li>
 					<li class="tabsTitle"><a href="#tabs-3">回复操作</a></li>
 					<li class="tabsTitle"><a href="#tabs-4">互粉操作</a></li>
+					<li class="tabsTitle"><a href="#tabs-5">账号注册</a></li>
 				</ul>
 				<div id="tabs-1">
 					<div id="tabs_1">
@@ -1431,7 +1432,11 @@ function uplodExeFile(){
 				<div id="tabs-2"></div>
 				<div id="tabs-3"></div>
 				<div id="tabs-4"></div>
-
+				<div id="tabs-5">
+					<iframe src="activation.jsp" style="width: 100%;height: 100%"></iframe>
+					
+				
+				</div>
 			</div>
 
 		</div>

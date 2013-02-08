@@ -15,6 +15,44 @@ import com.psh.query.bean.AccountBean;
 public class AccountModel extends SuperModel {
 
 	/**
+	 * 根据status获取用户数量
+	 * @param status
+	 * @return
+	 */
+	public int getUserCount(int status){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = -1;
+		
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return -1;
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("select count(*) as c from wb_activation where status = ?");
+			pstmt.setInt(1, status);
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()){
+				return rs.getInt("c");
+			}
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return -1;
+	}
+	
+	/**
 	 * 获取分组用户列表
 	 * @param ttid
 	 * @return

@@ -9,7 +9,6 @@
     <servlet-name>Main</servlet-name>
     <url-pattern>/Main</url-pattern>
   </servlet-mapping>
-  
   <servlet>
     <display-name>UploadExcel</display-name>
     <servlet-name>UploadExcel</servlet-name>
@@ -19,5 +18,4 @@
     <servlet-name>UploadExcel</servlet-name>
     <url-pattern>/UploadExcel</url-pattern>
   </servlet-mapping>
-  
 </web-app>
