@@ -57,10 +57,13 @@ public class RegisterRunnble implements Runnable {
 		wb_accountModel account = null;
 		wb_proxyModel proxy = null;
 		
-		
 		while((account = registerService.getAccountModelFromRandomData()) != null){
 			
 			proxy = proxyService.getRandomProxyModel();
+			
+			if(proxy == null){
+				continue;
+			}
 			
 			boolean register = runRegister(account, proxy);
 			

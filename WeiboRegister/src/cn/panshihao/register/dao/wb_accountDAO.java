@@ -30,7 +30,7 @@ public class wb_accountDAO {
 		
 		try {
 			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("select email,nickname from wb_account");
+			pstmt = conn.prepareStatement("select email,nickname from wb_reg_account");
 			rs = pstmt.executeQuery();
 			data = new HashMap<String, String>();
 			
@@ -72,9 +72,9 @@ public class wb_accountDAO {
 		}
 		
 		if(data != null){
-			Log.log.debug("【Success】Select email wb_account Size -> "+data.size());
+			Log.log.debug("【Success】Select email wb_reg_account Size -> "+data.size());
 		}else{
-			Log.log.debug("【Faild】Select email wb_account");
+			Log.log.debug("【Faild】Select email wb_reg_account");
 		}
 		
 		
@@ -93,7 +93,7 @@ public class wb_accountDAO {
 		
 		try {
 			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("select * from wb_account");
+			pstmt = conn.prepareStatement("select * from wb_reg_account");
 			rs = pstmt.executeQuery();
 			data = new ArrayList<wb_accountModel>();
 			
@@ -144,9 +144,9 @@ public class wb_accountDAO {
 		}
 		
 		if(data != null){
-			Log.log.debug("【Success】Select all wb_account Size -> "+data.size());
+			Log.log.debug("【Success】Select all wb_reg_account Size -> "+data.size());
 		}else{
-			Log.log.debug("【Faild】Select all wb_account");
+			Log.log.debug("【Faild】Select all wb_reg_account");
 		}
 		
 		
@@ -166,7 +166,7 @@ public class wb_accountDAO {
 		
 		try {
 			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("select * from wb_account where status = ?");
+			pstmt = conn.prepareStatement("select * from wb_reg_account where status = ?");
 			
 			pstmt.setInt(1, status);
 			
@@ -221,9 +221,9 @@ public class wb_accountDAO {
 		}
 		
 		if(data != null){
-			Log.log.debug("【Success】Select status is "+status+" wb_account Size -> "+data.size());
+			Log.log.debug("【Success】Select status is "+status+" wb_reg_account Size -> "+data.size());
 		}else{
-			Log.log.debug("【Faild】Select status is "+status+" wb_account ");
+			Log.log.debug("【Faild】Select status is "+status+" wb_reg_account ");
 		}
 		
 		return data;
@@ -245,7 +245,7 @@ public class wb_accountDAO {
 		
 		try {
 			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("insert into wb_account(uid,email,password,nickname,domain,status) values(?,?,?,?,?,?)");
+			pstmt = conn.prepareStatement("insert into wb_reg_account(uid,email,password,nickname,domain,status) values(?,?,?,?,?,?)");
 			
 			pstmt.setInt(1, model.getUid());
 			pstmt.setString(2, model.getEmail());
@@ -298,7 +298,7 @@ public class wb_accountDAO {
 		
 		try {
 			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("delete from wb_account where aid = ?");
+			pstmt = conn.prepareStatement("delete from wb_reg_account where aid = ?");
 			
 			pstmt.setInt(1, aid);
 			
@@ -326,9 +326,9 @@ public class wb_accountDAO {
 		}
 		
 		if(resultCount > 0){
-			Log.log.debug("【Success】 delete aid is "+aid+" wb_account");
+			Log.log.debug("【Success】 delete aid is "+aid+" wb_reg_account");
 		}else{
-			Log.log.debug("【Faild】 delete aid is "+aid+" wb_account");
+			Log.log.debug("【Faild】 delete aid is "+aid+" wb_reg_account");
 		}
 		
 		return resultCount > 0;
@@ -356,7 +356,7 @@ public class wb_accountDAO {
 		
 		try {
 			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("update wb_account set uid = ? , email = ? , password = ? , nickname = ? , domain = ? , status = ? where aid = ?");
+			pstmt = conn.prepareStatement("update wb_reg_account set uid = ? , email = ? , password = ? , nickname = ? , domain = ? , status = ? where aid = ?");
 			
 			pstmt.setInt(1, model.getUid());
 			pstmt.setString(2, model.getEmail());

@@ -21,7 +21,7 @@ public class Tools {
 		}
 		
 		try {
-			return DriverManager.getConnection("jdbc:mysql://localhost:3306/wb_reg?useUnicode=true&characterEncoding=UTF-8", "root", "root");
+			return DriverManager.getConnection("jdbc:mysql://localhost:3306/wbdb?useUnicode=true&characterEncoding=UTF-8", "root", "root");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			return null;

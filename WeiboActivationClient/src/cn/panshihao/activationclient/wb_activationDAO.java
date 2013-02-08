@@ -170,7 +170,7 @@ public class wb_activationDAO {
 		
 		try {
 			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("select * from wb_activation where status = 88 ");
+			pstmt = conn.prepareStatement("select * from wb_activation where status = 88");
 			
 			rs = pstmt.executeQuery();
 			data = new ArrayList<wb_activationModel>();

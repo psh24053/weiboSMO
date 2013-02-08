@@ -102,6 +102,8 @@ public class RegisterService {
 				long time = System.currentTimeMillis();
 				while(bool){
 					long cur = System.currentTimeMillis();
+					
+					
 					if(cur - time > ProxyService.refreshDelay){
 						proxyService.loadProxyData();
 						time = System.currentTimeMillis();
@@ -185,7 +187,8 @@ public class RegisterService {
 			return null;
 		}
 		if(randomData.size() == 0){
-			return null;
+			GenerateRandomData(100000);
+			return getAccountModelFromRandomData();
 		}
 		
 		return randomData.remove(0);

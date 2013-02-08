@@ -1,13 +1,11 @@
 package cn.panshihao.activationclient;
 
-
-public class ProxyBean extends SuperModel {
-
-	public int proxyid;
-	public String ip;
-	public int port;
-	public long checktime;
+public class ProxyBean {
 	
+	private int proxyid;
+	private String ip;
+	private int port;
+	private long checktime;
 	public int getProxyid() {
 		return proxyid;
 	}
@@ -33,4 +31,6 @@ public class ProxyBean extends SuperModel {
 		this.checktime = checktime;
 	}
 	
+	
+
 }

@@ -43,6 +43,7 @@ import org.jsoup.select.Elements;
 
 
 
+
 public class ProxyService {
 
 	
@@ -74,7 +75,7 @@ public class ProxyService {
 //		}
 		
 		
-		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN/");
+		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN,US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
 		String[] hosts = html.split("\n");
 		
 		System.out.println("Yun Proxy Count "+hosts.length);
@@ -98,7 +99,7 @@ public class ProxyService {
 					item.setChecktime(time);
 					if(validationProxy(ip, port)){
 						System.out.println("add Proxy "+ip +" , "+port);
-						ProxyData.put(time, item);
+						addProxy(item, time);
 					}
 				}
 			});
@@ -1329,7 +1330,9 @@ public class ProxyService {
 		
 		return getAvailableProxyModel();
 	}
-	
+	public void addProxy(ProxyBean model, Long key){
+		ProxyData.put(key, model);
+	}
 	/**
 	 * 获取一个代理服务器对象
 	 * 每一个代理服务器的使用间隔为30秒
@@ -1337,7 +1340,12 @@ public class ProxyService {
 	 */
 	public synchronized ProxyBean getRandomProxyModel(){
 		if(ProxyData.size() == 0){
-			loadProxyData();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return getRandomProxyModel();
 		}
 		

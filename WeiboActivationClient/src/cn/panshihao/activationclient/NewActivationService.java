@@ -808,14 +808,14 @@ public class NewActivationService {
 	 * @param aid
 	 * @return
 	 */
-	public String updateStatusForSuccess(int aid){
+	public synchronized String updateStatusForSuccess(int aid){
 		Connection conn = Tools.getMysqlConn();
 		PreparedStatement pstmt = null;
 		int result = -1;
 		if(conn != null){
 			
 			try {
-				pstmt = conn.prepareStatement("update wb_account set status = ?  where aid = ?");
+				pstmt = conn.prepareStatement("update wb_reg_account set status = ?  where aid = ?");
 				pstmt.setInt(1, 11);
 				pstmt.setInt(2, aid);
 				result = pstmt.executeUpdate();
@@ -859,14 +859,14 @@ public class NewActivationService {
 	 * @param domain
 	 * @return
 	 */
-	public boolean updateUid(int aid, String uid, String domain){
+	public synchronized boolean updateUid(int aid, String uid, String domain){
 		Connection conn = Tools.getMysqlConn();
 		PreparedStatement pstmt = null;
 		int result = -1;
 		if(conn != null){
 			
 			try {
-				pstmt = conn.prepareStatement("update wb_account set uid = ? , domain = ? , status = 10 where aid = ?");
+				pstmt = conn.prepareStatement("update wb_reg_account set uid = ? , domain = ? , status = 10 where aid = ?");
 				pstmt.setLong(1, Long.parseLong(uid));
 				pstmt.setString(2, domain);
 				pstmt.setInt(3, aid);
@@ -935,69 +935,55 @@ public class NewActivationService {
 	public synchronized static void pulsComplete(){
 		complete ++;
 	}
+	private List<wb_activationModel> data = null;
 	
+	public synchronized wb_activationModel getActivationModel(){
+		if(data == null || data.size() == 0){
+			wb_activationDAO dao = new wb_activationDAO();
+			data = dao.selectActivation();
+			return getActivationModel();
+		}else{
+			return data.remove(0);
+		}
+	}
 	
 	public static void main(String[] args) {
 		wb_activationDAO dao = new wb_activationDAO();
 		final ProxyService proxyService = new ProxyService();
 		proxyService.loadProxyData();
-		
-		
-		List<wb_activationModel> data  = dao.selectActivation();
+		final NewActivationService s = new NewActivationService();
 		
 		ExecutorService executorService = Executors.newFixedThreadPool(5);
 		
 		startTime = System.currentTimeMillis();
 		System.out.println("开始账号激活");
-		while(true){
-			// 当目标数量已经与完成数量相等，则重新开始逻辑
-			if(data != null && complete == data.size() && data.size() > 0){
-				complete = 0;
-				data = dao.selectActivation();
-				System.out.println("待激活账号 "+data.size());
+		
+		for(int i = 0 ; i < 5 ; i ++){
+			executorService.execute(new Runnable() {
 				
-			}
-			
-			if(complete == 0){
-				for(int i = 0 ; i < data.size() ; i ++){
-					final wb_activationModel model = data.get(i);
-					
-					executorService.execute(new Runnable() {
-						
-						@Override
-						public void run() {
-							// TODO Auto-generated method stub
-							NewActivationService s = new NewActivationService();
-							ProxyBean proxy = proxyService.getRandomProxyModel();
-							if(s.runActivation(model, proxy)){
-								proxyService.revertProxyModel(proxy, System.currentTimeMillis());
-							}
-							pulsComplete();
-							long curTime = System.currentTimeMillis();
-							
-							if(curTime - startTime > 3600000){
-								startTime = System.currentTimeMillis();
-								proxyService.loadProxyData();
-							}
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					while(true){
+						ProxyBean proxy = proxyService.getRandomProxyModel();
+						if(s.runActivation(s.getActivationModel(), proxy)){
+							proxyService.revertProxyModel(proxy, System.currentTimeMillis());
 						}
-					});
+						long curTime = System.currentTimeMillis();
+						
+						if(curTime - startTime > 1800000){
+							startTime = System.currentTimeMillis();
+							proxyService.loadProxyData();
+						}
+						
+					}
 					
 					
 				}
-			}
-			
-			
-			
-			
-			
-			
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			});
 		}
+		
+		
 		
 		
 		

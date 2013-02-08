@@ -75,22 +75,48 @@ public class ProxyService {
 		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
 		String[] hosts = html.split("\n");
 		
-		Log.log.debug("Yun Proxy Count "+hosts.length);
+//		Log.log.debug("Yun Proxy Count "+hosts.length);
+//		ProxyData.clear();
+//		
+//		for(int i = 0 ; i < hosts.length ; i ++){
+//			String host = hosts[i];
+//			wb_proxyModel item = new wb_proxyModel();
+//			item.setIp(host.split(":")[0]);
+//			item.setPort(Integer.parseInt(host.split(":")[1]));
+//			long time = System.currentTimeMillis() - ProxyDelay + i;
+//			item.setChecktime(time);
+//			ProxyData.put(time, item);
+//		}
+//		blockData.clear();
+//		timeOutData.clear();
+//		
+		System.out.println("Yun Proxy Count "+hosts.length);
 		ProxyData.clear();
+		ExecutorService s = Executors.newFixedThreadPool(100);
 		
 		for(int i = 0 ; i < hosts.length ; i ++){
 			String host = hosts[i];
-			wb_proxyModel item = new wb_proxyModel();
-			item.setIp(host.split(":")[0]);
-			item.setPort(Integer.parseInt(host.split(":")[1]));
-			long time = System.currentTimeMillis() - ProxyDelay + i;
-			item.setChecktime(time);
-			ProxyData.put(time, item);
+			final String ip = host.split(":")[0];
+			final int port = Integer.parseInt(host.split(":")[1]);
+			final int index = i;
+			s.execute(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					wb_proxyModel item = new wb_proxyModel();
+					item.setIp(ip);
+					item.setPort(port);
+					long time = System.currentTimeMillis() - ProxyDelay + index;
+					item.setChecktime(time);
+					if(validationProxy(ip, port)){
+						System.out.println("add Proxy "+ip +" , "+port);
+						addProxy(item, time);
+					}
+				}
+			});
+			
 		}
-		blockData.clear();
-		timeOutData.clear();
-		
-		
 	}
 	/**
 	 * http://www.cnproxy.com/proxy1.html
@@ -988,6 +1014,9 @@ public class ProxyService {
 		
 	}
 	
+	public void addProxy(wb_proxyModel model, Long key){
+		ProxyData.put(key, model);
+	}
 	
 	/**
 	 * 获取一个代理服务器对象
@@ -996,7 +1025,13 @@ public class ProxyService {
 	 */
 	public synchronized wb_proxyModel getRandomProxyModel(){
 		if(ProxyData.size() == 0){
-			return null;
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return getRandomProxyModel();
 		}
 		
 		for(Long key : ProxyData.keySet()){
