@@ -72,7 +72,7 @@ public class GroupModel extends SuperModel {
 		
 		try {
 			pstmt = conn.prepareStatement("select count(*) as count from wb_account where gid = ?");
-			
+			pstmt.setInt(1, gid);
 			rs = pstmt.executeQuery();
 			
 			if(rs.next()){
