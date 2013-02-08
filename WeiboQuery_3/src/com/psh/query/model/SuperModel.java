@@ -2,6 +2,9 @@ package com.psh.query.model;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Wrapper;
 import java.util.HashMap;
 
 public class SuperModel implements Serializable {
@@ -15,6 +18,12 @@ public class SuperModel implements Serializable {
 	public void putValue(Object key, Object value){
 		((HashMap)data).put(key, value);
 	}
+	
+	public void closeSQL(){
+		
+	}
+	
+	
 	
 	
 	@Override
