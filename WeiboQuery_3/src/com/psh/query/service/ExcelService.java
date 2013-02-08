@@ -42,17 +42,25 @@ public class ExcelService {
 	public List<ExcelBean> parseExcel(){
 		File excelFile = new File(UploadExcelDIR, idx);
 		
-		
 		try {
 			FileInputStream in = new FileInputStream(excelFile);
-			HSSFWorkbook hssfworkbook = new HSSFWorkbook(in);
-			
-//			hssfworkbook.getNumberOfSheets()
+			hssfworkbook = new HSSFWorkbook(in);
 			
 		} catch (IOException e) {
 			PshLogger.logger.error(e.getMessage());
 			return null;
 		}
+		
+		if(hssfworkbook == null){
+			PshLogger.logger.error("Parse Excel Error idx: "+idx);
+			return null;
+		}
+		
+		// 
+		
+		
+		
+		
 		
 		return null;
 	}
