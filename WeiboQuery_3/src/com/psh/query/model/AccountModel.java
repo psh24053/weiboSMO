@@ -45,7 +45,7 @@ public class AccountModel extends SuperModel {
 				bean.setCompany(rs.getString("company"));
 				bean.setDomain(rs.getString("domain"));
 				bean.setEmail(rs.getString("email"));
-				bean.setEmation(rs.getString("emation"));
+				bean.setEmotion(rs.getString("emotion"));
 				bean.setFans(rs.getInt("fans"));
 				bean.setGid(rs.getInt("gid"));
 				bean.setInfo(rs.getString("info"));
