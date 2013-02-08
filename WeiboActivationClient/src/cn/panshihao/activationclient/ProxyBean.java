@@ -1,7 +1,7 @@
 package cn.panshihao.activationclient;
 
 
-public class wb_proxyModel extends SuperModel {
+public class ProxyBean extends SuperModel {
 
 	public int proxyid;
 	public String ip;

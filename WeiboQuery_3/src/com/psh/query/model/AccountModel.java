@@ -55,7 +55,7 @@ public class AccountModel extends SuperModel {
 				bean.setSchool(rs.getString("school"));
 				bean.setSex(rs.getString("sex"));
 				bean.setTags(rs.getString("tags"));
-				bean.setUid(rs.getInt("uid"));
+				bean.setUid(rs.getLong("uid"));
 				bean.setWeibo(rs.getInt("weibo"));
 				data.add(bean);
 			}

@@ -44,7 +44,7 @@ public class LoginService {
 	private String sid;
 	private String gsid;
 	private String uid;
-	private wb_proxyModel proxy;
+	private ProxyBean proxy;
 	
 	private LoginService(){}
 	
@@ -65,7 +65,7 @@ public class LoginService {
 	 * @param proxy http代理对象
 	 * @return LoginService 
 	 */
-	public static LoginService Login_3G_Sina(String wb_username, String wb_password, wb_proxyModel proxy){
+	public static LoginService Login_3G_Sina(String wb_username, String wb_password, ProxyBean proxy){
 		if(wb_username == null || wb_password == null){
 			System.out.println("账号密码不能为null");
 			return null;
@@ -665,7 +665,7 @@ public class LoginService {
 	 * @param proxy http代理对象
 	 * @return String 响应内容
 	 */
-	public String execute(String url, wb_proxyModel proxy){
+	public String execute(String url, ProxyBean proxy){
 		String requestURL = url;
 		// 加入时间戳和gsid
 		if(!requestURL.contains("&gsid=")){
@@ -716,7 +716,7 @@ public class LoginService {
 	 * @param url 请求地址
 	 * @return JSONObject 响应内容,JSONObject
 	 */
-	public JSONObject executeJSON(String url, wb_proxyModel proxy){
+	public JSONObject executeJSON(String url, ProxyBean proxy){
 		String requestURL = url;
 		// 加入时间戳和gsid
 		if(!requestURL.contains("&gsid=")){

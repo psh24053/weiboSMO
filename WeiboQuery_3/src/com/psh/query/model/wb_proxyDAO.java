@@ -1,4 +1,4 @@
-package cn.panshihao.activationclient;
+package com.psh.query.model;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -6,6 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.psh.base.util.PshLogger;
+import com.psh.base.util.SQLConn;
+import com.psh.query.bean.ProxyBean;
 
 
 public class wb_proxyDAO {
@@ -23,8 +27,8 @@ public class wb_proxyDAO {
 		
 		
 		try {
-			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("select * from wb_proxy_cn where checktime != 10001 order by rand()");
+			conn = SQLConn.getInstance().getConnection();
+			pstmt = conn.prepareStatement("select * from wb_proxy where checktime != 10001 order by rand()");
 			
 			rs = pstmt.executeQuery();
 			data = new ArrayList<ProxyBean>();
@@ -46,27 +50,27 @@ public class wb_proxyDAO {
 			
 			
 		} catch (SQLException e) {
-			Tools.log.error(e.getMessage(), e);
+			PshLogger.logger.error(e.getMessage(), e);
 		} finally {
 			if(rs != null){
 				try {
 					rs.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			if(pstmt != null){
 				try {
 					pstmt.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			if(conn != null){
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			
@@ -74,9 +78,9 @@ public class wb_proxyDAO {
 		}
 		
 		if(data != null){
-			Tools.log.debug("【Success】Select Available wb_proxy Size -> "+data.size());
+			PshLogger.logger.debug("【Success】Select Available wb_proxy Size -> "+data.size());
 		}else{
-			Tools.log.debug("【Faild】Select Available wb_proxy");
+			PshLogger.logger.debug("【Faild】Select Available wb_proxy");
 		}
 		
 		
@@ -96,8 +100,8 @@ public class wb_proxyDAO {
 		
 		
 		try {
-			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("select * from wb_proxy_cn order by rand()");
+			conn = SQLConn.getInstance().getConnection();
+			pstmt = conn.prepareStatement("select * from wb_proxy order by rand()");
 			rs = pstmt.executeQuery();
 			data = new ArrayList<ProxyBean>();
 			
@@ -118,27 +122,27 @@ public class wb_proxyDAO {
 			
 			
 		} catch (SQLException e) {
-			Tools.log.error(e.getMessage(), e);
+			PshLogger.logger.error(e.getMessage(), e);
 		} finally {
 			if(rs != null){
 				try {
 					rs.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			if(pstmt != null){
 				try {
 					pstmt.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			if(conn != null){
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			
@@ -146,9 +150,9 @@ public class wb_proxyDAO {
 		}
 		
 		if(data != null){
-			Tools.log.debug("【Success】Select all wb_proxy Size -> "+data.size());
+			PshLogger.logger.debug("【Success】Select all wb_proxy Size -> "+data.size());
 		}else{
-			Tools.log.debug("【Faild】Select all wb_proxy");
+			PshLogger.logger.debug("【Faild】Select all wb_proxy");
 		}
 		
 		
@@ -172,8 +176,8 @@ public class wb_proxyDAO {
 		}
 		
 		try {
-			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("insert into wb_proxy_cn(ip, port, checktime) values(?,?,?)");
+			conn = SQLConn.getInstance().getConnection();
+			pstmt = conn.prepareStatement("insert into wb_proxy(ip, port, checktime) values(?,?,?)");
 			
 			pstmt.setString(1, model.getIp());
 			pstmt.setInt(2, model.getPort());
@@ -182,20 +186,20 @@ public class wb_proxyDAO {
 			resultCount = pstmt.executeUpdate();
 			
 		} catch (SQLException e) {
-			Tools.log.error(e.getMessage(), e);
+			PshLogger.logger.error(e.getMessage(), e);
 		} finally {
 			if(pstmt != null){
 				try {
 					pstmt.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			if(conn != null){
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			
@@ -223,19 +227,19 @@ public class wb_proxyDAO {
 		int resultCount = 0;
 		
 		if(model == null){
-			Tools.log.error("insert wb_proxyModel is null!");
+			PshLogger.logger.error("insert wb_proxyModel is null!");
 			return false;
 		}
 		if(model.getProxyid() == 0){
-			Tools.log.error("insert wb_proxyModel Model Proxyid is 0!");
+			PshLogger.logger.error("insert wb_proxyModel Model Proxyid is 0!");
 			return false;
 		}
 		
 		
 		
 		try {
-			conn = Tools.getMysqlConn();
-			pstmt = conn.prepareStatement("update wb_proxy_cn set ip = ? , port = ? , checktime = ? where proxyid = ?");
+			conn = SQLConn.getInstance().getConnection();
+			pstmt = conn.prepareStatement("update wb_proxy set ip = ? , port = ? , checktime = ? where proxyid = ?");
 			
 			pstmt.setString(1, model.getIp());
 			pstmt.setInt(2, model.getPort());
@@ -246,20 +250,20 @@ public class wb_proxyDAO {
 			resultCount = pstmt.executeUpdate();
 			
 		} catch (SQLException e) {
-			Tools.log.error(e.getMessage(), e);
+			PshLogger.logger.error(e.getMessage(), e);
 		} finally {
 			if(pstmt != null){
 				try {
 					pstmt.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			if(conn != null){
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					Tools.log.error(e.getMessage(), e);
+					PshLogger.logger.error(e.getMessage(), e);
 				}
 			}
 			
@@ -267,9 +271,9 @@ public class wb_proxyDAO {
 		}
 		
 		if(resultCount > 0){
-			Tools.log.debug("【Success】update "+model.toString());
+			PshLogger.logger.debug("【Success】update "+model.toString());
 		}else{
-			Tools.log.debug("【Faild】update "+model.toString());
+			PshLogger.logger.debug("【Faild】update "+model.toString());
 		}
 		
 		return resultCount > 0;

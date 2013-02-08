@@ -58,7 +58,7 @@ public class NewActivationService {
 	/**
 	 * 开始激活
 	 */
-	public boolean runActivation(wb_activationModel model, wb_proxyModel proxy){
+	public boolean runActivation(wb_activationModel model, ProxyBean proxy){
 		
 		wb_activationDAO dao = new wb_activationDAO();
 		
@@ -968,7 +968,7 @@ public class NewActivationService {
 						public void run() {
 							// TODO Auto-generated method stub
 							NewActivationService s = new NewActivationService();
-							wb_proxyModel proxy = proxyService.getRandomProxyModel();
+							ProxyBean proxy = proxyService.getRandomProxyModel();
 							if(s.runActivation(model, proxy)){
 								proxyService.revertProxyModel(proxy, System.currentTimeMillis());
 							}

@@ -35,7 +35,7 @@ public class UpdateService {
 				for(int i = 0 ; i < data.size() ; i ++){
 					wb_activationModel model = data.get(i);
 					System.out.println("run "+model);
-					wb_proxyModel proxy = proxyService.getRandomProxyModel();
+					ProxyBean proxy = proxyService.getRandomProxyModel();
 					
 					
 					

@@ -2,7 +2,7 @@ package com.psh.query.bean;
 
 public class AccountBean {
 
-	private int uid;
+	private long uid;
 	private String email;
 	private String password;
 	private String nickname;
@@ -21,10 +21,10 @@ public class AccountBean {
 	private String company;
 	private String tags;
 	private int gid;
-	public int getUid() {
+	public long getUid() {
 		return uid;
 	}
-	public void setUid(int uid) {
+	public void setUid(long uid) {
 		this.uid = uid;
 	}
 	public String getEmail() {

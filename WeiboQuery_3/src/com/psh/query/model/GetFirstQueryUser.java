@@ -40,6 +40,7 @@ import com.psh.base.util.PshLogger;
 import com.psh.query.bean.ProxyBean;
 import com.psh.query.bean.UserBean;
 import com.psh.query.bean.UserQueryTaskBean;
+import com.psh.query.service.LoginService;
 import com.psh.query.util.CookieData;
 import com.psh.query.util.HtmlTools;
 import com.psh.query.util.PinCode;
@@ -131,7 +132,7 @@ public class GetFirstQueryUser extends Thread{
 		}
 		
 			
-		JSONObject json = LoginService.login.executeJSON(url+pageNumber);
+		JSONObject json = LoginService.login.executeJSON(url+pageNumber, false);
 		
 		if(json == null){
 			return -1;

@@ -1,4 +1,4 @@
-package cn.panshihao.activationclient;
+package com.psh.query.service;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -39,6 +39,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.psh.base.util.PshLogger;
+import com.psh.query.bean.ProxyBean;
+import com.psh.query.model.wb_proxyDAO;
+import com.psh.query.util.HtmlTools;
+
 
 
 
@@ -67,7 +72,7 @@ public class ProxyService {
 //		timeOutData.clear();
 //		
 //		wb_proxyDAO dao = new wb_proxyDAO();
-//		List<wb_proxyModel> data = dao.selectByAvailable();
+//		List<ProxyBean> data = dao.selectByAvailable();
 //		
 //		for(int i = 0 ; i < data.size() ; i ++){
 //			ProxyData.put(System.currentTimeMillis() - ProxyDelay + i, data.get(i));
@@ -118,7 +123,7 @@ public class ProxyService {
 //		
 //		wb_proxyDAO dao = new wb_proxyDAO();
 //		
-//		List<wb_proxyModel> data = dao.selectByAvailable();
+//		List<ProxyBean> data = dao.selectByAvailable();
 //		
 //		ProxyData.clear();
 //		
@@ -158,8 +163,7 @@ public class ProxyService {
 		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,CN,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
 		String[] hosts = html.split("\n");
 		
-		Tools.log.debug("Yun Proxy Count "+hosts.length);
-		
+		PshLogger.logger.debug("Yun Proxy Count "+hosts.length);
 		for(int i = 0 ; i < hosts.length ; i ++){
 			String host = hosts[i];
 			final String ip = host.split(":")[0];
@@ -965,7 +969,7 @@ public class ProxyService {
 		
 		// 如果html为null，或者html的长度小于8000，则代表获取html失败
 		if(html == null || html.length() < 8000){
-			Tools.log.error("html get error!");
+			PshLogger.logger.error("html get error!");
 			return false;
 		}
 		
@@ -1099,7 +1103,7 @@ public class ProxyService {
 //						// TODO Auto-generated method stub
 //						if(validationProxy(ip, port)){
 //							wb_proxyDAO dao = new wb_proxyDAO();
-//							wb_proxyModel model = new wb_proxyModel();
+//							ProxyBean model = new ProxyBean();
 //							model.setChecktime(System.currentTimeMillis());
 //							model.setIp(ip);
 //							model.setPort(port);
@@ -1258,7 +1262,7 @@ public class ProxyService {
 //				if(validationCountry(ipAddress(ip))){
 //					if(validationProxy(ip, port)){
 //						wb_proxyDAO dao = new wb_proxyDAO();
-//						wb_proxyModel model = new wb_proxyModel();
+//						ProxyBean model = new ProxyBean();
 //						model.setChecktime(System.currentTimeMillis());
 //						model.setIp(ip);
 //						model.setPort(port);
@@ -1365,7 +1369,7 @@ public class ProxyService {
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
-			Tools.log.error(e.getMessage(), e);
+			PshLogger.logger.error(e.getMessage(), e);
 		}
 		
 		return getRandomProxyModel();

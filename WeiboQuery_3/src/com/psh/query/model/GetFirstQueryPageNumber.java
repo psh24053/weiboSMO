@@ -38,6 +38,7 @@ import com.psh.base.util.PshLogger;
 import com.psh.query.bean.ProxyBean;
 import com.psh.query.bean.UserBean;
 import com.psh.query.bean.UserQueryTaskBean;
+import com.psh.query.service.LoginService;
 import com.psh.query.util.CookieData;
 import com.psh.query.util.ProxyManager;
 import com.psh.query.util.QueryResultAnalysis;
@@ -56,7 +57,7 @@ public class GetFirstQueryPageNumber{
 		}
 		
 			
-		JSONObject json = LoginService.login.executeJSON(url);
+		JSONObject json = LoginService.login.executeJSON(url, false);
 		
 		if(json == null){
 			return -1;

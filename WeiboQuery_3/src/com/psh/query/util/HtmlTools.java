@@ -1,6 +1,5 @@
 package com.psh.query.util;
 
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -292,6 +291,10 @@ public class HtmlTools {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static String getHtml(HttpEntity entity) throws UnsupportedEncodingException, IllegalStateException, IOException{
+		if(entity == null){
+			return null;
+		}
+		
 		BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent(),"UTF-8"));
 		
 		String temp = "";
@@ -315,6 +318,74 @@ public class HtmlTools {
 	 */
 	public static String getHtmlByBr(HttpEntity entity) throws UnsupportedEncodingException, IllegalStateException, IOException{
 		BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent(),"UTF-8"));
+		
+		String temp = "";
+		String result = "";
+		
+		while((temp = in.readLine()) != null){
+			result += temp.trim() + "\n";
+		}
+		
+		in.close();
+		
+		return result;
+	}
+	/**
+	 * 获取html,String支持换行
+	 * @param entity
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
+	public static String getHtmlByBr(HttpResponse httpResponse){
+		BufferedReader in = null;
+		try {
+			in = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(),"UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String temp = "";
+		String result = "";
+		
+		try {
+			while((temp = in.readLine()) != null){
+				result += temp.trim() + "\n";
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+			return null;
+		}
+		
+		try {
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	/**
+	 * 获取html,String支持换行
+	 * @param entity
+	 * @param charset
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
+	public static String getHtmlByBr(HttpEntity entity, String charset) throws UnsupportedEncodingException, IllegalStateException, IOException{
+		BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent(),charset));
 		
 		String temp = "";
 		String result = "";

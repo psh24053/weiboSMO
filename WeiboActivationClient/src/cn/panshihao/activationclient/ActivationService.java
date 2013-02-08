@@ -102,7 +102,7 @@ public class ActivationService {
 						public void run() {
 							// TODO Auto-generated method stub
 							System.out.println("run "+model);
-							wb_proxyModel proxy = proxyService.getRandomProxyModel();
+							ProxyBean proxy = proxyService.getRandomProxyModel();
 							
 							// 首先执行注册URL点击
 							String html = runActivation(model, proxy);
@@ -264,7 +264,7 @@ public class ActivationService {
 	 * @param model
 	 * @return
 	 */
-	public String runActivation(wb_activationModel model, wb_proxyModel proxy){
+	public String runActivation(wb_activationModel model, ProxyBean proxy){
 		
 		PoolingClientConnectionManager connectionManager = new PoolingClientConnectionManager();
 		connectionManager.setMaxTotal(2000);
@@ -605,7 +605,7 @@ public class ActivationService {
 	 * @param model
 	 * @return
 	 */
-	public boolean runModifyInfo(wb_activationModel model, wb_proxyModel proxy, HttpClient httpClient, String html){
+	public boolean runModifyInfo(wb_activationModel model, ProxyBean proxy, HttpClient httpClient, String html){
 		
 		String url = "http://weibo.com/nguide/aj/register?__rnd="+System.currentTimeMillis();
 		
