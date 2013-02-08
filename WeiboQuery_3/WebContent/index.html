@@ -67,6 +67,8 @@
 
 .list{
 	
+	width:220px;
+	font-size:13px;
 	margin-left:-70px;
 	list-style: none;
 	cursor: pointer;
@@ -1244,157 +1246,158 @@ function getGroupByCategory(cid){
 						
 						var domID = "#category_ul_" + cid;
 						console.log(groupList.length);
+						$(domID).html("");
 						for(var i = 0 ; i < groupList.length ; i++){
 							
-							var count = 0;
+							var nowCount = 0;
 							//获得该分组的数量
-							$.post(
-									
-									"/WeiboManager/Main",
-									"{cod:3016,prm:{gid:" + groupList[i].gid + "}}",
-									function(data){
-										
-										if(data.res){
-											
-											count = data.pld.count;
-											
-										}else{
-											
-											
-										}
-										
-									},
-									"json"
-									
-									
-							);
-							
-							console.log(domID);
-							$(domID).html("");
-							$(domID).append('<li class="list" onclick="selectGroup(' + groupList[i].gid + ',\'' + groupList[i].name + '\')">' + groupList[i].name + ' (状态:' + groupList[i].status + ',用户数:' + count + ')<button style="font-size:12px;" onclick="nowSelectGroup(' + groupList[i].gid + ')">设置</button></li>');
 							
 							
-						}
-						
-					}else{
-						
-						
+									$.ajax({
+
+										url : "/WeiboManager/Main",
+										data : "{cod:3016,prm:{gid:" + groupList[i].gid + "}}",
+										cache : false,
+										async : false,
+										type : "POST",
+										dataType : "json",
+										success : function(data) {
+
+											if (data.res == true) {
+												nowCount = data.pld.count;
+											}else{
+												
+												alert("获取分组下用户数量失败");
+												
+											}
+
+										},
+
+									});
+
+									$(domID).append('<li class="list" onclick="selectGroup(' + groupList[i].gid + ',\'' + groupList[i].name+ '\')">'+ groupList[i].name+ ' (状态:'+ groupList[i].status+ ',用户数:'+ nowCount+ ')</li><button style="font-size:12px;" onclick="nowSelectGroup('+ groupList[i].gid+ ')">设置</button>');
+
+								}
+
+							} else {
+
+							}
+
+						}, "json"
+
+				);
+
+	}
+
+	function selectGroup(gid, gname) {
+
+		selectGroupNow = gid;
+		$("#nowSelectGroup").text(gname);
+
+	}
+
+	function nowSelectGroup(gid) {
+
+		$(
+				'<div><a>设置分配用户数:</a><input type="text" id="setUserCountForGroup" /><button onclick="distributeFromDatabase('
+						+ gid + ')" style="font-size:12px;">分配</button></div>')
+				.dialog({
+					modal : true,
+					title : '为组分配用户',
+					resizable : false,
+					width : $(document).width() * 0.3,
+					height : $(document).height() * 0.27,
+					close : function(event, ui) {
+						$(this).remove();
 					}
-					
-				},
-				"json"
-				
-				
+				});
+
+	}
+
+	function distributeFromDatabase(gid) {
+
+		var count = $("#setUserCountForGroup").val();
+
+		//分配用户
+		$.post(
+
+		"/WeiboManager/Main", "{cod:3010,prm:{gid:" + gid + ",count:" + count
+				+ "}}", function(data) {
+
+			if (data.res) {
+
+				alert("成功分配" + data.pld.total + "个账号");
+
+			} else {
+
+			}
+
+		}, "json"
+
 		);
-	
-	
-}
 
-function selectGroup(gid,gname){
-	
-	selectGroupNow = gid;
-	$("#nowSelectGroup").text(gname);
-	
-	
-}
+	}
 
-function nowSelectGroup(gid){
-	
-	$('<div><a>设置分配用户数:</a><input type="text" id="setUserCountForGroup" /><button onclick="distributeFromDatabase(' + gid + ')" style="font-size:12px;">分配</button></div>').dialog({
-		modal: true,
-		title: '为组分配用户',
-		resizable: false,
-		width: $(document).width() * 0.3,
-	    height: $(document).height() * 0.27,
-	    close: function(event, ui){
-	    	$(this).remove();
-	    }
-	});
-	
-}
+	//获取指定组下的用户
+	function loadCurSelectGroup() {
 
-function distributeFromDatabase(gid){
-	
-	var count = $("#setUserCountForGroup").val();
-	
-	//分配用户
-	$.post(
-				
-				"/WeiboManager/Main",
-				"{cod:3010,prm:{gid:" + gid + ",count:" + count + "}}",
-				function(data){
-					
-					if(data.res){
-						
-						alert("成功分配" + data.pld.total + "个账号");
-						
-					}else{
-						
-						
-					}
-					
-				},
-				"json"
-				
-				
-		);
-	
-}
+		$.post(
 
-//获取指定组下的用户
-function loadCurSelectGroup(){
-	
-	$.post(
-				
-				"/WeiboManager/Main",
-				"{cod:3011,prm:{gid:" + selectGroupNow + "}}",
-				function(data){
-					
+		"/WeiboManager/Main", "{cod:3011,prm:{gid:" + selectGroupNow + "}}",
+				function(data) {
+
 					var insertId = "#" + selectTabsNow;
-					
-					if(data.res){
-						
+
+					if (data.res) {
+
 						var userList = data.pld.list;
-						for(var i = 0; i < data.pld.total; i++){
-							
+						for ( var i = 0; i < data.pld.total; i++) {
+
 							//添加表格
-							var dataRow = {user_id:userList[i].uid,user_emai:userList[i].email,user_name:userList[i].nck,user_status:"空闲"};
-						    
-					    	var j = jQuery(insertId).jqGrid('addRowData',i+1,dataRow);
-							
+							var dataRow = {
+								user_id : userList[i].uid,
+								user_emai : userList[i].email,
+								user_name : userList[i].nck,
+								user_status : "空闲"
+							};
+
+							var j = jQuery(insertId).jqGrid('addRowData',
+									i + 1, dataRow);
+
 						}
-						
-					}else{
-						
-						
+
+					} else {
+
 					}
-					
-				},
-				"json"
-				
-				
+
+				}, "json"
+
 		);
-	
-}
 
+	}
 
-function uplodExeFile(){
-	
-	var idx = random_char(8);
-	
-	$('<div><form action="/UploadExcel?gid=' + selectGroupNow + '&idx=' + idx + '" enctype="MULTIPART/FORM-DATA" target="post_frame" method="POST"><iframe name="post_frame" id="post_frame" style="display:none;" mce_style="display:none;"></iframe></Form><input name="FilePath" type="file" value="选择文件"/><input type="submit" value="上传资料修改文件"/></div>').dialog({
-		modal: true,
-		title: '为组分配用户',
-		resizable: false,
-		width: $(document).width() * 0.3,
-	    height: $(document).height() * 0.27,
-	    close: function(event, ui){
-	    	$(this).remove();
-	    }
-	});
-	
-}
+	function uplodExeFile() {
 
+		var idx = random_char(8);
+
+		$(
+				'<div><form action="/UploadExcel?gid='
+						+ selectGroupNow
+						+ '&idx='
+						+ idx
+						+ '" enctype="MULTIPART/FORM-DATA" target="post_frame" method="POST"><iframe name="post_frame" id="post_frame" style="display:none;" mce_style="display:none;"></iframe></Form><input name="FilePath" type="file" value="选择文件"/><input type="submit" value="上传资料修改文件"/></div>')
+				.dialog({
+					modal : true,
+					title : '为组分配用户',
+					resizable : false,
+					width : $(document).width() * 0.3,
+					height : $(document).height() * 0.27,
+					close : function(event, ui) {
+						$(this).remove();
+					}
+				});
+
+	}
 </script>
 
 </head>
