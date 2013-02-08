@@ -26,7 +26,6 @@ import com.psh.query.service.ExcelService;
 /**
  * Servlet implementation class UploadExcel
  */
-@WebServlet("/UploadExcel")
 public class UploadExcel extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
