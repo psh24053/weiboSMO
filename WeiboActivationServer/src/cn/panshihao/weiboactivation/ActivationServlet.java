@@ -139,7 +139,7 @@ public class ActivationServlet extends HttpServlet {
 				return;
 			}
 			
-			pstmt = conn.prepareStatement("insert into wb_activation(aid,email,url,status) SELECT aid,?,?,? FROM wb_account WHERE email = ? LIMIT 1");
+			pstmt = conn.prepareStatement("insert into wb_activation(aid,email,url,status) SELECT aid,?,?,? FROM wb_reg_account WHERE email = ? LIMIT 1");
 			
 			pstmt.setString(1, email);
 			pstmt.setString(2, url);
