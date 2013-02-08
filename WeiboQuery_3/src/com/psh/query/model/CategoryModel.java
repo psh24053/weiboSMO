@@ -28,7 +28,7 @@ public class CategoryModel extends SuperModel {
 		}
 		
 		try {
-			pstmt = conn.prepareStatement("insert into wb_category(name,desc) values(?,?)");
+			pstmt = conn.prepareStatement("insert into wb_category(`name`,`desc`) values(?,?)");
 			
 			pstmt.setString(1, category.getName());
 			pstmt.setString(2, category.getDesc());
