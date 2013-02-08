@@ -850,59 +850,6 @@ public class LoginService {
 	}
 	
 	public static void main(String[] args) {
-		int success = 0;
-		int faild = 0;
-		File file = new File("f:\\user.txt");
-		
-		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
-			
-			String temp = null;
-			try {
-				while((temp = reader.readLine()) != null){
-					String[] users = temp.split("	");
-					String user = users[0];
-					String pass = users[1];
-					
-					LoginService login = LoginService.Login_3G_Sina(user, pass);
-					
-					if(login == null){
-						faild ++;
-						continue;
-					}
-					
-					
-					System.out.println(login.getGsid());
-					System.out.println(login.getSid());
-					System.out.println(login.getUid());
-					
-					
-					JSONObject json = login.executeJSON("http://m.weibo.cn/setting/userInfoSetting?uid="+login.getUid());
-					
-					if(json != null){
-						System.out.println(json.toString());
-						success ++;
-					}else{
-						faild ++;
-					}
-					
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		System.out.println("成功 "+success);
-		System.out.println("失败 "+faild);
 		
 	}
 	
