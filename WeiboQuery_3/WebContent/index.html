@@ -185,7 +185,7 @@ $(document).ready(function(){
 	//获取分类列表
 	$.post(
 			
-			"/WeiboQuery_3/Main",
+			"/WeiboManager/Main",
 			"{\"cod\":3003,\"prm\":{}}",
 			function(data){
 				
@@ -1320,7 +1320,7 @@ function distributeFromDatabase(gid){
 	//分配用户
 	$.post(
 				
-				"/WeiboQuery_3/Main",
+				"/WeiboManager/Main",
 				"{cod:3010,prm:{gid:" + gid + ",count:" + count + "}}",
 				function(data){
 					
@@ -1346,7 +1346,7 @@ function loadCurSelectGroup(){
 	
 	$.post(
 				
-				"/WeiboQuery_3/Main",
+				"/WeiboManager/Main",
 				"{cod:3011,prm:{gid:" + selectGroupNow + "}}",
 				function(data){
 					
