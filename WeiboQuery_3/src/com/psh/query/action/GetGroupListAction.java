@@ -72,6 +72,7 @@ public class GetGroupListAction extends PshAction{
 				item.put("name", bean.getName());
 				item.put("status", bean.getStatus());
 				item.put("cid", bean.getCid());
+				item.put("count", model.getGroupUserCount(bean.getGid()));
 				list.put(item);
 			}
 			payload.put("list", list);

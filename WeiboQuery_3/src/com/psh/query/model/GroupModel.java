@@ -166,12 +166,11 @@ public class GroupModel extends SuperModel {
 		
 	}
 	/**
-	 * 设置分组用户数量
+	 * 删除分组
 	 * @param gid
-	 * @param count
-	 * @return 返回实际更新数量
+	 * @return 
 	 */
-	public int setGroupUser(int gid, int count){
+	public int removeGroup(int gid){
 		Connection conn = SQLConn.getInstance().getConnection();
 		PreparedStatement pstmt = null;
 		int result = -1;
@@ -182,15 +181,72 @@ public class GroupModel extends SuperModel {
 		
 		
 		try {
+			pstmt = conn.prepareStatement("update wb_account set gid = null WHERE gid = ?");
+			pstmt.setInt(1, gid);
+			result = pstmt.executeUpdate();
+			
+			pstmt = conn.prepareStatement("delete from wb_group where gid = ?");
+			pstmt.setInt(1, gid);
+			
+			result = pstmt.executeUpdate();
+			
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return result;
+		
+	}
+	/**
+	 * 设置分组用户数量
+	 * @param gid
+	 * @param count
+	 * @return 返回实际更新数量
+	 */
+	public int setGroupUser(int gid, int count){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = -1;
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return -1;
+		}
+		
+		
+		try {
+			pstmt = conn.prepareStatement("select count(*) as count from wb_account where gid = ?");
+			pstmt.setInt(1, gid);
+			rs = pstmt.executeQuery();
+			int gidcount = 0;
+			if(rs.next()){
+				gidcount = rs.getInt("count");
+			}
+			if(gidcount < count){
+				gidcount = count - gidcount;
+			}else if(gidcount > count){
+				pstmt = conn.prepareStatement("UPDATE wb_account SET gid = null WHERE gid = ?");
+				pstmt.setInt(1, gid);
+				pstmt.executeUpdate();
+			}
+			
+			
 			pstmt = conn.prepareStatement("UPDATE wb_account SET gid = ? WHERE gid IS NULL LIMIT ?");
 			pstmt.setInt(1, gid);
-			pstmt.setInt(2, count);
+			pstmt.setInt(2, gidcount);
 			
 			result = pstmt.executeUpdate();
 			
 		} catch (SQLException e) {
 			PshLogger.logger.error(e.getMessage());
 		} finally {
+			closeSQL(rs);
 			closeSQL(pstmt);
 			closeSQL(conn);
 		}

@@ -84,7 +84,64 @@ public class AccountModel extends SuperModel {
 		
 		return -1;
 	}
-	
+	/**
+	 * 根据uid，获取用户对象
+	 * @param ttid
+	 * @return
+	 */
+	public AccountBean getAccount(int uid){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = -1;
+		
+		
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return null;
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("select * from wb_account where uid = ?");
+			pstmt.setInt(1, uid);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()){
+				AccountBean bean = new AccountBean();
+				bean.setAtt(rs.getInt("att"));
+				bean.setBirthday(rs.getString("birthday"));
+				bean.setBlood(rs.getString("blood"));
+				bean.setCity(rs.getString("city"));
+				bean.setCompany(rs.getString("company"));
+				bean.setDomain(rs.getString("domain"));
+				bean.setEmail(rs.getString("email"));
+				bean.setEmotion(rs.getString("emotion"));
+				bean.setFans(rs.getInt("fans"));
+				bean.setGid(rs.getInt("gid"));
+				bean.setInfo(rs.getString("info"));
+				bean.setNickname(rs.getString("nickname"));
+				bean.setPassword(rs.getString("password"));
+				bean.setProv(rs.getString("prov"));
+				bean.setSchool(rs.getString("school"));
+				bean.setSex(rs.getString("sex"));
+				bean.setTags(rs.getString("tags"));
+				bean.setUid(rs.getLong("uid"));
+				bean.setWeibo(rs.getInt("weibo"));
+				return bean;
+			}
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return null;
+	}
 	/**
 	 * 获取分组用户列表
 	 * @param ttid

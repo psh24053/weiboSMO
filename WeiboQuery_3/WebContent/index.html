@@ -140,15 +140,8 @@
 
 }
 
-.addButton{
-	
-	width: 100px;
-	height: 29px;
-	font-size:13px;
-	margin-left: 6px;
-	margin-bottom:2px;
-	margin-top: 1px;
-
+.list_buttons{
+	padding: 5px;
 }
 
 </style>
@@ -164,8 +157,7 @@
 <script type="text/javascript" src="js/i18n/grid.locale-cn.js"></script>
 <script type="text/javascript" src="js/jquery.jqGrid.min.js"></script>
 
-<link rel="stylesheet" type="text/css"
-	href="jqueryui/css/flick/jquery-ui-1.9.2.custom.min.css" />
+<link rel="stylesheet" type="text/css" href="jqueryui/css/flick/jquery-ui-1.9.2.custom.min.css" />
 <link type="text/css" rel="stylesheet" href="css/ui.jqgrid.css" />
 
 
@@ -1410,10 +1402,10 @@ function uplodExeFile(){
 
 			<div class="left">
 			
-				<div>
+				<div class="list_buttons">
 					
-					<input class="addButton" type="button" value="添加分类" onclick="addCategroy()"/>
-					<input class="addButton" type="button" value="添加分组" onclick="addGroup()"/>
+					<button class="addButton" onclick="addCategroy()">添加分类</button>
+					<button class="addButton" onclick="addGroup()">添加分组</button>
 					
 				</div>
 				<hr>

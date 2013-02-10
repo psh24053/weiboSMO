@@ -445,7 +445,7 @@ public class LoginService {
 			if(key.equals("gsid")){
 				loginService.gsid = value;
 			}
-			if(key.equals("sf")){
+			if(key.equals("st")){
 				loginService.st = value;
 			}
 			if(key.equals("WM")){
@@ -797,7 +797,7 @@ public class LoginService {
 			if(key.equals("gsid")){
 				loginService.gsid = value;
 			}
-			if(key.equals("sf")){
+			if(key.equals("st")){
 				loginService.st = value;
 			}
 			if(key.equals("WM")){

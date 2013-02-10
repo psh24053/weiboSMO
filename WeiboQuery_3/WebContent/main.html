@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>微博账号管理系统</title>
+<!-- JQuery UI JSLib -->
+<script type="text/javascript" src="json2.js"></script>
+<script type="text/javascript" src="jquery-1.8.1.min.js"></script>
+<script type="text/javascript" src="jqueryui/js/jquery-ui-1.9.2.custom.min.js"></script>
+<!-- JqGrid lib -->
+<script type="text/javascript" src="js/i18n/grid.locale-cn.js"></script>
+<script type="text/javascript" src="js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript" src="js/ajax.js"></script>
+
+<link rel="stylesheet" type="text/css" href="jqueryui/css/smoothness/jquery-ui-1.9.2.custom.min.css" />
+<link type="text/css" rel="stylesheet" href="css/ui.jqgrid.css" />
+
+<link type="text/css" rel="stylesheet" href="css/main.css" />
+<script type="text/javascript" src="js/weibo.Dialog.js"></script>
+<script type="text/javascript" src="js/main.js"></script>
+
+
+</head>
+<body>
+
+	<div id="header">
+		<h1>微博账号管理系统</h1>
+	</div>
+	
+	
+	<div id="content">
+		<div id="list">
+			<div class="list_header">
+				<button class="list_header_addGroup">添加分组</button>
+				<button class="list_header_addCategory">添加分类</button>
+			</div>
+			
+			<div class="list_menu">
+				<h3>分类1</h3>
+				<div style="padding: 5px;">
+					<div class="group_item">
+						<span class="group_name">分组1</span>
+						<span class="group_status">(空闲)</span>
+						<span class="group_usercount">用户:0</span>
+						<span class="group_action">
+							<a class="group_action_add" href="javascript:void(0)">加</a>
+							<a class="group_action_minue" href="javascript:void(0)">减</a>
+							<a class="group_action_delete" href="javascript:void(0)">删</a>
+						</span>
+					</div>
+					<div class="group_item">
+						<span class="group_name">分组1</span>
+						<span class="group_usercount">用户:0</span>
+						<span class="group_action">
+							<a class="group_action_modify" href="javascript:void(0)">修改</a>
+							<a class="group_action_delete" href="javascript:void(0)">删除</a>
+						</span>
+					</div>
+					<div class="group_item">
+						<span class="group_name">分组1</span>
+						<span class="group_usercount">用户:0</span>
+						<span class="group_action">
+							<a class="group_action_modify" href="javascript:void(0)">修改</a>
+							<a class="group_action_delete" href="javascript:void(0)">删除</a>
+						</span>
+					</div>
+				</div>
+				<h3>分类2</h3>
+				<div style="padding: 5px;">
+					分组2内容
+				</div>
+				<h3>分类3</h3>
+				<div style="padding: 5px;">
+					分组3内容
+				</div>
+			</div>
+			
+		</div>
+		<div id="tabs">
+			<ul>
+				<li><a href="#tabs_1">更新资料</a></li>
+				<li><a href="#tabs_2">发送微博</a></li>
+				<li><a href="#tabs_3">回复操作</a></li>
+				<li><a href="#tabs_4">互粉操作</a></li>
+				<li><a href="#tabs_5">账号管理</a></li>
+			</ul>
+			
+			<div id="tabs_1">
+				
+			</div>
+			<div id="tabs_2">
+			
+			</div>
+			<div id="tabs_3">
+			
+			</div>
+			<div id="tabs_4">
+			
+			</div>
+			<div id="tabs_5">
+			
+			</div>
+		</div>
+	
+	</div>
+
+
+
+
+
+
+
+	<div style="display: none;">
+		<div class="dialog_addGroup">
+			<a>选择所属类:</a>
+			<select class="category_select"></select>
+			<br>
+			<a>分组名:</a>
+			<input type="text" value=""  class="group_name"/>
+		</div>
+		<div class="dialog_addCategory">
+			<a>分类名:</a>
+			<input type="text" value="" class="category_name" />
+			<br>
+			<a>分类描述:</a>
+			<input type="text" value="" class="category_desc"/>
+		</div>
+		<div class="dialog_addUserCount">
+			<a>分类名:</a>
+			<input type="text" value="" class="category_name" />
+			<br>
+			<a>分类描述:</a>
+			<input type="text" value="" class="category_desc"/>
+		</div>
+		
+	</div>
+
+
+
+
+</body>
+</html>

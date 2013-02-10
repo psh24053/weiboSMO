@@ -18,12 +18,12 @@ import com.psh.query.model.QueryTaskModel;
 import com.psh.query.model.UserQueryTaskModel;
 
 
-public class SetGroupUserAction extends PshAction{
+public class deleteGroupAction extends PshAction{
 	
-	public SetGroupUserAction(){
+	public deleteGroupAction(){
 		
-		super.code = 3010;
-		super.name = "SetGroupUserAction";
+		super.code = 3018;
+		super.name = "deleteGroupAction";
 		
 	}
 	
@@ -51,16 +51,6 @@ public class SetGroupUserAction extends PshAction{
 					ErrorCode.ERROR_CODE);
 		}
 		
-		int count = -1;
-		
-		try {
-			count = parameter.getInt("count");	
-		} catch (JSONException e) {
-			PshLogger.logger.error("Missing: \"count\"" );
-			PshLogger.logger.error(e.getMessage());
-			return generator.toError(parser, 
-					ErrorCode.ERROR_CODE);
-		}
 		
 		
 	
@@ -69,17 +59,16 @@ public class SetGroupUserAction extends PshAction{
 		
 		JSONArray list = new JSONArray();
 		
+		model.removeGroup(gid);
 		
-		
-		try {
-			payload.put("total", model.setGroupUser(gid, count));
-		} catch (JSONException e) {
-			PshLogger.logger.error("JSONException failed.");
-			PshLogger.logger.error(e.getMessage());
-			return generator.toError(parser, 
-					ErrorCode.ERROR_CODE, 
-					"JSONException error, reason: " + e.getMessage());
-		}
+//		try {
+//		} catch (JSONException e) {
+//			PshLogger.logger.error("JSONException failed.");
+//			PshLogger.logger.error(e.getMessage());
+//			return generator.toError(parser, 
+//					ErrorCode.ERROR_CODE, 
+//					"JSONException error, reason: " + e.getMessage());
+//		}
 		
 		return generator.toSuccess(parser, payload);
 	}

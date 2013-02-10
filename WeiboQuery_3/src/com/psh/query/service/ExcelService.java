@@ -2,11 +2,14 @@ package com.psh.query.service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import com.psh.base.util.PshLogger;
@@ -64,6 +67,32 @@ public class ExcelService {
 		
 		return null;
 	}
+	
+	public static void main(String[] args) throws IOException {
+		FileInputStream in = new FileInputStream(new File("C:\\Users\\shihao\\Desktop\\微博账好资料-90后.xls"));
+		
+		HSSFWorkbook hssfworkbook = new HSSFWorkbook(in);
+		
+		int sheetCount = hssfworkbook.getNumberOfSheets();
+		
+		for(int i = 0 ; i < sheetCount ; i ++){
+			HSSFSheet sheet = hssfworkbook.getSheetAt(i);
+			
+			for(int j = 0 ; j <= sheet.getLastRowNum() ; j ++){
+				HSSFRow row = sheet.getRow(j);
+				System.out.println(row.getCell(2));
+			}
+			
+			
+		}
+		
+		
+		System.out.println(sheetCount);
+		
+	}
+	
+	
+	
 	
 	
 	public String getIdx() {
