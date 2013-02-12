@@ -19,7 +19,6 @@
 <script type="text/javascript" src="js/weibo.Dialog.js"></script>
 <script type="text/javascript" src="js/main.js"></script>
 
-
 </head>
 <body>
 
@@ -36,43 +35,6 @@
 			</div>
 			
 			<div class="list_menu">
-				<h3>分类1</h3>
-				<div style="padding: 5px;">
-					<div class="group_item">
-						<span class="group_name">分组1</span>
-						<span class="group_status">(空闲)</span>
-						<span class="group_usercount">用户:0</span>
-						<span class="group_action">
-							<a class="group_action_add" href="javascript:void(0)">加</a>
-							<a class="group_action_minue" href="javascript:void(0)">减</a>
-							<a class="group_action_delete" href="javascript:void(0)">删</a>
-						</span>
-					</div>
-					<div class="group_item">
-						<span class="group_name">分组1</span>
-						<span class="group_usercount">用户:0</span>
-						<span class="group_action">
-							<a class="group_action_modify" href="javascript:void(0)">修改</a>
-							<a class="group_action_delete" href="javascript:void(0)">删除</a>
-						</span>
-					</div>
-					<div class="group_item">
-						<span class="group_name">分组1</span>
-						<span class="group_usercount">用户:0</span>
-						<span class="group_action">
-							<a class="group_action_modify" href="javascript:void(0)">修改</a>
-							<a class="group_action_delete" href="javascript:void(0)">删除</a>
-						</span>
-					</div>
-				</div>
-				<h3>分类2</h3>
-				<div style="padding: 5px;">
-					分组2内容
-				</div>
-				<h3>分类3</h3>
-				<div style="padding: 5px;">
-					分组3内容
-				</div>
 			</div>
 			
 		</div>
@@ -86,19 +48,23 @@
 			</ul>
 			
 			<div id="tabs_1">
-				
+				<table id="tabs_1_table"></table>
+				<div id="tabs_1_pager"></div>
 			</div>
 			<div id="tabs_2">
-			
+				<table id="tabs_2_table"></table>
+				<div id="tabs_2_pager"></div>
 			</div>
 			<div id="tabs_3">
-			
+				<table id="tabs_3_table"></table>
+				<div id="tabs_3_pager"></div>
 			</div>
 			<div id="tabs_4">
-			
+				<table id="tabs_4_table"></table>
+				<div id="tabs_4_pager"></div>
 			</div>
 			<div id="tabs_5">
-			
+				<iframe src="activation.jsp" width="100%" height="100%" style="border: none;"></iframe>
 			</div>
 		</div>
 	
@@ -132,7 +98,13 @@
 			<a>分类描述:</a>
 			<input type="text" value="" class="category_desc"/>
 		</div>
-		
+		<div class="dialog_selectgroup">
+			<a>选择分类:</a>
+			<select class="category_name" ></select>
+			<br>
+			<a>选择分组:</a>
+			<select class="group_name" ></select>
+		</div>
 	</div>
 
 

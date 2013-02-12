@@ -71,8 +71,19 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
+	},
+	Action_3011_GetGroupUserList:function(gid, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3011,
+			prm:{
+				gid: gid
+			},
+			Success:Success,
+			Error:Error
+		}).send(Before);
+		
 	}
-	
 		
 		
 		

@@ -1,10 +1,28 @@
+var AjaxData = {}; 
 $(document).ready(function(){
 	
 	
 	initStyle();
+	initStatus();
 	initEvent();
+	initTable();
 	loadCategoryInfo();
 });
+/**
+ * 初始化状态
+ */
+function initStatus(){
+	
+	if(localStorage.weibo == undefined || localStorage.weibo == null){
+		localStorage.weibo = new Date();
+		// 初始化更新资料目前的状态
+		localStorage.ModifyGroup = 'none';
+		
+		return;
+	}
+	
+	
+}
 /**
  * 初始化界面样式
  */
@@ -18,6 +36,206 @@ function initStyle(){
 		  }
     });
 	$('#tabs').tabs();
+}
+/**
+ * 初始化表格
+ */
+function initTable(){
+	// 更新资料
+	$('#tabs_1_table').jqGrid({
+		datatype: "local",
+		height: 420,
+		colNames:['uid','邮箱','密码','昵称','省份','城市','性别','生日','简介','标签','状态','dataStore'],
+	   	colModel:[
+	   		{name:'uid',index:'uid', width:40, align:'center', sortable:false},
+	   		{name:'email',index:'email', width:40, align:'center', sortable:false},
+	   		{name:'password',index:'password', width:60, align:'center', sortable:false},
+	   		{name:'nickname',index:'nickname', width:40, align:'center', sortable:false},
+	   		{name:'prov',index:'prov', width:40, align:"right",sortable:false},		
+	   		{name:'city',index:'city', width:40,align:"right",sortable:false},		
+	   		{name:'gender',index:'gender', width:40, align:'center',sortable:false},
+	   		{name:'birthday',index:'birthday', width:50,sortable:false},
+	   		{name:'description',index:'description', width:100,sortable:false, align:'center'},
+	   		{name:'tags',index:'tags', width:100,sortable:false, align:'center'},
+	   		{name:'status',index:'status', width:40,sortable:false, align:'center'},
+	   		{name:'dataStore',index:'dataStore',hidden:true}
+	   	],
+	   	multiselect: true,
+   		rowNum: 50,
+   	   	pager: "#tabs_1_pager",
+   	 	viewrecords: true,
+   	   	width: $('#tabs_1').width(),
+   	 	toolbar: [true,"top"],
+   	 	loadComplete: function(){
+   	 		initModifyInfo_Toolbar();
+   	 	}
+	});
+	
+	// 发送微博
+	$('#tabs_2_table').jqGrid({
+		datatype: "local",
+		height: 420,
+		colNames:['uid','邮箱','分组','目标','微博内容','状态','dataStore'],
+	   	colModel:[
+	   		{name:'uid',index:'uid', width:40, align:'center', sortable:false},
+	   		{name:'email',index:'email', width:40, align:'center', sortable:false},
+	   		{name:'group',index:'group', width:60, align:'center', sortable:false},
+	   		{name:'target',index:'target', width:40, align:'center', sortable:false},
+	   		{name:'content',index:'content', width:40, align:"right",sortable:false},		
+	   		{name:'status',index:'status', width:40,align:"right",sortable:false},		
+	   		{name:'dataStore',index:'dataStore',hidden:true}
+	   	],
+	   	multiselect: true,
+   		rowNum: 50,
+   	   	pager: "#tabs_2_pager",
+   	 	viewrecords: true,
+   	   	width: $('#tabs_1').width(),
+   	 	toolbar: [true,"top"],
+   	 	loadComplete: function(){
+   	 		
+   	 	}
+	});
+	
+}
+/**
+ * 初始化更新资料的toolbar
+ */
+function initModifyInfo_Toolbar(){
+	
+	var toolbar = $('#t_tabs_1_table');
+	
+	toolbar.css('height','30px');
+	
+	var currentGroup = $('<span></span>').addClass('currentGroup').css('margin-left','5px');
+	
+	if(localStorage.ModifyGroup == 'none'){
+		currentGroup.text('请选择分组');
+	}else{
+		currentGroup.text('当前分组：'+localStorage.ModifyGroupName);
+		currentGroup.attr('gid',localStorage.ModifyGroupGid);
+	}
+	toolbar.append(currentGroup);
+	
+	
+	var selectGroup = $('<button></button>').text('选择分组').button().attr('title','选择一个分组，对其中的账号进行更新资料操作');
+	selectGroup.click(onClick_selectGroup_modify);
+	toolbar.append(selectGroup);
+
+	var loadAccount = $('<button></button>').text('加载账号').button().attr('title','将当前分组中所有账号读取到表格中');
+	loadAccount.click(onClick_loadAccount_modify);
+	toolbar.append(loadAccount);
+	
+	var synInfo = $('<button></button>').text('读取资料').button().attr('title','从新浪将对应账号的资料读取出来，并且更新到数据库中');
+	toolbar.append(synInfo);
+
+	var uploadExcel = $('<button></button>').text('导入Excel资料文件').button().attr('title','上传excel文件，更改账号的资料');
+	toolbar.append(uploadExcel);
+
+	var execute = $('<button></button>').text('执行更新').button().attr('title','根据表格中的资料数据，更新账号资料');
+	toolbar.append(execute);
+}
+/**
+ * 加载账号的事件
+ */
+function onClick_loadAccount_modify(){
+	if(localStorage.ModifyGroup != 'run'){
+		alert('请选选择分组!');
+		return;
+	}
+	
+	weibo.Action_3011_GetGroupUserList(localStorage.ModifyGroupGid, function(data){
+		if(data.res){
+			var list = data.pld.list;
+			localStorage['GroupAccount_'+localStorage.ModifyGroupGid] = JSON.stringify(list);
+			
+			
+		}
+		
+		console.debug(data);
+	});
+	
+}
+/**
+ * 选择分组的事件
+ */
+function onClick_selectGroup_modify(){
+	
+	$('.dialog_selectgroup').dialog({
+		modal: true,
+		title: '选择分组',
+		resizable: false,
+		width: $(document).width() * 0.2,
+	    height: $(document).height() * 0.3,
+	    create: function(event, ui){
+	    	var category = $('.dialog_selectgroup .category_name');
+	    	var group = $('.dialog_selectgroup .group_name');
+	    	
+	    	category.find('option').remove();
+	    	group.find('option').remove();
+	    	
+	    	for(var i = 0 ; i < AjaxData.categoryList.length ; i ++){
+	    		var item = AjaxData.categoryList[i];
+	    		var option = $('<option></option>').val(item.cid).text(item.name);
+	    		category.append(option);
+	    	}
+	    	
+	    	category.change(function(){
+	    		var value = $(this).val();
+	    		var wait = new weibo.WaitAlert('正在加载分组信息...');
+	    		wait.show();
+	    		weibo.Action_3004_GetGroupList(value, function(data){
+	    			
+	    			if(data.res){
+	    				var list = data.pld.list;
+	    				group.find('option').remove();
+	    				for(var j = 0 ; j < list.length ; j ++){
+	    					var item = list[j];
+	    					if(item.status != '空闲'){
+	    						continue;
+	    					}
+	    					var option = $('<option></option>').val(item.gid).text(item.name);
+	    					group.append(option);
+	    				}
+	    				
+	    				
+	    			}
+	    			
+	    			
+	    			wait.close();
+	    		},function(){
+	    			wait.close();
+	    		});
+	    		
+	    	});
+	    	category.change();
+	    	
+	    },
+	    close: function(event, ui){
+	    },
+	    buttons:{
+	    	'确认': function(){
+	    		var category = $('.dialog_selectgroup .category_name');
+		    	var group = $('.dialog_selectgroup .group_name');
+		    	
+		    	if(group.val() == null || group.val() == undefined){
+		    		alert('没有选择分组');
+		    		return;
+		    	}
+		    	
+	    		var cgroup = $('#t_tabs_1_table .currentGroup');
+	    		
+	    		cgroup.text('当前分组：'+group.text()).attr('gid',group.val());
+	    		localStorage.ModifyGroup = 'run';
+	    		localStorage.ModifyGroupName = group.text();
+	    		localStorage.ModifyGroupGid = group.val();
+	    		
+	    		$(this).dialog('close');
+	    	}
+	    }
+	    
+	});
+	
+	
 }
 /**
  * 初始化事件
@@ -39,7 +257,7 @@ function addCategory(){
 		title: '添加分组',
 		resizable: false,
 		width: $(document).width() * 0.3,
-	    height: $(document).height() * 0.27,
+	    height: $(document).height() * 0.5,
 	    close: function(event, ui){
 	    },
 	    buttons: {
@@ -81,7 +299,7 @@ function addGroup(){
 				title: '添加分组',
 				resizable: false,
 				width: $(document).width() * 0.3,
-			    height: $(document).height() * 0.7,
+			    height: $(document).height() * 0.5,
 			    close: function(event, ui){
 			    	var select = $('.dialog_addGroup .category_select');
 					select.html('');
@@ -124,8 +342,8 @@ function loadCategoryInfo(){
 		
 		if(data.res){
 			$('.list_menu').html('');
-			
 			var list = data.pld.list;
+			AjaxData.categoryList = list;
 			
 			for(var i = 0 ; i < list.length ; i ++){
 				var item = list[i];
