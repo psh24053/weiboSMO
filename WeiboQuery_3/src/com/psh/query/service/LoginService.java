@@ -23,6 +23,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.conn.params.ConnRoutePNames;
@@ -754,7 +755,19 @@ public class LoginService {
 				System.out.println(location);
 			}
 			
-			System.out.println(HtmlTools.getHtmlByBr(loginService.httpResponse));
+			httpGet = new HttpGet(location.getValue());
+			
+			try {
+				loginService.httpResponse = loginService.httpClient.execute(httpGet);
+			} catch (ClientProtocolException e) {
+				System.out.println(e.getMessage());
+				return null;
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+				return null;
+			}
+			
+			System.out.println(HtmlTools.getHtmlByBr(loginService.httpResponse).length());
 			
 			
 		}
@@ -844,7 +857,7 @@ public class LoginService {
 	 * @param url 请求地址
 	 * @return String 响应内容
 	 */
-	public String execute(String url, boolean isgsid, String referer){
+	public String execute(String url, boolean isgsid, String referer, String method){
 		
 		String requestURL = url;
 		// 加入时间戳和gsid
@@ -863,13 +876,18 @@ public class LoginService {
 			}
 		}
 		
+		HttpRequestBase base = null;
+		if(method == null || method.equals("get")){
+			base = new HttpGet(requestURL);
+		}else{
+			base = new HttpPost(requestURL);
+		}
 		// 执行请求
-		HttpGet httpGet = new HttpGet(requestURL);
 		if(referer != null){
-			httpGet.addHeader("Referer", referer);
+			base.addHeader("Referer", referer);
 		}
 		try {
-			httpResponse = httpClient.execute(httpGet);
+			httpResponse = httpClient.execute(base);
 		} catch (ClientProtocolException e) {
 			System.out.println(e.getMessage());
 			return null;
@@ -905,7 +923,7 @@ public class LoginService {
 	 * @param proxy http代理对象
 	 * @return String 响应内容
 	 */
-	public String execute(String url, ProxyBean proxy, boolean isgsid, String referer){
+	public String execute(String url, ProxyBean proxy, boolean isgsid, String referer, String method){
 		String requestURL = url;
 		// 加入时间戳和gsid
 		if(isgsid){
@@ -923,18 +941,21 @@ public class LoginService {
 			}
 		}
 		
-		
+		HttpRequestBase base = null;
+		if(method == null || method.equals("get")){
+			base = new HttpGet(requestURL);
+		}else{
+			base = new HttpPost(requestURL);
+		}
 		// 执行请求
-		HttpGet httpGet = new HttpGet(requestURL);
 		if(referer != null){
-			httpGet.addHeader("Referer", referer);
+			base.addHeader("Referer", referer);
 		}
 		if(proxy != null){
-			httpGet.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
+			base.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
 		}
-		
 		try {
-			httpResponse = httpClient.execute(httpGet);
+			httpResponse = httpClient.execute(base);
 		} catch (ClientProtocolException e) {
 			System.out.println(e.getMessage());
 			return null;
@@ -966,7 +987,7 @@ public class LoginService {
 	 * @param url 请求地址
 	 * @return JSONObject 响应内容,JSONObject
 	 */
-	public JSONObject executeJSON(String url, ProxyBean proxy, boolean isgsid, String referer){
+	public JSONObject executeJSON(String url, ProxyBean proxy, boolean isgsid, String referer, String method){
 		String requestURL = url;
 		// 加入时间戳和gsid
 		if(isgsid){
@@ -984,17 +1005,21 @@ public class LoginService {
 			}
 		}
 		
+		HttpRequestBase base = null;
+		if(method == null || method.equals("get")){
+			base = new HttpGet(requestURL);
+		}else{
+			base = new HttpPost(requestURL);
+		}
 		// 执行请求
-		HttpGet httpGet = new HttpGet(requestURL);
 		if(referer != null){
-			httpGet.addHeader("Referer", referer);
+			base.addHeader("Referer", referer);
 		}
 		if(proxy != null){
-			httpGet.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
+			base.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
 		}
-		
 		try {
-			httpResponse = httpClient.execute(httpGet);
+			httpResponse = httpClient.execute(base);
 		} catch (ClientProtocolException e) {
 			System.out.println(e.getMessage());
 			return null;
@@ -1029,7 +1054,7 @@ public class LoginService {
 	 * @param url 请求地址
 	 * @return JSONObject 响应内容,JSONObject
 	 */
-	public JSONObject executeJSON(String url, boolean isgsid, String referer){
+	public JSONObject executeJSON(String url, boolean isgsid, String referer, String method){
 		String requestURL = url;
 		// 加入时间戳和gsid
 		if(isgsid){
@@ -1048,13 +1073,18 @@ public class LoginService {
 		}
 		
 		
+		HttpRequestBase base = null;
+		if(method == null || method.equals("get")){
+			base = new HttpGet(requestURL);
+		}else{
+			base = new HttpPost(requestURL);
+		}
 		// 执行请求
-		HttpGet httpGet = new HttpGet(requestURL);
 		if(referer != null){
-			httpGet.addHeader("Referer", referer);
+			base.addHeader("Referer", referer);
 		}
 		try {
-			httpResponse = httpClient.execute(httpGet);
+			httpResponse = httpClient.execute(base);
 		} catch (ClientProtocolException e) {
 			System.out.println(e.getMessage());
 			return null;

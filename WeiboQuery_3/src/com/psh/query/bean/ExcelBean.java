@@ -2,22 +2,26 @@ package com.psh.query.bean;
 
 import org.apache.poi.hssf.usermodel.HSSFRow;
 
-public class ExcelBean {
+import com.psh.query.model.CityModel;
+import com.psh.query.model.ProvModel;
+import com.psh.query.model.SuperModel;
 
-	private String category;
-	private String group;
+public class ExcelBean extends SuperModel {
+
+	public String category;
+	public String group;
 	
-	private String screen_name;
-	private String city;
-	private String province;
-	private String gender;
-	private String emotion;
-	private String year;
-	private String month;
-	private String day;
-	private String description;
-	private String birthday_value;
-	private String tags;
+	public String screen_name;
+	public String city;
+	public String province;
+	public String gender;
+	public String emotion;
+	public String year;
+	public String month;
+	public String day;
+	public String description;
+	public String birthday_value;
+	public String tags;
 	
 	public String getBirthday_value() {
 		return birthday_value;
@@ -34,7 +38,7 @@ public class ExcelBean {
 	public void setRow(HSSFRow row) {
 		this.row = row;
 	}
-	private HSSFRow row;
+	public HSSFRow row;
 	
 	/**
 	 * 传入row，用以提取数据
@@ -49,7 +53,7 @@ public class ExcelBean {
 		
 	}
 	
-	private void init(){
+	public void init(){
 		// 分类
 		category = row.getCell(0).getStringCellValue();
 		// 分组
@@ -58,10 +62,18 @@ public class ExcelBean {
 		screen_name = row.getCell(2).getStringCellValue();
 		// 省份
 		province = row.getCell(3).getStringCellValue();
+		int pid = Integer.parseInt(province);
+		ProvModel provmodel = new ProvModel();
+		province = provmodel.getProvNameByID(pid);
+		
 		// 城市
 		city = row.getCell(4).getStringCellValue();
+		int cid = Integer.parseInt(city);
+		CityModel citymodel = new CityModel();
+		city = citymodel.getProvNameByID(cid, pid);
+		
 		// 性别
-		gender = row.getCell(5).getStringCellValue().equals("男") ? "m":"f";
+		gender = row.getCell(5).getStringCellValue();
 		// 情感状况
 		emotion = row.getCell(6).getStringCellValue();
 		// 生日公式
@@ -70,6 +82,27 @@ public class ExcelBean {
 		description = row.getCell(8).getStringCellValue();
 		// 标签
 		tags = row.getCell(9).getStringCellValue();
+		
+		if(birthday_value.contains("~")){
+			String[] split = birthday_value.split("~");
+			if(split.length != 2){
+				return;
+			}
+			
+			int start = Integer.parseInt(split[0]);
+			int end = Integer.parseInt(split[1]);
+			
+			
+		}else if(birthday_value.contains("=")){
+			
+		}else if(birthday_value.contains("+")){
+			
+		}else if(birthday_value.contains("-")){
+			
+		}
+		
+		
+		
 	}
 	
 
@@ -138,6 +171,14 @@ public class ExcelBean {
 	}
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getTags() {
+		return tags;
+	}
+
+	public void setTags(String tags) {
+		this.tags = tags;
 	}
 	
 	

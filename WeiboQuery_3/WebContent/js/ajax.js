@@ -83,7 +83,33 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
+	},
+	Action_3019_GetAccountInfoFromSina:function(uid, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3019,
+			prm:{
+				uid: uid
+			},
+			Success:Success,
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3020_GetExcelContent:function(idx, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3020,
+			prm:{
+				idx: idx
+			},
+			Success:Success,
+			Error:Error
+		}).send(Before);
+		
 	}
+	
+
 		
 		
 		

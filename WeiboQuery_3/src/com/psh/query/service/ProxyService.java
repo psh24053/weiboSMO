@@ -66,6 +66,43 @@ public class ProxyService {
 	
 	private List<ProxyBean> timeOutData = new ArrayList<ProxyBean>();
 	
+	public void loadProxyDataStatic(int count){
+		
+		
+		String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN,US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
+		String[] hosts = html.split("\n");
+		
+		System.out.println("Yun Proxy Count "+hosts.length);
+		ProxyData.clear();
+		
+		for(int i = 0 ; i < count ; i ++){
+			String host = hosts[i];
+			final String ip = host.split(":")[0];
+			final int port = Integer.parseInt(host.split(":")[1]);
+			final int index = i;
+			ProxyBean item = new ProxyBean();
+			item.setIp(ip);
+			item.setPort(port);
+			long time = System.currentTimeMillis() - ProxyDelay + index;
+			item.setChecktime(time);
+			if(validationProxy(ip, port)){
+				System.out.println("add Proxy "+ip +" , "+port);
+				ProxyData.put(time, item);
+			}
+			
+		}
+		if(ProxyData.size() != count){
+			loadProxyDataStatic(count);
+			return;
+		}
+		
+		
+		
+		blockData.clear();
+		timeOutData.clear();
+	}
+	
+	
 	public void loadProxyData(){
 //		ProxyData.clear();
 //		blockData.clear();
@@ -1333,7 +1370,46 @@ public class ProxyService {
 		
 		return getAvailableProxyModel();
 	}
-	
+	/**
+	 * 获取一个代理服务器对象
+	 * 每一个代理服务器的使用间隔为30秒
+	 * @return
+	 */
+	public synchronized ProxyBean getRandomProxyModelForStatic(){
+		if(ProxyData.size() == 0){
+			return null;
+		}
+		
+		for(Long key : ProxyData.keySet()){
+			long curTime = System.currentTimeMillis();
+			ProxyBean model = ProxyData.get(key);
+			if(model.getChecktime() == 110){
+				continue;
+			}
+			
+			if(curTime - key > ProxyDelay){
+				return ProxyData.remove(key);
+			}
+			
+		}
+		
+		if(timeOutData.size() > 0){
+			long curTime = System.currentTimeMillis();
+			long key = timeOutData.get(0).getChecktime();
+			if(curTime - key > ProxyDelay){
+				return timeOutData.remove(0);
+			}
+		}
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			PshLogger.logger.error(e.getMessage(), e);
+		}
+		
+		return getRandomProxyModel();
+
+	}
 	/**
 	 * 获取一个代理服务器对象
 	 * 每一个代理服务器的使用间隔为30秒

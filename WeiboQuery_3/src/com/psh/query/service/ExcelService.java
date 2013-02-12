@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +31,8 @@ public class ExcelService {
 	private ExcelService(){}
 	
 	
-	public static ExcelService createExcel(String idx, int gid){
+	public static ExcelService createExcel(String idx){
 		ExcelService excel = new ExcelService();
-		excel.setGid(gid);
 		excel.setIdx(idx);
 		
 		return excelData.put(idx, excel);
@@ -44,9 +44,9 @@ public class ExcelService {
 	 */
 	public List<ExcelBean> parseExcel(){
 		File excelFile = new File(UploadExcelDIR, idx);
-		
+		FileInputStream in = null;
 		try {
-			FileInputStream in = new FileInputStream(excelFile);
+			in = new FileInputStream(excelFile);
 			hssfworkbook = new HSSFWorkbook(in);
 			
 		} catch (IOException e) {
@@ -61,11 +61,35 @@ public class ExcelService {
 		
 		// 
 		
+		int sheetCount = hssfworkbook.getNumberOfSheets();
 		
+		if(sheetCount == 0){
+			PshLogger.logger.error("Excel sheet is 0");
+			return null;
+		}
+		HSSFSheet sheet = hssfworkbook.getSheetAt(0);
 		
+		List<ExcelBean> list = null;
 		
+		for(int j = 0 ; j <= sheet.getLastRowNum() ; j ++){
+			if(list == null){
+				list = new ArrayList<ExcelBean>();
+			}
+			HSSFRow row = sheet.getRow(j);
+			if(row.getCell(0).getStringCellValue() == null){
+				continue;
+			}
+			ExcelBean bean = new ExcelBean(row);
+			list.add(bean);
+		}
 		
-		return null;
+		try {
+			in.close();
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage());
+			return null;
+		}
+		return list;
 	}
 	
 	public static void main(String[] args) throws IOException {
@@ -80,7 +104,7 @@ public class ExcelService {
 			
 			for(int j = 0 ; j <= sheet.getLastRowNum() ; j ++){
 				HSSFRow row = sheet.getRow(j);
-				System.out.println(row.getCell(2));
+				ExcelBean bean = new ExcelBean(row);
 			}
 			
 			

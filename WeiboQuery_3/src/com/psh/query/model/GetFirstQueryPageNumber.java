@@ -57,7 +57,7 @@ public class GetFirstQueryPageNumber{
 		}
 		
 			
-		JSONObject json = LoginService.login.executeJSON(url, false, null);
+		JSONObject json = LoginService.login.executeJSON(url, false, null,"get");
 		
 		if(json == null){
 			return -1;

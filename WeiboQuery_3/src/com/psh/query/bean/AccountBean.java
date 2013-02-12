@@ -1,26 +1,28 @@
 package com.psh.query.bean;
 
-public class AccountBean {
+import com.psh.query.model.SuperModel;
 
-	private long uid;
-	private String email;
-	private String password;
-	private String nickname;
-	private String domain;
-	private String prov;
-	private String city;
-	private String sex;
-	private String emotion;
-	private String birthday;
-	private String blood;
-	private String info;
-	private int fans;
-	private int weibo;
-	private int att;
-	private String school;
-	private String company;
-	private String tags;
-	private int gid;
+public class AccountBean extends SuperModel {
+
+	public long uid;
+	public String email;
+	public String password;
+	public String nickname;
+	public String domain;
+	public String prov;
+	public String city;
+	public String sex;
+	public String emotion;
+	public String birthday;
+	public String blood;
+	public String info;
+	public int fans;
+	public int weibo;
+	public int att;
+	public String school;
+	public String company;
+	public String tags;
+	public int gid;
 	public long getUid() {
 		return uid;
 	}

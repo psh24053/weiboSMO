@@ -45,12 +45,11 @@ function initTable(){
 	$('#tabs_1_table').jqGrid({
 		datatype: "local",
 		height: 420,
-		colNames:['uid','邮箱','密码','昵称','省份','城市','性别','生日','简介','标签','状态','dataStore'],
+		colNames:['uid','邮箱','昵称','省份','城市','性别','生日','简介','标签','状态','dataStore'],
 	   	colModel:[
 	   		{name:'uid',index:'uid', width:40, align:'center', sortable:false},
-	   		{name:'email',index:'email', width:40, align:'center', sortable:false},
-	   		{name:'password',index:'password', width:60, align:'center', sortable:false},
-	   		{name:'nickname',index:'nickname', width:40, align:'center', sortable:false},
+	   		{name:'email',index:'email', width:80, align:'center', sortable:false},
+	   		{name:'nck',index:'nck', width:40, align:'center', sortable:false},
 	   		{name:'prov',index:'prov', width:40, align:"right",sortable:false},		
 	   		{name:'city',index:'city', width:40,align:"right",sortable:false},		
 	   		{name:'gender',index:'gender', width:40, align:'center',sortable:false},
@@ -126,13 +125,190 @@ function initModifyInfo_Toolbar(){
 	toolbar.append(loadAccount);
 	
 	var synInfo = $('<button></button>').text('读取资料').button().attr('title','从新浪将对应账号的资料读取出来，并且更新到数据库中');
+	synInfo.click(onClick_loadInfo_modify);
 	toolbar.append(synInfo);
 
 	var uploadExcel = $('<button></button>').text('导入Excel资料文件').button().attr('title','上传excel文件，更改账号的资料');
+	uploadExcel.click(onClick_uploadExcel_modify);
 	toolbar.append(uploadExcel);
 
 	var execute = $('<button></button>').text('执行更新').button().attr('title','根据表格中的资料数据，更新账号资料');
 	toolbar.append(execute);
+}
+/**
+ * 上传excel资料文件
+ */
+function onClick_uploadExcel_modify(){
+	
+	$('.dialog_uploadexcel').find('form').attr('action','UploadExcel?idx='+random_char(8));
+	$('.dialog_uploadexcel').find('input[type=button]').click(function(){
+		if($('.dialog_uploadexcel input[type=file]').val() != ''){
+			var wait = new weibo.WaitAlert('正在上传');
+			wait.show();
+			$('.dialog_uploadexcel').data('wait',wait);
+			$('.dialog_uploadexcel').find('form').submit();
+		}else{
+			alert('请选择文件！');
+		}
+	});
+	$('.dialog_uploadexcel').dialog({
+		modal: true,
+		title: '上传excel',
+		resizable: false,
+		width: $(document).width() * 0.5,
+	    height: $(document).height() * 0.2
+	});
+	
+	
+}
+/**
+ * 生产随机字符串
+ * @param l
+ * @returns {String}
+ */
+function  random_char(l)  {
+	var  x="0123456789qwertyuioplkjhgfdsazxcvbnm";
+	var  tmp="";
+	for(var  i=0;i<  l;i++)  {
+	  tmp  +=  x.charAt(Math.ceil(Math.random()*100000000)%x.length);
+	}
+	
+	return  tmp;
+}
+/**
+ * 上传完成后触发
+ * @param idx
+ */
+function onUploadExcelComplete(idx){
+	$('.dialog_uploadexcel').dialog('close');
+	$('.dialog_uploadexcel').data('wait').close();
+	
+	weibo.Action_3020_GetExcelContent(idx,function(data){
+		
+		if(data.res){
+			
+			var list = data.pld.list;
+			var rowData = $('#tabs_1_table').jqGrid('getRowData');
+			for(var i = 0 ; i < rowData.length ; i ++){
+				var item = list[i];
+				if(item == undefined){
+					continue;
+				}
+				$('#tabs_1_table').jqGrid('setRowData',i, {
+					'status': '准备就绪',
+					'nck': item.nck,
+					'prov': item.prov,
+					'gender': item.gender,
+					'birthday': item.birthday,
+					'description': item.info,
+					'tags': item.tags
+				});
+			}
+			
+		}else{
+			alert('解析Excel失败');
+		}
+		
+	});
+	
+	
+	
+}
+/**
+ * 读取资料的事件
+ */
+function onClick_loadInfo_modify(){
+	if(localStorage.ModifyGroup != 'run'){
+		alert('请选选择分组!');
+		return;
+	}
+	var rowData = $('#tabs_1_table').jqGrid('getRowData');
+	if(rowData.length == 0){
+		alert('没有加载账号信息或该分组没有账号数据！');
+		return;
+	}
+	
+	$(this).parent().find('button').button('disable');
+	
+	var p_this = $(this);
+	var size = 0;
+	for(var i = 0 ; i < rowData.length ; i ++){
+		$('#tabs_1_table').jqGrid('setRowData',i, {'status':''});
+	}
+	
+	
+	readInfo(size, rowData, p_this);
+	
+//	var interval = setInterval(function(){
+//		var i = size;
+//		var item = rowData[i];
+//		$('#tabs_1_table').jqGrid('setRowData',i, {'status':'正在读取...'});
+//		weibo.Action_3019_GetAccountInfoFromSina(item.uid, function(data){
+//			if(data.res){
+//				$('#tabs_1_table').jqGrid('setRowData',i, {
+//					'status': '读取成功',
+//					'nck': data.pld.nck,
+//					'prov': data.pld.prov,
+//					'gender': data.pld.gender,
+//					'birthday': data.pld.birthday,
+//					'description': data.pld.info,
+//					'tags': data.pld.tags
+//				});
+//				
+//			}else{
+//				$('#tabs_1_table').jqGrid('setRowData',i, {'status':'读取失败'});
+//			}
+//		},function(){
+//			$('#tabs_1_table').jqGrid('setRowData',i, {'status':'读取失败'});
+//		});
+//		
+//		
+//		size ++;
+//		if(rowData.length == size){
+//			clearInterval(interval);
+//			p_this.parent().find('button').button('enable');
+//		}
+//	}, 1000);
+	
+	
+}
+function readInfo(size,rowData,p_this){
+		var i = size;
+		var item = rowData[i];
+		$('#tabs_1_table').jqGrid('setRowData',i, {'status':'正在读取...'});
+		weibo.Action_3019_GetAccountInfoFromSina(item.uid, function(data){
+			if(data.res){
+				$('#tabs_1_table').jqGrid('setRowData',i, {
+					'status': '读取成功',
+					'nck': data.pld.nck,
+					'prov': data.pld.prov,
+					'gender': data.pld.gender,
+					'birthday': data.pld.birthday,
+					'description': data.pld.info,
+					'tags': data.pld.tags
+				});
+				
+			}else{
+				$('#tabs_1_table').jqGrid('setRowData',i, {'status':'读取失败'});
+			}
+			if(rowData.length == size+1){
+				p_this.parent().find('button').button('enable');
+			}else{
+				size++;
+				readInfo(size, rowData, p_this);
+			}
+		},function(){
+			$('#tabs_1_table').jqGrid('setRowData',i, {'status':'读取失败'});
+			if(rowData.length == size+1){
+				p_this.parent().find('button').button('enable');
+			}else{
+				size++;
+				readInfo(size, rowData, p_this);
+			}
+		});
+		
+		
+		
 }
 /**
  * 加载账号的事件
@@ -143,11 +319,19 @@ function onClick_loadAccount_modify(){
 		return;
 	}
 	
+	var wait = new weibo.WaitAlert('正在加载账号信息...');
+	wait.show();
 	weibo.Action_3011_GetGroupUserList(localStorage.ModifyGroupGid, function(data){
 		if(data.res){
 			var list = data.pld.list;
 			localStorage['GroupAccount_'+localStorage.ModifyGroupGid] = JSON.stringify(list);
 			
+			for(var i = 0 ; i < list.length ; i ++){
+				var item = list[i];
+				$('#tabs_1_table').jqGrid('addRowData', i, item);
+				
+			}
+			wait.close();
 			
 		}
 		

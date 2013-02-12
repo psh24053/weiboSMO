@@ -64,7 +64,6 @@ public class UploadExcel extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		
 		String idx = request.getParameter("idx");
-		String gid = request.getParameter("gid");
 		
 		
 		
@@ -116,10 +115,10 @@ public class UploadExcel extends HttpServlet {
                     item.write( f );//第三方提供的  
                     
                     PshLogger.logger.debug("Upload Excel Complete!");
-                    ExcelService excel = ExcelService.createExcel(idx, Integer.parseInt(gid));
+                    ExcelService excel = ExcelService.createExcel(idx);
                     
-                    PshLogger.logger.debug("return onUploadExcelComplete('"+idx+"',"+gid+")");
-                    responseJavaScript(out, "parent.onUploadExcelComplete('"+idx+"',"+gid+")");
+                    PshLogger.logger.debug("return onUploadExcelComplete('"+idx+"')");
+                    responseJavaScript(out, "parent.onUploadExcelComplete('"+idx+"')");
                     
                     out.close();
                 }  

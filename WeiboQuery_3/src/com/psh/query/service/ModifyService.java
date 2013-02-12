@@ -98,7 +98,7 @@ public class ModifyService {
 				
 //		String response = login.execute("http://m.weibo.cn/settingDeal/tagAdd?tag="+URLEncoder.encode("西瓜哥威武"), false, "http://m.weibo.cn/users/"+login.getUid()+"?");
 		
-		String response = login.execute("http://m.weibo.cn/settingDeal/inforSave?screen_name=IxgSoft6&province=51&city=3&gender=f&year=1989&month=4&day=2&description=aaaaa2323", false, "http://m.weibo.cn/users/"+login.getUid()+"?vt="+login.getVt()+"&wm="+login.getWm()+"&gsid="+login.getGsid());
+		String response = login.execute("http://m.weibo.cn/settingDeal/inforSave?screen_name=IxgSoft6&province=51&city=3&gender=f&year=1989&month=4&day=2&description=aaaaa2323", false, "http://m.weibo.cn/users/"+login.getUid()+"?vt="+login.getVt()+"&wm="+login.getWm()+"&gsid="+login.getGsid(),"get");
 		
 		System.out.println(response);
 		

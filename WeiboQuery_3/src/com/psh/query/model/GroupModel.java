@@ -229,9 +229,9 @@ public class GroupModel extends SuperModel {
 				gidcount = rs.getInt("count");
 			}
 			if(gidcount < count){
-				gidcount = count - gidcount;
+				count = count - gidcount;
 			}else if(gidcount > count){
-				pstmt = conn.prepareStatement("UPDATE wb_account SET gid = null WHERE gid = ?");
+				pstmt = conn.prepareStatement("UPDATE wb_account SET gid = NULL WHERE gid = ?");
 				pstmt.setInt(1, gid);
 				pstmt.executeUpdate();
 			}
@@ -239,7 +239,7 @@ public class GroupModel extends SuperModel {
 			
 			pstmt = conn.prepareStatement("UPDATE wb_account SET gid = ? WHERE gid IS NULL LIMIT ?");
 			pstmt.setInt(1, gid);
-			pstmt.setInt(2, gidcount);
+			pstmt.setInt(2, count);
 			
 			result = pstmt.executeUpdate();
 			
