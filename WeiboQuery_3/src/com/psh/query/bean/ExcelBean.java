@@ -1,5 +1,9 @@
 package com.psh.query.bean;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 import org.apache.poi.hssf.usermodel.HSSFRow;
 
 import com.psh.query.model.CityModel;
@@ -61,13 +65,13 @@ public class ExcelBean extends SuperModel {
 		// 昵称
 		screen_name = row.getCell(2).getStringCellValue();
 		// 省份
-		province = row.getCell(3).getStringCellValue();
+		province = String.valueOf((int)row.getCell(3).getNumericCellValue());
 		int pid = Integer.parseInt(province);
 		ProvModel provmodel = new ProvModel();
 		province = provmodel.getProvNameByID(pid);
 		
 		// 城市
-		city = row.getCell(4).getStringCellValue();
+		city = String.valueOf((int)row.getCell(4).getNumericCellValue());
 		int cid = Integer.parseInt(city);
 		CityModel citymodel = new CityModel();
 		city = citymodel.getProvNameByID(cid, pid);
@@ -83,27 +87,85 @@ public class ExcelBean extends SuperModel {
 		// 标签
 		tags = row.getCell(9).getStringCellValue();
 		
-		if(birthday_value.contains("~")){
-			String[] split = birthday_value.split("~");
-			if(split.length != 2){
-				return;
-			}
-			
-			int start = Integer.parseInt(split[0]);
-			int end = Integer.parseInt(split[1]);
-			
-			
-		}else if(birthday_value.contains("=")){
-			
-		}else if(birthday_value.contains("+")){
-			
-		}else if(birthday_value.contains("-")){
-			
-		}
-		
+		birthday_value = randomDate(birthday_value);
 		
 		
 	}
+	/**
+	 * 生成范围随机数，从m~n的随机数
+	 * @param m
+	 * @param n
+	 * @return
+	 */
+	public static int randomInt(int m, int n){
+		int r = (int)(m+(n+1-m)*Math.random());
+		
+		return r;
+	}
+	/**
+	 * 封装format
+	 * @param rStr
+	 * @return
+	 */
+	public static String randomDate(String rStr){
+		return randomDate(rStr, "yyyy-MM-dd");
+	}
+	/**
+	 * 随机生成时间
+	 * @param rStr X~Y,X+,X-,X=
+	 * @return
+	 */
+	public static String randomDate(String rStr, String format){
+		
+		String result = null;
+		int start = 0;
+		int end = 0;
+		if(rStr.contains("~")){
+			String[] split = rStr.split("~");
+			if(split.length != 2){
+				return null;
+			}
+			
+			start = Integer.parseInt(split[0]);
+			end = Integer.parseInt(split[1]);
+			
+			
+		}else if(rStr.contains("=")){
+			start = Integer.parseInt(rStr.substring(0, rStr.indexOf("=")));
+			end = start;
+			
+			
+		}else if(rStr.contains("+")){
+			start = Integer.parseInt(rStr.substring(0, rStr.indexOf("+")));
+			end = 100;
+			
+		}else if(rStr.contains("-")){
+			start = 1;
+			end = Integer.parseInt(rStr.substring(0, rStr.indexOf("-")));
+		}
+		
+		
+		Calendar startCalendar = Calendar.getInstance();
+		// 随机年份
+		startCalendar.set(Calendar.YEAR, startCalendar.get(Calendar.YEAR) - randomInt(start, end));
+		// 随机月份
+		startCalendar.set(Calendar.MONTH, startCalendar.get(Calendar.MONTH) - randomInt(0, 12));
+		// 随机日
+		startCalendar.set(Calendar.DATE, startCalendar.get(Calendar.DATE) - randomInt(0, startCalendar.get(Calendar.DATE)));
+		// 随机小时
+		startCalendar.set(Calendar.HOUR, startCalendar.get(Calendar.HOUR) - randomInt(0, startCalendar.get(Calendar.HOUR)));
+		// 随机分钟
+		startCalendar.set(Calendar.MINUTE, startCalendar.get(Calendar.MINUTE) - randomInt(0, startCalendar.get(Calendar.MINUTE)));
+		// 随机秒
+		startCalendar.set(Calendar.SECOND, startCalendar.get(Calendar.SECOND) - randomInt(0, startCalendar.get(Calendar.SECOND)));
+												
+		
+		SimpleDateFormat sdf = new SimpleDateFormat(format);
+		result = sdf.format(startCalendar.getTime());
+		
+		return result;
+	}
+	
 	
 
 	public String getCategory() {

@@ -107,8 +107,35 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
-	}
-	
+	},
+	Action_3021_UpdateInfo:function(opts, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3021,
+			prm:{
+				uid: opts.uid,
+				nck: opts.nck,
+				prov: opts.prov,
+				city: opts.city,
+				gender: opts.gender,
+				birthday: opts.birthday,
+				info: opts.info,
+				tags: opts.tags
+			},
+			Success:Success,
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3022_AccountSynchronization:function(Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3022,
+			Success:Success,
+			Error:Error
+		}).send(Before);
+		
+	},
 
 		
 		

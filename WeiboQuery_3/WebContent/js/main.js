@@ -59,7 +59,7 @@ function initTable(){
 	   		{name:'status',index:'status', width:40,sortable:false, align:'center'},
 	   		{name:'dataStore',index:'dataStore',hidden:true}
 	   	],
-	   	multiselect: true,
+	   	rownumbers:true,
    		rowNum: 50,
    	   	pager: "#tabs_1_pager",
    	 	viewrecords: true,
@@ -133,19 +133,103 @@ function initModifyInfo_Toolbar(){
 	toolbar.append(uploadExcel);
 
 	var execute = $('<button></button>').text('执行更新').button().attr('title','根据表格中的资料数据，更新账号资料');
+	execute.click(onClick_execute_modify);
 	toolbar.append(execute);
+}
+/**
+ * 对表格中的账号执行更新操作
+ */
+function onClick_execute_modify(){
+	if(localStorage.ModifyGroup != 'run'){
+		alert('请选选择分组!');
+		return;
+	}
+	var rowData = $('#tabs_1_table').jqGrid('getRowData');
+	if(rowData.length == 0){
+		alert('没有加载账号信息或该分组没有账号数据！');
+		return;
+	}
+	
+	// 验证是否存在空字段
+	for(var i = 0 ; i < rowData.length ; i ++){
+		var row = rowData[i];
+		for(var key in row){
+			if(row[key] == '' && key != 'dataStore'){
+				alert('第 '+(i+1)+' 行，有字段为空!');
+				return;
+			}
+		}
+	}
+	
+	$(this).parent().find('button').button('disable');
+	var p_this = $(this);
+	var size = 0;
+	UpdateInfo(size, rowData, p_this);
+	
+}
+/**
+ * 执行更新操作的递归
+ */
+function UpdateInfo(size, rowData, p_this){
+	var i = size;
+	var item = rowData[i];
+	$('#tabs_1_table').jqGrid('setRowData',i, {'status':'正在读取...'});
+	weibo.Action_3021_UpdateInfo({
+		uid: item.uid,
+		nck: item.nck,
+		prov: item.prov,
+		city: item.city,
+		gender: item.gender,
+		birthday: item.birthday,
+		info: item.description,
+		tags: item.tags
+	}, function(data){
+		if(data.res){
+			$('#tabs_1_table').jqGrid('setRowData',i, {
+				'status': '更新成功'
+			});
+			
+		}else{
+			$('#tabs_1_table').jqGrid('setRowData',i, {'status':'更新失败'});
+		}
+		if(rowData.length == size+1){
+			p_this.parent().find('button').button('enable');
+			alert('更新命令执行完毕！');
+		}else{
+			size++;
+			UpdateInfo(size, rowData, p_this);
+		}
+	},function(){
+		$('#tabs_1_table').jqGrid('setRowData',i, {'status':'更新失败'});
+		if(rowData.length == size+1){
+			p_this.parent().find('button').button('enable');
+			alert('更新命令执行完毕！');
+		}else{
+			size++;
+			UpdateInfo(size, rowData, p_this);
+		}
+	});
 }
 /**
  * 上传excel资料文件
  */
 function onClick_uploadExcel_modify(){
-	
-	$('.dialog_uploadexcel').find('form').attr('action','UploadExcel?idx='+random_char(8));
+	if(localStorage.ModifyGroup != 'run'){
+		alert('请选选择分组!');
+		return;
+	}
+	var rowData = $('#tabs_1_table').jqGrid('getRowData');
+	if(rowData.length == 0){
+		alert('没有加载账号信息或该分组没有账号数据！');
+		return;
+	}
+	var idx = random_char(8);
+	$('.dialog_uploadexcel').find('form').attr('action','UploadExcel?idx='+idx);
 	$('.dialog_uploadexcel').find('input[type=button]').click(function(){
 		if($('.dialog_uploadexcel input[type=file]').val() != ''){
 			var wait = new weibo.WaitAlert('正在上传');
 			wait.show();
-			$('.dialog_uploadexcel').data('wait',wait);
+			$('.dialog_uploadexcel').data(idx,wait);
 			$('.dialog_uploadexcel').find('form').submit();
 		}else{
 			alert('请选择文件！');
@@ -181,8 +265,15 @@ function  random_char(l)  {
  */
 function onUploadExcelComplete(idx){
 	$('.dialog_uploadexcel').dialog('close');
-	$('.dialog_uploadexcel').data('wait').close();
+	$('.waitAlert').data('close')();
 	
+	var rowData = $('#tabs_1_table').jqGrid('getRowData');
+	for(var i = 0 ; i < rowData.length ; i ++){
+		$('#tabs_1_table').jqGrid('setRowData',i, {'status':'','nck':'','prov':'','gender':'','birthday':'','description':'','city':'','tags':''});
+	}
+	
+	var wait = new weibo.WaitAlert('正在加载Excel资料...');
+	wait.show();
 	weibo.Action_3020_GetExcelContent(idx,function(data){
 		
 		if(data.res){
@@ -198,6 +289,7 @@ function onUploadExcelComplete(idx){
 					'status': '准备就绪',
 					'nck': item.nck,
 					'prov': item.prov,
+					'city': item.city,
 					'gender': item.gender,
 					'birthday': item.birthday,
 					'description': item.info,
@@ -208,7 +300,9 @@ function onUploadExcelComplete(idx){
 		}else{
 			alert('解析Excel失败');
 		}
-		
+		wait.close();
+	},function(){
+		wait.close();
 	});
 	
 	
@@ -233,7 +327,7 @@ function onClick_loadInfo_modify(){
 	var p_this = $(this);
 	var size = 0;
 	for(var i = 0 ; i < rowData.length ; i ++){
-		$('#tabs_1_table').jqGrid('setRowData',i, {'status':''});
+		$('#tabs_1_table').jqGrid('setRowData',i, {'status':'','nck':'','prov':'','gender':'','birthday':'','description':'','city':'','tags':''});
 	}
 	
 	
@@ -271,7 +365,14 @@ function onClick_loadInfo_modify(){
 //	}, 1000);
 	
 	
+	
 }
+/**
+ * 递归读取资料
+ * @param size
+ * @param rowData
+ * @param p_this
+ */
 function readInfo(size,rowData,p_this){
 		var i = size;
 		var item = rowData[i];
@@ -293,6 +394,7 @@ function readInfo(size,rowData,p_this){
 			}
 			if(rowData.length == size+1){
 				p_this.parent().find('button').button('enable');
+				alert('读取命令执行完毕！');
 			}else{
 				size++;
 				readInfo(size, rowData, p_this);
@@ -301,6 +403,7 @@ function readInfo(size,rowData,p_this){
 			$('#tabs_1_table').jqGrid('setRowData',i, {'status':'读取失败'});
 			if(rowData.length == size+1){
 				p_this.parent().find('button').button('enable');
+				alert('读取命令执行完毕！');
 			}else{
 				size++;
 				readInfo(size, rowData, p_this);

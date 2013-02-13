@@ -1,7 +1,5 @@
 package com.psh.query.action;
 
-import java.util.List;
-
 import com.psh.base.common.PshAction;
 import com.psh.base.common.RequestMessageParser;
 import com.psh.base.common.ResponseMessageGenerator;
@@ -10,24 +8,23 @@ import com.psh.base.json.JSONArray;
 import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
 import com.psh.base.util.PshLogger;
-import com.psh.query.bean.AccountBean;
-import com.psh.query.bean.GroupBean;
 import com.psh.query.bean.QueryTaskBean;
 import com.psh.query.model.AccountModel;
 import com.psh.query.model.CityModel;
 import com.psh.query.model.GetFirstQueryPageNumber;
 import com.psh.query.model.GetFirstQueryUser;
+import com.psh.query.model.GroupModel;
 import com.psh.query.model.ProvModel;
 import com.psh.query.model.QueryTaskModel;
 import com.psh.query.model.UserQueryTaskModel;
 
 
-public class GetUserListInfoAction extends PshAction{
+public class AccountSynchronizationAction extends PshAction{
 	
-	public GetUserListInfoAction(){
+	public AccountSynchronizationAction(){
 		
-		super.code = 3017;
-		super.name = "GetUserListInfoAction";
+		super.code = 3022;
+		super.name = "AccountSynchronizationAction";
 		
 	}
 	
@@ -43,30 +40,18 @@ public class GetUserListInfoAction extends PshAction{
 					ErrorCode.ERROR_CODE);
 		}
 		
-	
-		JSONObject payload = new JSONObject();
+		// Start to retrieve required parameters from request
 		
+		
+		JSONObject payload = new JSONObject();
 		AccountModel model = new AccountModel();
 		
-		int status_88 = model.getUserCountActivation(88);
-		int status_89 = model.getUserCountActivation(89);
-		int status_90 = model.getUserCountActivation(90);
-		int status_91 = model.getUserCountActivation(91);
-		int status_old = model.getUserCountActivation(1) + model.getUserCountActivation(3) + model.getUserCountActivation(4) + model.getUserCountActivation(11) + model.getUserCountActivation(33) + model.getUserCountActivation(44); 
-		
-		try {
-			payload.put("88", status_88);
-			payload.put("89", status_89);
-			payload.put("90", status_90);
-			payload.put("91", status_91);
-			payload.put("old", status_old);
-		} catch (JSONException e) {
-			PshLogger.logger.error("JSONException failed.");
-			PshLogger.logger.error(e.getMessage());
+		if(!model.AccountSynchronization()){
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
-					"JSONException error, reason: " + e.getMessage());
+					"error, reason: 同步账号失败");
 		}
+		
 		
 		return generator.toSuccess(parser, payload);
 	}

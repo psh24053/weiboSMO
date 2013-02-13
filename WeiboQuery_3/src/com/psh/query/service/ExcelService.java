@@ -71,7 +71,7 @@ public class ExcelService {
 		
 		List<ExcelBean> list = null;
 		
-		for(int j = 0 ; j <= sheet.getLastRowNum() ; j ++){
+		for(int j = 1 ; j <= sheet.getLastRowNum() ; j ++){
 			if(list == null){
 				list = new ArrayList<ExcelBean>();
 			}

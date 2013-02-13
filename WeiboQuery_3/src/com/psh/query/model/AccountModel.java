@@ -14,7 +14,7 @@ import com.psh.query.bean.AccountBean;
 
 public class AccountModel extends SuperModel {
 
-	public int getAccount(){
+	public int getRegAccount(){
 		
 		Connection conn = SQLConn.getInstance().getConnection();
 		PreparedStatement pstmt = null;
@@ -52,7 +52,7 @@ public class AccountModel extends SuperModel {
 	 * @param status
 	 * @return
 	 */
-	public int getUserCount(int status){
+	public int getUserCountActivation(int status){
 		Connection conn = SQLConn.getInstance().getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -254,6 +254,71 @@ public class AccountModel extends SuperModel {
 	}
 	
 	/**
+	 * 同步账号
+	 * @return
+	 */
+	public boolean AccountSynchronization(){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		int result = -1;
+		
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return false;
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("INSERT INTO wb_account(uid,email,PASSWORD,nickname,domain) SELECT uid,email,PASSWORD,nickname,domain FROM wb_reg_account WHERE wb_reg_account.uid != 0 AND wb_reg_account.STATUS = 11 AND NOT EXISTS(SELECT * FROM wb_account WHERE wb_account.uid = wb_reg_account.uid)");
+			result = pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return result != -1;
+	}
+
+	/**
+	 * 获取数据库中已被分组的用户数量
+	 * 
+	 * @return
+	 */
+	public int getDBGroupUserCount(){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = -1;
+		
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return -1;
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("SELECT COUNT(*) as count FROM wb_account WHERE gid != 'null'");
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()){
+				return rs.getInt("count");
+			}
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return -1;
+	}
+	/**
 	 * 获取数据库中可用的用户数量
 	 * 
 	 * @return
@@ -270,7 +335,7 @@ public class AccountModel extends SuperModel {
 		}
 		
 		try {
-			pstmt = conn.prepareStatement("select count(*) from wb_account where gid is null");
+			pstmt = conn.prepareStatement("select count(*) as count from wb_account where gid is null");
 			rs = pstmt.executeQuery();
 			
 			if(rs.next()){

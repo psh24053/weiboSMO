@@ -57,7 +57,7 @@ weibo.Confirm = function(str, tit, onResult){
 /**
  * 等待窗口组件
  */
-weibo.WaitAlert = function(str, tit){
+weibo.WaitAlert = function(str, tit, id){
 	
 	
 	if(tit == null || tit == undefined){
@@ -72,8 +72,15 @@ weibo.WaitAlert = function(str, tit){
 	var value = ""+date.getFullYear()+(date.getMonth()+1)+date.getDate()+date.getHours()+date.getSeconds()+date.getMinutes()+date.getMilliseconds();
 	
 	this.times = value;
+	var p_this = this;
+	this.dom = $('<div></div>').addClass('waitAlert').data('close',function(){
+		$('.waitAlert').dialog('close');
+		$('.waitAlert').remove();
+	});
 	
-	this.dom = $('<div></div>');
+	if(id != null && id != undefined){
+		this.dom.attr('id',id);
+	}
 	
 	this.show = function(){
 		
