@@ -511,9 +511,9 @@ function onClick_selectGroup_modify(){
 		    	
 	    		var cgroup = $('#t_tabs_1_table .currentGroup');
 	    		
-	    		cgroup.text('当前分组：'+group.text()).attr('gid',group.val());
+	    		cgroup.text('当前分组：'+group.find('option:checked').text()).attr('gid',group.val());
 	    		localStorage.ModifyGroup = 'run';
-	    		localStorage.ModifyGroupName = group.text();
+	    		localStorage.ModifyGroupName = group.find('option:checked').text();
 	    		localStorage.ModifyGroupGid = group.val();
 	    		
 	    		$(this).dialog('close');
