@@ -91,7 +91,7 @@ function initTable(){
    	   	width: $('#tabs_1').width(),
    	 	toolbar: [true,"top"],
    	 	loadComplete: function(){
-   	 		
+   	 		initSendMessage_Toolbar();
    	 	}
 	});
 	
