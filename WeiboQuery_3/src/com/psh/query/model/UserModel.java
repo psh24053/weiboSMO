@@ -1,9 +1,13 @@
 package com.psh.query.model;
 
+import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import com.psh.base.util.PshLogger;
 import com.psh.base.util.SQLConn;
@@ -231,6 +235,90 @@ public class UserModel {
 		}
 		
 		return isSuccess;
+		
+	}
+	
+	//指定条件搜索本地用户结果数量
+	public int getUserLocalQuery(Map<String, Object> conditions){
+		
+		int count = -1;
+		
+		conn = SQLConn.getInstance().getConnection();
+		
+		String sql = "select count(*) from wb_user where ";
+		
+		if(conditions.containsKey("nck")){
+			sql += "nck like '%" + conditions.get("nck").toString() + "%' ";
+		}
+		
+		if(conditions.containsKey("prov")){
+			sql += "and prov='" + conditions.get("prov").toString() + "' ";
+		}
+		
+		if(conditions.containsKey("city")){
+			sql += "and city='" + conditions.get("city").toString() + "' ";
+		}
+		
+		if(conditions.containsKey("sex")){
+			sql += "and sex='" + conditions.get("sex").toString() + "' ";
+		}
+		
+		if(conditions.containsKey("emo")){
+			sql += "and emo like '%" + conditions.get("emo").toString() + "%' ";
+		}
+		
+		//年龄
+		if(conditions.containsKey("date")){
+			
+		}
+		
+		if(conditions.containsKey("blo")){
+			sql += "and blo='" + conditions.get("blo").toString() + "' ";
+		}
+		
+		if(conditions.containsKey("tag")){
+			sql += "and tag like '%" + conditions.get("tag") + "%' ";
+		}
+		
+		//粉丝>=<?大于?
+		if(conditions.containsKey("fans")){
+			sql += "and fans=" + (int)conditions.get("fans") + " ";
+		}
+		
+		//关注>=<?大于?
+		if(conditions.containsKey("fol")){
+			sql += "and fol=" + (int)conditions.get("fol") + " ";
+		}
+		
+		if(conditions.containsKey("info")){
+			sql += "and info like '%" + conditions.get("info").toString() + "%' ";
+		}
+		
+		if(conditions.containsKey("com")){
+			sql += "and com like '%" + conditions.get("com").toString() + "%' ";
+		}
+		
+		if(conditions.containsKey("stu")){
+			sql += "and stu like '%" + conditions.get("stu").toString() + "%' ";
+		}
+		
+		try {
+			ps = conn.prepareStatement(sql);
+			
+			rs = ps.executeQuery();
+			
+			if(rs == null){
+				
+				count = rs.getInt(1);
+				
+			}
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		}
+		
+		return count;
+		
 		
 	}
 	
