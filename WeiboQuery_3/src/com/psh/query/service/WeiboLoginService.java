@@ -649,7 +649,7 @@ public class WeiboLoginService {
 			String htmlStr = script.html();
 			if(htmlStr.contains("pl_profile_photo")){
 				
-				htmlStr = htmlStr.substring(htmlStr.indexOf("(")+1, htmlStr.indexOf(")"));
+				htmlStr = htmlStr.substring(htmlStr.indexOf("(")+1, htmlStr.lastIndexOf(")"));
 				JSONObject htmlJson = null;
 				String src = null;
 				try {
@@ -699,8 +699,8 @@ public class WeiboLoginService {
 		doc = Jsoup.parse(html);
 		
 		account.setNickname(doc.select(".con[node-type=nickname_view]").text());
-		account.setCity(doc.select(".con[node-type=city_view]").text().split("\t")[0]);
-		account.setProv(doc.select(".con[node-type=city_view]").text().split("\t")[1]);
+		account.setProv(doc.select(".con[node-type=city_view]").text().split(" ")[0]);
+		account.setCity(doc.select(".con[node-type=city_view]").text().split(" ")[1]);
 		account.setSex(doc.select(".con[node-type=sex_view]").text());
 		account.setEmotion(doc.select(".con[node-type=love_view]").text().trim());
 		account.setBirthday(doc.select(".con[node-type=birth_view]").text());
@@ -821,8 +821,8 @@ public class WeiboLoginService {
 		account.setUid(1661461070l);
 		WeiboLoginService l = new WeiboLoginService(account);		
 		l.Login();
-		l.readInfo(false);
-		
+		account = l.readInfo(false);
+		System.out.println(account);
 		
 //		getUserInfo(l.httpClient, "http://weibo.com/1661461070/info");
 	}
