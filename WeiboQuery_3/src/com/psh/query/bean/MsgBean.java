@@ -10,6 +10,7 @@ public class MsgBean extends SuperModel {
 	private long uid;
 	private long ouid;
 	private String onck;
+	private String con;
 	
 	public String getMid() {
 		return mid;
@@ -46,6 +47,12 @@ public class MsgBean extends SuperModel {
 	}
 	public void setOnck(String onck) {
 		this.onck = onck;
+	}
+	public String getCon() {
+		return con;
+	}
+	public void setCon(String con) {
+		this.con = con;
 	}
 	
 	

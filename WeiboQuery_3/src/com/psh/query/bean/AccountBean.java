@@ -1,5 +1,7 @@
 package com.psh.query.bean;
 
+import java.util.Map;
+
 import com.psh.query.model.SuperModel;
 
 public class AccountBean extends SuperModel {
@@ -23,6 +25,23 @@ public class AccountBean extends SuperModel {
 	public String company;
 	public String tags;
 	public int gid;
+	public Map<String, String> tagsMap;
+	public Map<String, String> companysMap;
+	
+	
+	
+	public Map<String, String> getTagsMap() {
+		return tagsMap;
+	}
+	public void setTagsMap(Map<String, String> tagsMap) {
+		this.tagsMap = tagsMap;
+	}
+	public Map<String, String> getCompanysMap() {
+		return companysMap;
+	}
+	public void setCompanysMap(Map<String, String> companysMap) {
+		this.companysMap = companysMap;
+	}
 	public long getUid() {
 		return uid;
 	}
