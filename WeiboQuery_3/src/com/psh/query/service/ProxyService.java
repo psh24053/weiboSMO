@@ -66,6 +66,75 @@ public class ProxyService {
 	
 	private List<ProxyBean> timeOutData = new ArrayList<ProxyBean>();
 	
+	
+	public static String[] hosts = null;
+	
+	public void loadProxyR(){
+		if(hosts == null){
+			String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN,US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
+			hosts = html.split("\n");
+			System.out.println("Yun Proxy Count -> "+hosts.length);
+			if(hosts.length == 1){
+				System.out.println(html);
+			}
+		}
+	}
+	
+	public ProxyBean getProxyR(){
+		if(hosts == null){
+			String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN,US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
+			hosts = html.split("\n");
+			System.out.println("Yun Proxy Count -> "+hosts.length);
+		}
+		int r = (int) (Math.random()* hosts.length);
+		System.out.println("r -> "+r);
+		String host = hosts[r];
+		final String ip = host.split(":")[0];
+		final int port = Integer.parseInt(host.split(":")[1]);
+		ProxyBean item = new ProxyBean();
+		item.setIp(ip);
+		item.setPort(port);
+		long time = System.currentTimeMillis() - ProxyDelay;
+		item.setChecktime(time);
+		if(validationProxy(ip, port)){
+			return item;
+		}else{
+			return getProxyR();
+		}
+	}
+	
+	public void loadProxyRandom(){
+		if(hosts == null){
+			String html = HtmlTools.getHtmlByBr("http://cn.yunproxy.com/apilist/uid/910/api_format/1/country/CN,US,CA,MX,CR,PA,CU,JM,HT,PR,GB,FR,DE,RU,FI,SE,NO,IS,DK,EE,LT,UA,CZ,SK,AT,CH,IE,NL,BE,RO,BG,GR,SI,HR,IT,ES,PT,PL,JP,KR,KP,IN,TR,IL,MN,AF,KH,ID,LA,MM,MY,PH,SG,TH,VN,SY,MV,PK,IR,KZ,UZ,BH,KW,QA,SA,AE,IQ,AU,NZ,BR,AR,CL,UY,PY,CO,VE,EC,PE,ZA,CG,LR,CM,SO,EG,LY,MA,ET,DZ/");
+			hosts = html.split("\n");
+		}
+		
+		ProxyData.clear();
+		
+		
+		for(int i = 0 ; i < hosts.length ; i ++){
+			String host = hosts[i];
+			final String ip = host.split(":")[0];
+			final int port = Integer.parseInt(host.split(":")[1]);
+			final int index = i;
+			ProxyBean item = new ProxyBean();
+			item.setIp(ip);
+			item.setPort(port);
+			long time = System.currentTimeMillis() - ProxyDelay + index;
+			item.setChecktime(time);
+			if(validationProxy(ip, port)){
+				System.out.println("add Proxy "+ip +" , "+port);
+				ProxyData.put(time, item);
+			}
+			
+		}
+		
+		
+		blockData.clear();
+		timeOutData.clear();
+		
+	}
+	
 	public void loadProxyDataStatic(int count){
 		
 		
@@ -956,15 +1025,7 @@ public class ProxyService {
 		httpClient.getParams().setParameter(CoreProtocolPNames.HTTP_ELEMENT_CHARSET,"UTF-8"); 
 		List<BasicHeader> headerList = new ArrayList<BasicHeader>(); 
 		headerList.add(new BasicHeader("Accept", "*/*")); 
-		headerList.add(new BasicHeader("Accept-Charset", "GBK,utf-8;q=0.7,*;q=0.3"));
-		headerList.add(new BasicHeader("Accept-Language", "zh-CN,zh;q=0.8"));
-		headerList.add(new BasicHeader("Cache-Control", "no-cache")); 
 		headerList.add(new BasicHeader("Connection", "keep-alive"));
-		headerList.add(new BasicHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8"));
-		headerList.add(new BasicHeader("X-Requested-With", "XMLHttpRequest"));
-		headerList.add(new BasicHeader("Host", "www.weibo.com"));
-		headerList.add(new BasicHeader("Origin", "http://www.weibo.com"));
-		headerList.add(new BasicHeader("Referer", "http://www.weibo.com/signup/mobile.php"));
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(3000)); 
 		httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT,  new Integer(3000) ); 
@@ -975,7 +1036,7 @@ public class ProxyService {
 		httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(ip, port));
         
         // 请求注册界面，获取表单必须参数
-        HttpPost httpPost = new HttpPost("http://www.weibo.com/signup/mobile.php");
+        HttpPost httpPost = new HttpPost("http://www.weibo.com");
 		HttpResponse httpResponse = null;
 		try {
 			httpResponse = httpClient.execute(httpPost);
@@ -1005,7 +1066,7 @@ public class ProxyService {
 //		Log.log.debug("getHtml "+html);
 		
 		// 如果html为null，或者html的长度小于8000，则代表获取html失败
-		if(html == null || html.length() < 8000){
+		if(html == null || html.length() < 1500){
 			PshLogger.logger.error("html get error!");
 			return false;
 		}

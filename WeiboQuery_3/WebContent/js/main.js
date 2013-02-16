@@ -428,13 +428,19 @@ function onClick_loadAccount_modify(){
 		if(data.res){
 			var list = data.pld.list;
 			localStorage['GroupAccount_'+localStorage.ModifyGroupGid] = JSON.stringify(list);
-			
-			for(var i = 0 ; i < list.length ; i ++){
+			var i = 0;
+			$('#tabs_1_table').jqGrid('clearGridData');
+			var int = setInterval(function(){
 				var item = list[i];
 				$('#tabs_1_table').jqGrid('addRowData', i, item);
-				
-			}
-			wait.close();
+				if(i == list.length - 1){
+					clearInterval(int);
+					wait.close();
+				}else{
+					i ++;
+				}
+			}, 1);
+			
 			
 		}
 		
@@ -442,6 +448,7 @@ function onClick_loadAccount_modify(){
 	});
 	
 }
+
 /**
  * 选择分组的事件
  */

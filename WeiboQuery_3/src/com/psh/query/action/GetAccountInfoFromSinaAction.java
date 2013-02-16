@@ -23,6 +23,7 @@ import com.psh.query.model.QueryTaskModel;
 import com.psh.query.model.TextModel;
 import com.psh.query.model.UserQueryTaskModel;
 import com.psh.query.service.InfoService;
+import com.psh.query.service.ProxyService;
 import com.psh.query.service.WeiboLoginService;
 
 
@@ -69,13 +70,13 @@ public class GetAccountInfoFromSinaAction extends PshAction{
 					ErrorCode.ERROR_CODE, 
 					"error, reason: 读取资料失败,uid不存在");
 		}
-		
+//		ProxyService proxyService = new ProxyService();
 		
 		WeiboLoginService weiboLogin = new WeiboLoginService(account);
 		
 		if(weiboLogin.Login()){
 			account = weiboLogin.readInfo(true);
-			
+			System.out.println(account);
 			if(account != null){
 				try {
 					payload.put("nck", account.getNickname());
@@ -87,7 +88,7 @@ public class GetAccountInfoFromSinaAction extends PshAction{
 					payload.put("tags", account.getTags());
 				} catch (JSONException e) {
 					PshLogger.logger.error("JSONException failed.");
-					PshLogger.logger.error(e.getMessage());
+					PshLogger.logger.error(e.getMessage(),e);
 					return generator.toError(parser, 
 							ErrorCode.ERROR_CODE, 
 							"JSONException error, reason: " + e.getMessage());

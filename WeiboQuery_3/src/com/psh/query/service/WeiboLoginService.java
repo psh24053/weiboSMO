@@ -32,6 +32,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
@@ -42,6 +43,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.message.BasicHeader;
@@ -60,6 +62,7 @@ import com.psh.base.util.PshConfigManager;
 import com.psh.base.util.PshLogger;
 import com.psh.query.bean.AccountBean;
 import com.psh.query.bean.MsgBean;
+import com.psh.query.bean.ProxyBean;
 import com.psh.query.model.AccountModel;
 import com.psh.query.util.HtmlTools;
 
@@ -70,6 +73,7 @@ public class WeiboLoginService {
 	private CookieStore cookieStore;
 	public static Map<String, File> fileCache = new HashMap<String, File>();
 	public static final File cookieDir = new File("e:\\cookiedirs");
+	private ProxyBean proxy;
 	/**
 	 * PreLogin.php实体类
 	 * @author Administrator
@@ -80,6 +84,10 @@ public class WeiboLoginService {
 		public String rsakv;
 		public long servertime;
 		public String pubkey;
+		public int retcode;
+		public String pcid;
+		public int showpin;
+		public int execitme;
 		
 	}
 	
@@ -89,6 +97,14 @@ public class WeiboLoginService {
 		if(!cookieDir.exists()){
 			cookieDir.mkdir();
 		}
+		
+	}
+	public WeiboLoginService(AccountBean account, ProxyBean proxy){
+		this.account = account;
+		if(!cookieDir.exists()){
+			cookieDir.mkdir();
+		}
+		this.proxy = proxy;
 		
 	}
 	/**
@@ -208,7 +224,6 @@ public class WeiboLoginService {
 			PshLogger.logger.error("[RunPreLogin] httpResponse is null");
 			return null;
 		}
-		
 		String html = HtmlTools.getHtmlByBr(httpResponse);
 		
 		html = html.substring(html.indexOf("(")+1, html.lastIndexOf(")"));
@@ -219,6 +234,10 @@ public class WeiboLoginService {
 			prelogin.pubkey = json.getString("pubkey");
 			prelogin.rsakv = json.getString("rsakv");
 			prelogin.servertime = json.getLong("servertime");
+			prelogin.execitme = json.getInt("exectime");
+			prelogin.pcid = json.getString("pcid");
+			prelogin.retcode = json.getInt("retcode");
+			prelogin.showpin = json.getInt("showpin");
 			
 		} catch (JSONException e) {
 			PshLogger.logger.error(e.getMessage(),e);
@@ -271,6 +290,7 @@ public class WeiboLoginService {
 	 */
 	public boolean Login(){
 		
+		System.out.println(account);
 		PoolingClientConnectionManager connectionManager = new PoolingClientConnectionManager();
 		connectionManager.setMaxTotal(2000);
 		connectionManager.setDefaultMaxPerRoute(1000);
@@ -291,6 +311,10 @@ public class WeiboLoginService {
 		httpClient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, headerList);
 		httpClient.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS, false);
 		
+		if(proxy != null){
+			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
+		}
+		
 		// 判断cookiestore是否存在，如果存在则取出
 		if(hasCookieStore(account.getEmail())){
 			try {
@@ -306,16 +330,12 @@ public class WeiboLoginService {
 			return true;
 		}
 		
-		
-		
 		cookieStore = httpClient.getCookieStore();
-		
-		
 		
 		
 		// 开始登录逻辑
 		HttpResponse httpResponse = null;
-		
+		// 首先访问weibo.com 获取必要cookie
 		HttpGet httpGet = new HttpGet("http://weibo.com/");
 		try {
 			httpResponse = httpClient.execute(httpGet);
@@ -328,41 +348,52 @@ public class WeiboLoginService {
 		}
 		
 		// 获取prelogin实体类
+		// 访问prelogin，获取账号验证码状态和pubkey
 		PreLoginInfo prelogin = RunPreLogin(httpClient, account.getEmail());
 		
+		String pin = null;
 		
-		String pwdString = prelogin.servertime + "\t" + prelogin.nonce + "\n" + account.getPassword();
+		// 如果showpin 为1则代表需要输入验证码
+		if(prelogin.showpin == 1){
+			
+			PinCode pincode = new PinCode("");
+			pin = pincode.getCode(httpClient, prelogin.pcid, "http://login.sina.com.cn/cgi/pin.php?s=0&p="+prelogin.pcid);
+			// 获取验证码
+		}
+		
+		System.out.println("proLogin complete!");
 		
 		// 使用Rsa2算法计算sp
+		String pwdString = prelogin.servertime + "\t" + prelogin.nonce + "\n" + account.getPassword();
 		String sp = null;
 		try {
 			sp = rsaCrypt(prelogin.pubkey, "10001", pwdString);
 		} catch (InvalidKeyException e) {
-			PshLogger.logger.error("Rsa Crypt Error " + e.getMessage());
+			PshLogger.logger.error(e.getMessage(),e);
 			return false;
 		} catch (IllegalBlockSizeException e) {
-			PshLogger.logger.error("Rsa Crypt Error " + e.getMessage());
+			PshLogger.logger.error(e.getMessage(),e);
 			return false;
 		} catch (BadPaddingException e) {
-			PshLogger.logger.error("Rsa Crypt Error " + e.getMessage());
+			PshLogger.logger.error(e.getMessage(),e);
 			return false;
 		} catch (NoSuchAlgorithmException e) {
-			PshLogger.logger.error("Rsa Crypt Error " + e.getMessage());
+			PshLogger.logger.error(e.getMessage(),e);
 			return false;
 		} catch (InvalidKeySpecException e) {
-			PshLogger.logger.error("Rsa Crypt Error " + e.getMessage());
+			PshLogger.logger.error(e.getMessage(),e);
 			return false;
 		} catch (NoSuchPaddingException e) {
-			PshLogger.logger.error("Rsa Crypt Error " + e.getMessage());
+			PshLogger.logger.error(e.getMessage(),e);
 			return false;
 		} catch (UnsupportedEncodingException e) {
-			PshLogger.logger.error("Rsa Crypt Error " + e.getMessage());
+			PshLogger.logger.error(e.getMessage(),e);
 			return false;
 		}
 		
 		// 获取某些cookie
 		executeCookie(httpClient, "http://beacon.sina.com.cn/a.gif?V%3d2.2.1%26CI%3dsz%3a1366x768%7cdp%3a24%7cac%3aMozilla%7can%3aNetscape%7ccpu%3aWindows%2520NT%25206.2%3b%2520WOW64%7cpf%3aWin32%7cjv%3a1.3%7cct%3aunkown%7clg%3azh-CN%7ctz%3a-8%7cfv%3a11%7cja%3a1%26PI%3dpid%3a0-9999-0-0-1%7cst%3a0%7cet%3a2%7cref%3a%7chp%3aunkown%7cPGLS%3a%7cZT%3a%7cMT%3a%7ckeys%3a%7cdom%3a121%7cifr%3a0%7cnld%3a%7cdrd%3a%7cbp%3a0%7curl%3a%26UI%3dvid%3a1073891338073.4949.1360844317333%7csid%3a1073891338073.4949.1360844317333%7clv%3a%3a1%3a1%3a1%7cun%3a%7cuo%3a%7cae%3a%26EX%3dex1%3aWEIBO-V5%7cex2%3a%26gUid_"+System.currentTimeMillis(), "get");
-		
+		System.out.println("executeCookie complete!");
 		
 		// 发起登录请求
 		System.out.println("http://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.5)");
@@ -388,10 +419,15 @@ public class WeiboLoginService {
 		formlist.add(new BasicNameValuePair("useticket", "1"));
 		formlist.add(new BasicNameValuePair("vsnf", "1"));
 		
+		if(pin != null){
+			formlist.add(new BasicNameValuePair("pcid", prelogin.pcid));
+			formlist.add(new BasicNameValuePair("door", pin));
+		}
+		
 		try {
 			httpPost.setEntity(new UrlEncodedFormEntity(formlist,"utf-8"));
 		} catch (UnsupportedEncodingException e) {
-			PshLogger.logger.error("setEntity " + e.getMessage());
+			PshLogger.logger.error(e.getMessage(),e);
 			return false;
 		}
 
@@ -406,17 +442,46 @@ public class WeiboLoginService {
 		}
 		
 		if(httpResponse == null){
-			PshLogger.logger.error("[277] httpResponse is null");
+			System.out.println("[277] httpResponse is null");
 			return false;
 		}
+		System.out.println("ssologin complete");
 		
 		// 获取location
 		String location = getHeaderLocation(httpResponse);
 		if(location != null){
 			System.out.println("[284] "+location);
 		}
+		
+		System.out.println("[450]");
+		
+		// 获取第一次ssologin的结果，判断是哪一种走向
+		String htmlAjaxLogin = HtmlTools.getHtmlByBr(httpResponse);
+		Document doc = Jsoup.parse(htmlAjaxLogin);
+		Elements scripts = doc.select("select");
+		int scriptSize = scripts.size();
+		
+		if(scriptSize == 0){
+			System.out.println("script size = 0");
+			return false;
+		}else if(scriptSize == 1){
+			// 这代表未知状态
+			System.err.println(htmlAjaxLogin);
+			return false;
+		}else if(scriptSize == 2){
+			// 拥有两个script标签，代表可以跳转
+			String SSOLocationReplace = scripts.get(1).html();
+			
+		}
+		
+		
+		
+		
+		System.out.println(htmlAjaxLogin);
+		
 		// 得到location准备跳转
-		String url = getScriptLocationReplace(HtmlTools.getHtmlByBr(httpResponse));
+		String url = getScriptLocationReplace(htmlAjaxLogin);
+		System.out.println("[458]");
 		System.out.println(url);
 		httpGet = new HttpGet(url);
 		try {
@@ -429,9 +494,11 @@ public class WeiboLoginService {
 			return false;
 		}
 		if(httpResponse == null){
-			PshLogger.logger.error("[300] httpResponse is null");
+//			PshLogger.logger.error("[300] httpResponse is null");
+			System.out.println("[300] httpResponse is null");
 			return false;
 		}
+		System.out.println(HtmlTools.getHtmlByBr(httpResponse));
 		
 		// 准备跳转
 		url = getHeaderLocation(httpResponse);
@@ -449,6 +516,7 @@ public class WeiboLoginService {
 		
 		if(httpResponse == null){
 			PshLogger.logger.error("[319] httpResponse is null");
+			System.out.println("[319] httpResponse is null");
 			return false;
 		}
 		
@@ -459,8 +527,9 @@ public class WeiboLoginService {
 			Successjson = new JSONObject(content.substring(content.indexOf("(")+1, content.indexOf(")")));
 			userdomain = Successjson.getJSONObject("userinfo").getString("userdomain");
 		} catch (JSONException e) {
-			PshLogger.logger.error(e.getMessage(),e);
-			return false;
+//			PshLogger.logger.error(e.getMessage(),e);
+//			return false;
+			e.printStackTrace();
 		} 
 		
 		// 判断Url是否包含http
@@ -472,17 +541,28 @@ public class WeiboLoginService {
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
-			PshLogger.logger.error(e.getMessage(),e);
-			return false;
+//			PshLogger.logger.error(e.getMessage(),e);
+//			return false;
+			e.printStackTrace();
 		} catch (IOException e) {
-			PshLogger.logger.error(e.getMessage(),e);
-			return false;
+//			PshLogger.logger.error(e.getMessage(),e);
+//			return false;
+			e.printStackTrace();
 		}
 		if(httpResponse == null){
 			PshLogger.logger.error("[350] httpResponse is null");
+			System.out.println("[350] httpResponse is null");
 			return false;
 		}
 		userdomain = getHeaderLocation(httpResponse);
+		
+		// 代表该账号已经被表示为不正常，需要手机验证
+		if(userdomain.contains("unfreeze")){
+			PshLogger.logger.error("[489] account is unfreeze");
+			System.out.println("[489] account is unfreeze");
+			return false;
+		}
+		
 		
 		// 判断Url是否包含http
 		if(!(userdomain.charAt(0) == 'h' || userdomain.charAt(0) == 'H')){
@@ -493,14 +573,17 @@ public class WeiboLoginService {
 		try {
 			httpResponse = httpClient.execute(httpGet);
 		} catch (ClientProtocolException e) {
-			PshLogger.logger.error(e.getMessage(),e);
-			return false;
+//			PshLogger.logger.error(e.getMessage(),e);
+//			return false;
+			e.printStackTrace();
 		} catch (IOException e) {
-			PshLogger.logger.error(e.getMessage(),e);
-			return false;
+//			PshLogger.logger.error(e.getMessage(),e);
+//			return false;
+			e.printStackTrace();
 		}
 		if(httpResponse == null){
 			PshLogger.logger.error("[371] httpResponse is null");
+			System.out.println("[371] httpResponse is null");
 			return false;
 		}
 		
@@ -510,10 +593,10 @@ public class WeiboLoginService {
 		try {
 			SaveCookieStore(account.getEmail(), (Serializable) cookieStore);
 		} catch (IOException e) {
-			PshLogger.logger.error(e.getMessage(),e);
-			return false;
+//			PshLogger.logger.error(e.getMessage(),e);
+//			return false;
+			e.printStackTrace();
 		}
-		
 		
 		
 		return true;
@@ -816,15 +899,19 @@ public class WeiboLoginService {
 //		http://account.weibo.com/set/iframe?skin=skin000	
 //		http://weibo.com/1661461070/info
 		
-		AccountBean account = new AccountBean();
-		account.setEmail("psh24053@yahoo.cn");
-		account.setPassword("caicai520");
-		account.setUid(1661461070l);
-		WeiboLoginService l = new WeiboLoginService(account);		
-		l.Login();
+		AccountModel model = new AccountModel();
+		List<AccountBean> data = model.getRegAccountAll();
 		
-		account = l.readInfo(false);
-		System.out.println(account);
+		for(int i = 0 ; i < data.size() ; i ++){
+			AccountBean bean = data.get(i);
+			WeiboLoginService l = new WeiboLoginService(bean);		
+			if(l.Login()){
+				model.updateRegAccountStatus((int)bean.getValue("aid"), 66);
+			}
+			
+		}
+		
+		
 		
 //		getUserInfo(l.httpClient, "http://weibo.com/1661461070/info");
 	}
@@ -867,10 +954,9 @@ public class WeiboLoginService {
 	 	Document doc = Jsoup.parse(html);
 	 	Elements scripts = doc.select("script");
 	 	
-	 	String script = scripts.get(1).html();
-	 	
-	 	
-		return script.substring(script.indexOf("replace")+9, script.lastIndexOf("'"));
+	 	String script = scripts.get(0).html();
+	 	System.out.println(script);
+		return script.substring(script.indexOf("\"")+1, script.lastIndexOf("\""));
 	}
 	
 	public static String getHeaderLocation(HttpResponse httpResponse){

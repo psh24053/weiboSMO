@@ -27,6 +27,7 @@ import com.psh.base.util.PshLogger;
 import com.psh.base.util.PshConfigManager;
 import com.psh.base.util.SQLConn;
 import com.psh.query.service.ExcelService;
+import com.psh.query.service.ProxyService;
 import com.psh.query.util.ProxyManager;
 
 /**
@@ -45,7 +46,8 @@ public class Main extends HttpServlet {
 		PshActionHandler.getInstance();
 		PshLogger.logger.debug("Leave Main servlet initialization process ...");
 		
-		
+//		ProxyService proxyService = new ProxyService();
+//		proxyService.loadProxyR();
 		
 	}
 	

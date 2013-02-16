@@ -18,6 +18,81 @@ import com.psh.query.bean.AccountBean;
 
 public class AccountModel extends SuperModel {
 
+	public boolean updateRegAccountStatus(int aid, int status){
+		
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = -1;
+		
+		
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return false;
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("update wb_reg_account set status = ? where aid = ?");
+			pstmt.setInt(1, status);
+			pstmt.setInt(2, aid);
+			result = pstmt.executeUpdate();
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return result != -1;
+	}
+	
+	/**
+	 * 获取所有reg_account
+	 * @return
+	 */
+	public List<AccountBean> getRegAccountAll(){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		List<AccountBean> data = new ArrayList<AccountBean>();
+		int result = -1;
+		
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return null;
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("select * from wb_reg_account");
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()){
+				AccountBean bean = new AccountBean();
+				bean.putValue("aid", rs.getInt("aid"));
+				bean.setEmail(rs.getString("email"));
+				bean.setPassword(rs.getString("password"));
+				data.add(bean);
+			
+			}
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return data;
+	}
+	
+	
 	public int getRegAccount(){
 		
 		Connection conn = SQLConn.getInstance().getConnection();
@@ -109,7 +184,6 @@ public class AccountModel extends SuperModel {
 			return false;
 		}
 		
-		
 		try {
 			pstmt = conn.prepareStatement("update wb_account set nickname = ? , prov = ? , city = ? , sex = ? , emotion = ? , birthday = ? , blood = ? , info = ? , fans = ? , weibo = ? , att = ? , school = ? , company = ? , tags = ? , tags_map = ? where uid = ?");
 			pstmt.setString(1, bean.getNickname());
@@ -118,7 +192,11 @@ public class AccountModel extends SuperModel {
 			pstmt.setString(4, bean.getSex());
 			pstmt.setString(5, bean.getEmotion());
 			pstmt.setString(6, bean.getBirthday());
-			pstmt.setString(7, bean.getBlood());
+			if(bean.getBlood() != null && bean.getBlood().length() > 3){
+				pstmt.setString(7, "");
+			}else{
+				pstmt.setString(7, bean.getBlood());
+			}
 			pstmt.setString(8, bean.getInfo());
 			pstmt.setInt(9, bean.getFans());
 			pstmt.setInt(10, bean.getWeibo());
