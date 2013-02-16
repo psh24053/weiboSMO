@@ -147,6 +147,78 @@ public class UserModel {
 		
 	}
 	
+	//查找指定地区的用户数量
+	public int getUserCountByProv(String provName){
+			
+		int count = -1;
+		
+			conn = SQLConn.getInstance().getConnection();
+			
+			try {
+				ps = conn.prepareStatement("select count(*) from wb_user where prov='" + provName + "'");
+				
+				rs = ps.executeQuery();
+				if(rs == null){
+					
+					return -1;
+					
+				}
+				if(rs.next()){
+					
+					count = rs.getInt(1);
+					
+				}else{
+					return -1;
+				}
+				
+			} catch (SQLException e) {
+				PshLogger.logger.error(e.getMessage());
+			}finally{
+				
+				this.closeConnection();
+			}
+			
+			return count;
+			
+			
+		}
+	
+	//获取总数
+	public int getAllCount(){
+		
+		int count = -1;
+		
+			conn = SQLConn.getInstance().getConnection();
+			
+			try {
+				ps = conn.prepareStatement("select count(*) from wb_user");
+				
+				rs = ps.executeQuery();
+				if(rs == null){
+					
+					return -1;
+					
+				}
+				if(rs.next()){
+					
+					count = rs.getInt(1);
+					
+				}else{
+					return -1;
+				}
+				
+			} catch (SQLException e) {
+				PshLogger.logger.error(e.getMessage());
+			}finally{
+				
+				this.closeConnection();
+			}
+			
+			return count;
+			
+			
+		}
+	
 	//修改用户
 	public synchronized boolean updateUser(UserBean user){
 		

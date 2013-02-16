@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.psh.base.util.PshLogger;
 import com.psh.base.util.SQLConn;
@@ -46,6 +48,46 @@ public class ProvModel {
 		}
 		
 		return provName;
+		
+		
+	}
+	
+	//获得所有省
+	public List<String> getAllProv(){
+		
+		List<String> provNameList = new ArrayList<String>();
+		
+		conn = SQLConn.getInstance().getConnection();
+		
+		try {
+			ps  = conn.prepareStatement("select * from wb_prov");
+			
+			rs = ps.executeQuery();
+			
+			if(rs == null){
+				
+				PshLogger.logger.error("database error");
+				return null;
+				
+			}
+			
+			while(rs.next()){
+				
+				if(rs.getInt("pid") != 0){
+					
+					provNameList.add(rs.getString("prov"));
+					
+				}
+				
+			}
+		
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		}finally{
+			this.closeConnection();
+		}
+		
+		return provNameList;
 		
 		
 	}
