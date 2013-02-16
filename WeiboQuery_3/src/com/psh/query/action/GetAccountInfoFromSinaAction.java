@@ -10,6 +10,7 @@ import com.psh.base.json.JSONArray;
 import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
 import com.psh.base.util.PshLogger;
+import com.psh.query.bean.AccountBean;
 import com.psh.query.bean.QueryTaskBean;
 import com.psh.query.bean.TextBean;
 import com.psh.query.model.AccountModel;
@@ -22,6 +23,7 @@ import com.psh.query.model.QueryTaskModel;
 import com.psh.query.model.TextModel;
 import com.psh.query.model.UserQueryTaskModel;
 import com.psh.query.service.InfoService;
+import com.psh.query.service.WeiboLoginService;
 
 
 public class GetAccountInfoFromSinaAction extends PshAction{
@@ -59,31 +61,50 @@ public class GetAccountInfoFromSinaAction extends PshAction{
 		
 	
 		JSONObject payload = new JSONObject();
+		AccountModel model = new AccountModel();
+		AccountBean account = model.getAccount(uid);
 		
-		InfoService info = new InfoService();
+		if(account == null){
+			return generator.toError(parser, 
+					ErrorCode.ERROR_CODE, 
+					"error, reason: 读取资料失败,uid不存在");
+		}
 		
-		if(info.synchronizeInfoFromSina(uid)){
+		
+		WeiboLoginService weiboLogin = new WeiboLoginService(account);
+		
+		if(weiboLogin.Login()){
+			account = weiboLogin.readInfo(true);
 			
-			try {
-				payload.put("nck", info.getAccount().getNickname());
-				payload.put("prov", info.getAccount().getProv());
-				payload.put("city", info.getAccount().getCity());
-				payload.put("gender", info.getAccount().getSex());
-				payload.put("birthday", info.getAccount().getBirthday());
-				payload.put("info", info.getAccount().getInfo());
-				payload.put("tags", info.getAccount().getTags());
-			} catch (JSONException e) {
-				PshLogger.logger.error("JSONException failed.");
-				PshLogger.logger.error(e.getMessage());
+			if(account != null){
+				try {
+					payload.put("nck", account.getNickname());
+					payload.put("prov", account.getProv());
+					payload.put("city", account.getCity());
+					payload.put("gender", account.getSex());
+					payload.put("birthday", account.getBirthday());
+					payload.put("info", account.getInfo());
+					payload.put("tags", account.getTags());
+				} catch (JSONException e) {
+					PshLogger.logger.error("JSONException failed.");
+					PshLogger.logger.error(e.getMessage());
+					return generator.toError(parser, 
+							ErrorCode.ERROR_CODE, 
+							"JSONException error, reason: " + e.getMessage());
+				}
+			}else{
 				return generator.toError(parser, 
 						ErrorCode.ERROR_CODE, 
-						"JSONException error, reason: " + e.getMessage());
+						"error, reason: 读取资料失败");
 			}
+			
 		}else{
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
-					"error, reason: 读取资料失败");
+					"error, reason: 读取资料失败,登录失败");
 		}
+		
+		
 		
 		
 		return generator.toSuccess(parser, payload);

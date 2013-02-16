@@ -98,7 +98,7 @@ public class WeiboLoginService {
 	 */
 	public boolean hasCookieStore(String key){
 
-//		PshLogger.logger.debug("hasObjectCache -> " +key);
+		PshLogger.logger.debug("hasObjectCache -> " +key);
 		
 		//得到文件数组
 		File[] files = cookieDir.listFiles();
@@ -109,13 +109,13 @@ public class WeiboLoginService {
 			//则代表对象缓存中存在这个key
 			if(itemFile.exists() && itemFile.isFile() && itemFile.canRead() && itemFile.canWrite() && itemFile.getName().equals(key)){
 				//将这个itemFile加入到内存中，为近期使用做准备
-//				PshLogger.logger.debug("hasCookieStore -> " +key + " -> true");
+				PshLogger.logger.debug("hasCookieStore -> " +key + " -> true");
 				fileCache.put(key, itemFile);
 				return true;
 			}
 		}
 		
-//		PshLogger.logger.debug("hasCookieStore -> " +key + " -> false");
+		PshLogger.logger.debug("hasCookieStore -> " +key + " -> false");
 		return false;
 	}
 	/**
@@ -131,7 +131,7 @@ public class WeiboLoginService {
 		//创建输出文件对象
 		File outFile = new File(cookieDir, key);
 
-//		PshLogger.logger.debug("SaveCookieStore -> " +key+" -> "+object.toString());
+		PshLogger.logger.debug("SaveCookieStore -> " +key+" -> "+object.toString());
 		// 创建文件输出流
 		FileOutputStream fos = new FileOutputStream(outFile);
 		// 创建对象输出流，传入文件输出流
@@ -157,14 +157,14 @@ public class WeiboLoginService {
 		File readFile = null;
 		//如果fileCache中存在这个key，则使用这个file
 		//否则将从cacheDir中遍历读取
-//		PshLogger.logger.debug("readCookieStore -> " +key);
+		PshLogger.logger.debug("readCookieStore -> " +key);
 		
 		if(fileCache.containsKey(key)){
 			readFile = fileCache.get(key);
 		}else{
 			//直接调用hasFilesCache方法来判断文件是否存在，如果不存在则返回false
 			if(!hasCookieStore(key)){
-//				PshLogger.logger.debug("readCookieStore -> " +key+" -> null");
+				PshLogger.logger.debug("readCookieStore -> " +key+" -> null");
 				return null;
 			}else{
 				readFile = fileCache.get(key);
@@ -181,7 +181,7 @@ public class WeiboLoginService {
 		fis.close();
 		
 		
-//		PshLogger.logger.debug("readCookieStore -> " +key+" -> "+o.toString());
+		PshLogger.logger.debug("readCookieStore -> " +key+" -> "+o.toString());
 		return (CookieStore) o;
 	}
 	/**
@@ -683,7 +683,6 @@ public class WeiboLoginService {
 		}
 		
 		if(httpResponse == null){
-			System.out.println("[readInfo] httpResponse is null");
 			PshLogger.logger.error("[readInfo] httpResponse is null");
 			return null;
 		}
@@ -691,7 +690,6 @@ public class WeiboLoginService {
 		html = HtmlTools.getHtmlByBr(httpResponse);
 	
 		if(html == null){
-			System.out.println("[readInfo] html is null");
 			PshLogger.logger.error("[readInfo] html is null");
 			return null;
 		}
@@ -716,10 +714,13 @@ public class WeiboLoginService {
 		for(int i = 0 ; i < tags.size() ; i ++){
 			Element tag = tags.get(i);
 			String data = tag.attr("data");
-			String key = data.split("&")[0];
-			String value = data.split("&")[1];
-			account.getTagsMap().put(key, value);
-			tagStr += key;
+			String value = data.split("&")[0];
+			String tagid = data.split("&")[1];
+			value = value.substring(value.indexOf("=")+1);
+			tagid = tagid.substring(tagid.indexOf("=")+1);
+			
+			account.getTagsMap().put(tagid, value);
+			tagStr += value;
 			if(i != tags.size() - 1){
 				tagStr += ",";
 			}
@@ -821,6 +822,7 @@ public class WeiboLoginService {
 		account.setUid(1661461070l);
 		WeiboLoginService l = new WeiboLoginService(account);		
 		l.Login();
+		
 		account = l.readInfo(false);
 		System.out.println(account);
 		

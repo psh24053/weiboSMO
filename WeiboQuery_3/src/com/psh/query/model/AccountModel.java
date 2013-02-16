@@ -5,8 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import com.psh.base.json.JSONException;
+import com.psh.base.json.JSONObject;
 import com.psh.base.util.PshLogger;
 import com.psh.base.util.SQLConn;
 import com.psh.query.bean.AccountBean;
@@ -107,7 +111,7 @@ public class AccountModel extends SuperModel {
 		
 		
 		try {
-			pstmt = conn.prepareStatement("update wb_account set nickname = ? , prov = ? , city = ? , sex = ? , emotion = ? , birthday = ? , blood = ? , info = ? , fans = ? , weibo = ? , att = ? , school = ? , company = ? , tags = ?  where uid = ?");
+			pstmt = conn.prepareStatement("update wb_account set nickname = ? , prov = ? , city = ? , sex = ? , emotion = ? , birthday = ? , blood = ? , info = ? , fans = ? , weibo = ? , att = ? , school = ? , company = ? , tags = ? , tags_map = ? where uid = ?");
 			pstmt.setString(1, bean.getNickname());
 			pstmt.setString(2, bean.getProv());
 			pstmt.setString(3, bean.getCity());
@@ -122,7 +126,8 @@ public class AccountModel extends SuperModel {
 			pstmt.setString(12, bean.getSchool());
 			pstmt.setString(13, bean.getCompany());
 			pstmt.setString(14, bean.getTags());
-			pstmt.setLong(15, bean.getUid());
+			pstmt.setString(15, bean.getTagsMap().toString());
+			pstmt.setLong(16, bean.getUid());
 			result = pstmt.executeUpdate();
 			
 			
@@ -179,6 +184,24 @@ public class AccountModel extends SuperModel {
 				bean.setTags(rs.getString("tags"));
 				bean.setUid(rs.getLong("uid"));
 				bean.setWeibo(rs.getInt("weibo"));
+				
+				String tags_map = rs.getString("tags_map");
+				if(tags_map != null){
+					try {
+						JSONObject json = new JSONObject(tags_map);
+						Iterator<String> i = json.keys();
+						
+						while(i.hasNext()){
+							String key = i.next();
+							bean.getTagsMap().put(key, json.getString(key));
+						}
+						
+						
+					} catch (JSONException e) {
+					}
+					
+				}
+				
 				return bean;
 			}
 			
@@ -237,6 +260,22 @@ public class AccountModel extends SuperModel {
 				bean.setTags(rs.getString("tags"));
 				bean.setUid(rs.getLong("uid"));
 				bean.setWeibo(rs.getInt("weibo"));
+				String tags_map = rs.getString("tags_map");
+				if(tags_map != null){
+					try {
+						JSONObject json = new JSONObject(tags_map);
+						Iterator<String> i = json.keys();
+						
+						while(i.hasNext()){
+							String key = i.next();
+							bean.getTagsMap().put(key, json.getString(key));
+						}
+						
+						
+					} catch (JSONException e) {
+					}
+					
+				}
 				data.add(bean);
 			}
 			

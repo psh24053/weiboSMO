@@ -19,19 +19,19 @@ function initSendMessage_Toolbar(){
 	
 	
 	var selectGroup = $('<button></button>').text('选择分组').button().attr('title','选择一个分组，对其中的账号进行更新资料操作');
-	selectGroup.click(onClick_selectGroup_sendmsg);
+//	selectGroup.click(onClick_selectGroup_sendmsg);
 	toolbar.append(selectGroup);
 
 	var loadAccount = $('<button></button>').text('加载账号').button().attr('title','将当前分组中所有账号读取到表格中');
-	loadAccount.click(onClick_loadAccount_sendmsg);
+//	loadAccount.click(onClick_loadAccount_sendmsg);
 	toolbar.append(loadAccount);
 	
 	var randomContent = $('<button></button>').text('随机获取内容库').button().attr('title','从内容数据库为每一个账号随机分配发送信息内容');
-	randomContent.click(onClick_getRandom_sendmsg);
+//	randomContent.click(onClick_getRandom_sendmsg);
 	toolbar.append(randomContent);
 	
 	var sendSource = $('<button></button>').text('获得发送对象数据源').button().attr('title','从数据库搜索指定条件的发送对象数据源');
-	sendSource.click(onClick_sendSource_sendmsg);
+//	sendSource.click(onClick_sendSource_sendmsg);
 	toolbar.append(sendSource);
 	
 	
