@@ -44,6 +44,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.message.BasicHeader;
@@ -56,6 +59,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.psh.base.json.JSONArray;
 import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
 import com.psh.base.util.PshConfigManager;
@@ -64,6 +68,8 @@ import com.psh.query.bean.AccountBean;
 import com.psh.query.bean.MsgBean;
 import com.psh.query.bean.ProxyBean;
 import com.psh.query.model.AccountModel;
+import com.psh.query.model.CityModel;
+import com.psh.query.model.ProvModel;
 import com.psh.query.util.HtmlTools;
 
 public class WeiboLoginService {
@@ -854,7 +860,7 @@ public class WeiboLoginService {
 		
 		// company
 		// school
-		
+		account.getTagsMap().clear();
 		Elements tags = doc.select("div[node-type=tag_item]");
 		String tagStr = "";
 		for(int i = 0 ; i < tags.size() ; i ++){
@@ -867,7 +873,7 @@ public class WeiboLoginService {
 			
 			account.getTagsMap().put(tagid, value);
 			tagStr += value;
-			if(i != tags.size() - 1){
+			if(i+1 != tags.size()){
 				tagStr += ",";
 			}
 		}
@@ -887,61 +893,263 @@ public class WeiboLoginService {
 	 * @param account
 	 * @return
 	 */
-	public boolean modifyInfo(AccountBean account){
+	public boolean modifyInfo(AccountBean acc){
 		HttpPost httpPost = new HttpPost("http://account.weibo.com/set/aj/iframe/editinfo");
 		httpPost.addHeader("Referer", "http://account.weibo.com/set/iframe?skin=skin000");
-		
+		HttpResponse httpResponse = null;
 		List<NameValuePair> formslist = new ArrayList<NameValuePair>();
 		
-		formslist.add(new BasicNameValuePair("Date_Year", "1991"));
-		formslist.add(new BasicNameValuePair("birthday_d", "24"));
-		formslist.add(new BasicNameValuePair("birthday_m", "11"));
+		String[] birthday = acc.getBirthday().split("-");
+		ProvModel provmodel = new ProvModel();
+		int prov = provmodel.getProvIDByName(acc.getProv());
+		
+		CityModel citymodel = new CityModel();
+		int city = citymodel.getCityIDByName(acc.getCity(), prov);
+		
+		formslist.add(new BasicNameValuePair("Date_Year", birthday[0]));
+		formslist.add(new BasicNameValuePair("birthday_d", birthday[2]));
+		formslist.add(new BasicNameValuePair("birthday_m", birthday[1]));
 		formslist.add(new BasicNameValuePair("blog", ""));
-		formslist.add(new BasicNameValuePair("blood", "A"));
-		formslist.add(new BasicNameValuePair("city", "1"));
-		formslist.add(new BasicNameValuePair("gender", "m"));
-		formslist.add(new BasicNameValuePair("love", "2"));
-		formslist.add(new BasicNameValuePair("mydesc", "descript"));
-		formslist.add(new BasicNameValuePair("nickname", "西瓜哥_ixgsoft"));
-		formslist.add(new BasicNameValuePair("oldnick", "西瓜哥_ixgsoft"));
-		formslist.add(new BasicNameValuePair("province", "51"));
+		formslist.add(new BasicNameValuePair("blood", acc.getBlood().toUpperCase()));
+		formslist.add(new BasicNameValuePair("city", city + ""));
+		formslist.add(new BasicNameValuePair("gender", acc.getSex().equals("男")?"m":"f"));
+		formslist.add(new BasicNameValuePair("love", "1"));
+		formslist.add(new BasicNameValuePair("mydesc", acc.getInfo()));
+		formslist.add(new BasicNameValuePair("nickname", acc.getNickname()));
+		formslist.add(new BasicNameValuePair("oldnick", this.account.getNickname()));
+		formslist.add(new BasicNameValuePair("province", prov + ""));
 		formslist.add(new BasicNameValuePair("pub_birthday", "3"));
 		formslist.add(new BasicNameValuePair("pub_blog", "2"));
 		formslist.add(new BasicNameValuePair("pub_love", "1"));
 		formslist.add(new BasicNameValuePair("pub_name", "0"));
 		formslist.add(new BasicNameValuePair("pub_sextrend", "1"));
 		formslist.add(new BasicNameValuePair("realname", ""));
-		formslist.add(new BasicNameValuePair("setting_rid", "pOFM6XuIwfJG9hBEahelyTtTmUA="));
+		
+		String rid_result = getSetting_rid(httpClient);
+		
+		formslist.add(new BasicNameValuePair("setting_rid", rid_result));
 		
 		try {
 			httpPost.setEntity(new UrlEncodedFormEntity(formslist,"utf-8"));
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
 		}
 		
-		HttpResponse httpResponse = null;
 		
 		try {
 			httpResponse = httpClient.execute(httpPost);
 		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
 		}
 		
 		if(httpResponse == null){
 			return false;
 		}
 		
-		System.out.println(HtmlTools.getHtmlByBr(httpResponse));
-
-//		setting_rid	pOFM6XuIwfJG9hBEahelyTtTmUA=
+		String baseInfoResponse = HtmlTools.getHtmlByBr(httpResponse);
+		JSONObject baseInfoJson = null;
+		try {
+			baseInfoJson = new JSONObject(baseInfoResponse);
+			System.out.println(baseInfoJson);
+			if(!baseInfoJson.getString("code").equals("100000")){
+				return false;
+			}
+		} catch (JSONException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
 		
 		
-		return false;
+		for(String key : this.account.getTagsMap().keySet()){
+			long tagid = Long.valueOf(key);
+			if(!delTag(tagid)){
+				return false;
+			}
+		}
+		String[] tags_map = acc.getTags().split(",");
+		for(int i = 0 ; i < tags_map.length ; i ++){
+			if(!addTag(tags_map[i])){
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	/**
+	 * 上传头像
+	 * @param file
+	 * @return
+	 */
+	public boolean UploadFace(File file, String setting_rid){
+		FileBody filebody = new FileBody(file);
+		
+		MultipartEntity mulEntity = new MultipartEntity();
+		try {
+			mulEntity.addPart("setting_rid", new StringBody(setting_rid));
+			mulEntity.addPart("rawpic", new StringBody("1"));
+			mulEntity.addPart("Filedata",filebody);
+		} catch (UnsupportedEncodingException e) {
+			System.out.println(e.getMessage());
+			return false;
+		}
+		
+		HttpPost httpPost = new HttpPost("http://account.weibo.com/aj4/settings/myface_postjs");
+		httpPost.addHeader("Referer", "http://account.weibo.com/set/photo");
+		httpPost.setEntity(mulEntity);
+		
+		HttpResponse httpResponse = null;
+		
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		if(httpResponse == null){
+			System.out.println("httpresponse is null");
+			return false;
+		}
+		
+		return true;
+	}
+	/**
+	 * 获取setting_rid
+	 * @param httpClient
+	 * @return
+	 */
+	public String getSetting_rid(DefaultHttpClient httpClient){
+		HttpGet httpGet = new HttpGet("http://account.weibo.com/set/index");
+		HttpResponse httpResponse = null;
+		try {
+			httpResponse = httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return null;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return null;
+		}
+		String setting_rid_html = HtmlTools.getHtmlByBr(httpResponse);
+		Document doc = Jsoup.parse(setting_rid_html);
+		Elements scripts = doc.select("script");
+		String rid_Result = null;
+		for(int i = 0 ; i < scripts.size() ; i ++){
+			Element element = scripts.get(i);
+			String h = element.html();
+			if(h != null && h.length() > 10 && h.contains("$CONFIG.setting_rid = '")){
+				rid_Result = h.substring(h.indexOf("rid")+7,h.lastIndexOf("'"));
+				rid_Result = rid_Result.replace("'", "").trim();
+			}
+		}
+		return rid_Result;
+	}
+	/**
+	 * 增加tag
+	 * @param tag
+	 * @return
+	 */
+	public boolean addTag(String tag){
+		HttpPost httpPost = new HttpPost("http://account.weibo.com/set/aj/iframe/tagadd?__rnd="+System.currentTimeMillis());
+		httpPost.addHeader("Referer", "	http://account.weibo.com/set/iframe?skin=skin000");
+		HttpResponse httpResponse = null;
+		
+		List<NameValuePair> formslist = new ArrayList<NameValuePair>();
+		
+		formslist.add(new BasicNameValuePair("_t", "0"));
+		formslist.add(new BasicNameValuePair("tag", tag));
+		
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity(formslist,"utf-8"));
+		} catch (UnsupportedEncodingException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		String tagInfo = HtmlTools.getHtmlByBr(httpResponse);
+		JSONObject baseInfoJson = null;
+		try {
+			baseInfoJson = new JSONObject(tagInfo);
+			if(!baseInfoJson.getString("code").equals("100000")){
+				return false;
+			}
+			
+			JSONArray data = baseInfoJson.getJSONArray("data");
+			for(int i = 0 ; i < data.length() ; i ++){
+				JSONObject item = data.getJSONObject(i);
+				account.getTagsMap().put(item.getString("tagid"), item.getString("tag"));
+			}
+			
+		} catch (JSONException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		
+		
+		return true;
+	}
+	/**
+	 * 删除tag
+	 * @param tagid
+	 * @return
+	 */
+	public boolean delTag(long tagid){
+		HttpPost httpPost = new HttpPost("http://account.weibo.com/set/aj/iframe/tagdel?__rnd="+System.currentTimeMillis());
+		httpPost.addHeader("Referer", "	http://account.weibo.com/set/iframe?skin=skin000");
+		HttpResponse httpResponse = null;
+		
+		List<NameValuePair> formslist = new ArrayList<NameValuePair>();
+		
+		formslist.add(new BasicNameValuePair("_t", "0"));
+		formslist.add(new BasicNameValuePair("tagid", tagid+""));
+		
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity(formslist,"utf-8"));
+		} catch (UnsupportedEncodingException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		String tagInfo = HtmlTools.getHtmlByBr(httpResponse);
+		JSONObject baseInfoJson = null;
+		try {
+			baseInfoJson = new JSONObject(tagInfo);
+			if(!baseInfoJson.getString("code").equals("100000")){
+				return false;
+			}
+		} catch (JSONException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		
+		
+		return true;
 	}
 	/**
 	 * 关注别人
@@ -1055,8 +1263,9 @@ public class WeiboLoginService {
 //		formslist.add(new BasicNameValuePair("pub_sextrend", "1"));
 //		formslist.add(new BasicNameValuePair("realname", ""));
 //		formslist.add(new BasicNameValuePair("setting_rid", "pOFM6XuIwfJG9hBEahelyTtTmUA="));
-		
-		System.out.println(encodeUserName("v5_profile_info"));
+//		cHNoMjQwNTMlNDB5YWhvby5jbg==
+//		pOFM6XuIwfJG9hBEahelyTtTmUA=
+		System.out.println(encodeUserName("weibo.com/u/1661461070"));
 		
 //		getUserInfo(l.httpClient, "http://weibo.com/1661461070/info");
 	}

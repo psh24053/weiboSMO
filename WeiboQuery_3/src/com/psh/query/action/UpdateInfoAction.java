@@ -24,6 +24,7 @@ import com.psh.query.model.TextModel;
 import com.psh.query.model.UserQueryTaskModel;
 import com.psh.query.service.InfoService;
 import com.psh.query.service.ModifyService;
+import com.psh.query.service.WeiboLoginService;
 
 
 public class UpdateInfoAction extends PshAction{
@@ -129,9 +130,15 @@ public class UpdateInfoAction extends PshAction{
 					ErrorCode.ERROR_CODE);
 		}
 		JSONObject payload = new JSONObject();
-		ModifyService modify = new ModifyService();
 		AccountModel accountmodel = new AccountModel();
 		AccountBean account = accountmodel.getAccount(uid);
+		WeiboLoginService weiboLogin = new WeiboLoginService(account);
+		
+		if(!weiboLogin.Login()){
+			return generator.toError(parser, 
+					ErrorCode.ERROR_CODE, 
+					"error, reason: 读取资料失败,登录失败");
+		}
 		
 		account.setBirthday(birthday);
 		account.setCity(city);
@@ -142,12 +149,11 @@ public class UpdateInfoAction extends PshAction{
 		account.setTags(tags);
 		account.setUid(uid);
 		
-		if(!modify.modify(account)){
+		if(!weiboLogin.modifyInfo(account)){
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
 					"error, reason: 更新资料失败");
 		}
-		
 		
 		return generator.toSuccess(parser, payload);
 	}

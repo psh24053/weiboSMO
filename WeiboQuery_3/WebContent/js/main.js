@@ -173,7 +173,7 @@ function onClick_execute_modify(){
 function UpdateInfo(size, rowData, p_this){
 	var i = size;
 	var item = rowData[i];
-	$('#tabs_1_table').jqGrid('setRowData',i, {'status':'正在读取...'});
+	$('#tabs_1_table').jqGrid('setRowData',i, {'status':'正在操作...'});
 	weibo.Action_3021_UpdateInfo({
 		uid: item.uid,
 		nck: item.nck,
@@ -383,6 +383,7 @@ function readInfo(size,rowData,p_this){
 					'status': '读取成功',
 					'nck': data.pld.nck,
 					'prov': data.pld.prov,
+					'city': data.pld.city,
 					'gender': data.pld.gender,
 					'birthday': data.pld.birthday,
 					'description': data.pld.info,
@@ -432,6 +433,7 @@ function onClick_loadAccount_modify(){
 			$('#tabs_1_table').jqGrid('clearGridData');
 			var int = setInterval(function(){
 				var item = list[i];
+				item.description = item.info;
 				$('#tabs_1_table').jqGrid('addRowData', i, item);
 				if(i == list.length - 1){
 					clearInterval(int);

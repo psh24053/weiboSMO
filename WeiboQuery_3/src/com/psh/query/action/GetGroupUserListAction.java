@@ -70,6 +70,12 @@ public class GetGroupUserListAction extends PshAction{
 				item.put("uid", bean.getUid());
 				item.put("nck", bean.getNickname());
 				item.put("email", bean.getEmail());
+				item.put("prov", bean.getProv());
+				item.put("city", bean.getCity());
+				item.put("gender", bean.getSex());
+				item.put("birthday", bean.getBirthday());
+				item.put("info", bean.getInfo());
+				item.put("tags", bean.getTags());
 				list.put(item);
 			}
 			payload.put("list", list);
