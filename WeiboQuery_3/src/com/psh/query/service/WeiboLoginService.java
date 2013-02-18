@@ -59,6 +59,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+
 import com.psh.base.json.JSONArray;
 import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
@@ -112,6 +113,25 @@ public class WeiboLoginService {
 		}
 		this.proxy = proxy;
 		
+	}
+	/**
+	 * 删除一个cookiestore
+	 * @param key
+	 * @return
+	 */
+	public boolean removeCookieStore(String key){
+		if(hasCookieStore(key)){
+			File removeFile = fileCache.get(key);
+//			Log.i(TAG, "cacheManager.removeObjectCache -> " +key);
+			// 如果removeFile存在并且是个文件并且可以写，则删除它，并返回删除结果
+			if(removeFile.exists() && removeFile.isFile() && removeFile.canWrite()){
+				return removeFile.delete();
+			}
+		}else{
+			return false;
+		}
+		
+		return false;
 	}
 	/**
 	 * 判断对象缓存中是否存在key
@@ -712,8 +732,81 @@ public class WeiboLoginService {
 			return false;
 		}
 		
+		String location = getHeaderLocation(httpResponse);
+		
+		if(location != null && !location.equals("")){
+			return reLoginFormSendWeibo(location, content);
+		}else{
+			String responseString = HtmlTools.getHtmlByBr(httpResponse);
+			return responseString.contains("\"code\":\"100000\"");
+			
+		}
+		
+	}
+	/**
+	 * 重新登录
+	 * @return
+	 */
+	public boolean reLoginFormSendWeibo(String url, String content){
+		HttpGet httpGet = new HttpGet(url);
+		
+		HttpResponse httpResponse = null;
+		try {
+			httpResponse = httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		if(httpResponse == null){
+			PshLogger.logger.error("[reLogin] httpResponse is null");
+			return false;
+		}
+		String html = HtmlTools.getHtmlByBr(httpResponse);
+		
+		//到这里代表需要重新登录了
+		if(html.contains("<title>新浪微博登录 </title>")){
+			removeCookieStore(account.getEmail());
+			if(Login()){
+				return SendWeibo(content);
+			}else{
+				return false;
+			}
+		}
+		
+		// 这里代表 还处在重新登录的状态中
+		url = getScriptLocationReplace(html);
+		System.out.println("url "+url);
+		httpGet = new HttpGet(url);
+		try {
+			httpResponse = httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		if(httpResponse == null){
+			PshLogger.logger.error("[reLogin] httpResponse is null");
+			return false;
+		}
+		
+		// 重新写出cookie
+		try {
+			SaveCookieStore(account.getEmail(), (Serializable) httpClient.getCookieStore());
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		
 		String responseString = HtmlTools.getHtmlByBr(httpResponse);
 		return responseString.contains("\"code\":\"100000\"");
+			
+		
 	}
 	/**
 	 * 发送评论，成功返回true，失败返回false
@@ -1309,7 +1402,6 @@ public class WeiboLoginService {
 	 	Elements scripts = doc.select("script");
 	 	
 	 	String script = scripts.get(0).html();
-	 	System.out.println(script);
 		return script.substring(script.indexOf("\"")+1, script.lastIndexOf("\""));
 	}
 	

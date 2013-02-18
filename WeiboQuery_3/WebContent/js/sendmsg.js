@@ -47,10 +47,10 @@ function onClick_editorContent_sendmsg(obj, uid){
 	var rowItem = $('#tabs_2_table').jqGrid('getRowData',uid);
 	var con = $(obj).parent().text().substring(2);
 	
-//	if(!rowItem.target){
-//		alert('请先指定@目标用户!');
-//		return;
-//	}
+	if(!rowItem.target){
+		alert('请先指定@目标用户!');
+		return;
+	}
 	
 	
 	$('.dialog_editorcontent').dialog({
@@ -65,6 +65,11 @@ function onClick_editorContent_sendmsg(obj, uid){
 	    buttons:{
 	    	'保存': function(){
 	    		var val = $('.dialog_editorcontent').find('.editorcontent').val();
+	    		if(rowItem.target.length + val.length > 140){
+	    			alert("@目标用户+微博内容数量过长，请减少 "+(rowItem.target.length + val.length - 140)+" 个字符");
+	    			return;
+	    		}
+	    		
 	    		$('#tabs_2_table').jqGrid('setRowData',uid,{content: '<button onclick="onClick_editorContent_sendmsg(this,'+uid+');">编辑</button>'+val});
 	    		$('.dialog_editorcontent').dialog('close');
 	    		
@@ -90,12 +95,16 @@ function onClick_execute_sendmsg(){
 	// 验证是否存在空字段
 	for(var i = 0 ; i < rowData.length ; i ++){
 		var row = rowData[i];
-		for(var key in row){
-			if(row[key] == '' && key != 'dataStore'){
-				alert('第 '+(i+1)+' 行，有字段为空!');
-				return;
-			}
+		if(row.content.length < 3){
+			alert("第 "+i+" 行的内容为空");
+			return;
 		}
+		var contentLength = row.content.substring(row.content.lastIndexOf('>')+1).length;
+		if(contentLength + row.target.length > 140 ){
+			alert("第 "+i+" 行的微博内容和@目标用户的字符过长，请减少 "+(contentLength + row.target.length - 140)+" 个字符");
+			return;
+		}
+		
 	}
 	
 	$(this).parent().find('button').button('disable');
@@ -110,33 +119,33 @@ function SendWeibo(size, rowData, p_this){
 	var i = size;
 	var item = rowData[i];
 	$('#tabs_2_table').jqGrid('setRowData',item.uid, {'status':'正在操作...'});
-	weibo.Action_3023_SendWeibo({
-		uid: item.uid,
-		content: item.nck,
-	}, function(data){
+	weibo.Action_3023_SendWeibo(
+		parseInt(item.uid),
+		item.content.substring(item.content.lastIndexOf('>')+1) + item.target
+	, function(data){
 		if(data.res){
-			$('#tabs_1_table').jqGrid('setRowData',item.uid, {
-				'status': '更新成功'
+			$('#tabs_2_table').jqGrid('setRowData',item.uid, {
+				'status': '发送成功'
 			});
 			
 		}else{
-			$('#tabs_1_table').jqGrid('setRowData',item.uid, {'status':'更新失败'});
+			$('#tabs_2_table').jqGrid('setRowData',item.uid, {'status':'发送失败'});
 		}
 		if(rowData.length == size+1){
 			p_this.parent().find('button').button('enable');
-			alert('更新命令执行完毕！');
+			alert('发送命令执行完毕！');
 		}else{
 			size++;
-			UpdateInfo(size, rowData, p_this);
+			SendWeibo(size, rowData, p_this);
 		}
 	},function(){
-		$('#tabs_1_table').jqGrid('setRowData',item.uid, {'status':'更新失败'});
+		$('#tabs_2_table').jqGrid('setRowData',item.uid, {'status':'发送失败'});
 		if(rowData.length == size+1){
 			p_this.parent().find('button').button('enable');
-			alert('更新命令执行完毕！');
+			alert('发送命令执行完毕！');
 		}else{
 			size++;
-			UpdateInfo(size, rowData, p_this);
+			SendWeibo(size, rowData, p_this);
 		}
 	});
 } 
@@ -257,14 +266,35 @@ function onClick_getTargetUser_sendmsg(){
 					info: info,
 					fol: fol,
 					fans: fans,
-					count: count
+					count: count * $('#tabs_2_table').jqGrid('getRowData').length
 	    		},function(data){
-	    			console.debug(data);
+	    			if(data.res){
+	    				var list = data.pld.list;
+	    				var s_count = data.pld.count;
+	    				wait.close();
+	    				alert('搜索到 '+s_count+' 条目标用户');
+	    				$('.dialog_searchtargetuser').dialog('close');
+	    				if(s_count == 0){
+	    					return;
+	    				}
+	    				
+	    				var rowData = $('#tabs_2_table').jqGrid('getRowData');
+	    				var z_count = s_count / count;
+	    				for(var i = 0 ; i < z_count ; i ++){
+	    					
+	    					var str = "";
+	    					for(var j = 0 ; j < count ; j ++){
+	    						str += '@' +list.pop();
+	    					}
+	    					$('#tabs_2_table').jqGrid('setRowData',rowData[i].uid,{target: str});
+	    				}
+	    				
+	    			}
 	    			
 	    			
-	    			wait.close();
 	    		},function(err){
 	    			wait.close();
+	    			$('.dialog_searchtargetuser').dialog('close');
 	    		});
 	    		
 	    		
