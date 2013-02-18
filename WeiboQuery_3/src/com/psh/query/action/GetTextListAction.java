@@ -45,16 +45,16 @@ public class GetTextListAction extends PshAction{
 		}
 		
 		// Start to retrieve required parameters from request
-		int gid = -1;
-		
+		int count = -1;
 		try {
-			gid = parameter.getInt("gid");	
+			count = parameter.getInt("count");	
 		} catch (JSONException e) {
-			PshLogger.logger.error("Missing: \"gid\"" );
+			PshLogger.logger.error("Missing: \"count\"" );
 			PshLogger.logger.error(e.getMessage());
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE);
 		}
+		
 		
 		int ttid = -1;
 		
@@ -70,12 +70,10 @@ public class GetTextListAction extends PshAction{
 	
 		JSONObject payload = new JSONObject();
 		TextModel textmodel = new TextModel();
-		GroupModel groupmodel = new GroupModel();
 		
-		List<TextBean> data = textmodel.getTextList(ttid, groupmodel.getGroupUserCount(gid));
+		List<TextBean> data = textmodel.getTextList(ttid, count);
 		
 		JSONArray list = new JSONArray();
-		
 		
 		
 		try {

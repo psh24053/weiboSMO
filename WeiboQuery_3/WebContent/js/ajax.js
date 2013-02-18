@@ -136,6 +136,19 @@ var weibo = {
 		}).send(Before);
 		
 	},
+	Action_3023_SendWeibo:function(uid, content, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3023,
+			Success:Success,
+			prm:{
+				uid: uid,
+				content: content
+			},
+			Error:Error
+		}).send(Before);
+		
+	}
 
 		
 		

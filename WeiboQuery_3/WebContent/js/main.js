@@ -17,7 +17,7 @@ function initStatus(){
 		localStorage.weibo = new Date();
 		// 初始化更新资料目前的状态
 		localStorage.ModifyGroup = 'none';
-		
+		localStorage.SendWeiboGroup = 'none';
 		return;
 	}
 	
@@ -74,17 +74,16 @@ function initTable(){
 	$('#tabs_2_table').jqGrid({
 		datatype: "local",
 		height: 420,
-		colNames:['uid','邮箱','分组','目标','微博内容','状态','dataStore'],
+		colNames:['uid','邮箱','目标','微博内容','状态','dataStore'],
 	   	colModel:[
 	   		{name:'uid',index:'uid', width:40, align:'center', sortable:false},
 	   		{name:'email',index:'email', width:40, align:'center', sortable:false},
-	   		{name:'group',index:'group', width:60, align:'center', sortable:false},
 	   		{name:'target',index:'target', width:40, align:'center', sortable:false},
 	   		{name:'content',index:'content', width:40, align:"right",sortable:false},		
 	   		{name:'status',index:'status', width:40,align:"right",sortable:false},		
 	   		{name:'dataStore',index:'dataStore',hidden:true}
 	   	],
-	   	multiselect: true,
+	   	rownumbers:true,
    		rowNum: 50,
    	   	pager: "#tabs_2_pager",
    	 	viewrecords: true,
@@ -429,20 +428,13 @@ function onClick_loadAccount_modify(){
 		if(data.res){
 			var list = data.pld.list;
 			localStorage['GroupAccount_'+localStorage.ModifyGroupGid] = JSON.stringify(list);
-			var i = 0;
-			$('#tabs_1_table').jqGrid('clearGridData');
-			var int = setInterval(function(){
+			for(var i = 0 ; i < list.length ; i ++){
 				var item = list[i];
 				item.description = item.info;
-				$('#tabs_1_table').jqGrid('addRowData', i, item);
-				if(i == list.length - 1){
-					clearInterval(int);
-					wait.close();
-				}else{
-					i ++;
-				}
-			}, 1);
-			
+			}
+			$('#tabs_1_table').jqGrid('clearGridData');
+			$('#tabs_1_table').jqGrid('addRowData', 'uid', list);
+			wait.close();
 			
 		}
 		
