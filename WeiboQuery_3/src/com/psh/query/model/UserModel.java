@@ -505,6 +505,10 @@ public class UserModel {
 		
 		sql = sql.replaceFirst("and", "");
 		
+		if(sql.indexOf("where  limit") != -1){
+			sql = sql.replace("where", "");
+		}
+		
 		System.out.println(sql);
 		
 		try {
