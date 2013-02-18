@@ -26,7 +26,7 @@ public class GetAnnotationUserAction extends PshAction{
 	
 	public GetAnnotationUserAction(){
 		
-		super.code = 3023;
+		super.code = 3024;
 		super.name = "GetAnnotationUserAction";
 		
 	}
