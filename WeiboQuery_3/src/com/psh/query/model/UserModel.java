@@ -405,7 +405,7 @@ public class UserModel {
 		String sql = "select nck from wb_user where ";
 		
 		if(conditions.containsKey("nck")){
-			sql += "nck like '%" + conditions.get("nck").toString() + "%' ";
+			sql += "and nck like '%" + conditions.get("nck").toString() + "%' ";
 		}
 		
 		if(conditions.containsKey("prov")){
@@ -502,6 +502,10 @@ public class UserModel {
 		}
 		
 		sql += " limit 0," + count;
+		
+		sql = sql.replaceFirst("and", "");
+		
+		System.out.println(sql);
 		
 		try {
 			ps = conn.prepareStatement(sql);

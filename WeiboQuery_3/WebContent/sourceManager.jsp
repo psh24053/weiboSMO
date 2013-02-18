@@ -693,7 +693,7 @@ function getSource(){
 	
 }
 
-function getConditions(taskID){
+function getInfoDetail(taskID){
 	
 	
 	
@@ -729,11 +729,7 @@ function getConditions(taskID){
 				int count = localUserQueryTask.getCountByQueryID(taskList.get(i));
 				LocalQueryTaskBean localTask = localQueryTask.getLocalQueryTaskInfoByID(taskList.get(i));
 				%>
-				<label><%=i %>.<a href="#" onclick="getConditions(<%=taskList.get(i)%>)">条件</a> <a>搜到:<%=count %>条</a>&nbsp<a href="#" onclick="getInfoDetail(<%=taskList.get(i)%>)">查看明细</a></label><br>
-				<%
-				%>
-					
-					if()
+				<label><%=i %>.条件: <%=localTask.getLfans() %> <%=localTask.getLfol() %> <%=localTask.getLqage() %> <%=localTask.getLqcity() %> <%=localTask.getLqcom() %> <%=localTask.getLqdate() %> <%=localTask.getLqnck() %> <%=localTask.getLqprov() %> <%=localTask.getLqsch() %> <%=localTask.getLqsex() %> <%=localTask.getLqtag() %><a>搜到:<%=count %>条</a>&nbsp<a href="#" onclick="getInfoDetail(<%=taskList.get(i)%>)">查看明细</a></label><br>
 				
 				<%
 			}
