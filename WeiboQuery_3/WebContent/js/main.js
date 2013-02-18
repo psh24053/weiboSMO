@@ -76,10 +76,10 @@ function initTable(){
 		height: 420,
 		colNames:['uid','邮箱','目标','微博内容','状态','dataStore'],
 	   	colModel:[
-	   		{name:'uid',index:'uid', width:40, align:'center', sortable:false},
+	   		{name:'uid',index:'uid', width:20, align:'center', sortable:false},
 	   		{name:'email',index:'email', width:40, align:'center', sortable:false},
-	   		{name:'target',index:'target', width:40, align:'center', sortable:false},
-	   		{name:'content',index:'content', width:40, align:"right",sortable:false},		
+	   		{name:'target',index:'target', width:40 , sortable:false},
+	   		{name:'content',index:'content', width:40,sortable:false},		
 	   		{name:'status',index:'status', width:40,align:"right",sortable:false},		
 	   		{name:'dataStore',index:'dataStore',hidden:true}
 	   	],
@@ -326,7 +326,8 @@ function onClick_loadInfo_modify(){
 	var p_this = $(this);
 	var size = 0;
 	for(var i = 0 ; i < rowData.length ; i ++){
-		$('#tabs_1_table').jqGrid('setRowData',i, {'status':'','nck':'','prov':'','gender':'','birthday':'','description':'','city':'','tags':''});
+		var item = rowData[i];
+		$('#tabs_1_table').jqGrid('setRowData',item.uid, {'status':'','nck':'','prov':'','gender':'','birthday':'','description':'','city':'','tags':''});
 	}
 	
 	
@@ -375,10 +376,10 @@ function onClick_loadInfo_modify(){
 function readInfo(size,rowData,p_this){
 		var i = size;
 		var item = rowData[i];
-		$('#tabs_1_table').jqGrid('setRowData',i, {'status':'正在读取...'});
+		$('#tabs_1_table').jqGrid('setRowData',item.uid, {'status':'正在读取...'});
 		weibo.Action_3019_GetAccountInfoFromSina(item.uid, function(data){
 			if(data.res){
-				$('#tabs_1_table').jqGrid('setRowData',i, {
+				$('#tabs_1_table').jqGrid('setRowData',item.uid, {
 					'status': '读取成功',
 					'nck': data.pld.nck,
 					'prov': data.pld.prov,
@@ -390,7 +391,7 @@ function readInfo(size,rowData,p_this){
 				});
 				
 			}else{
-				$('#tabs_1_table').jqGrid('setRowData',i, {'status':'读取失败'});
+				$('#tabs_1_table').jqGrid('setRowData',item.uid, {'status':'读取失败'});
 			}
 			if(rowData.length == size+1){
 				p_this.parent().find('button').button('enable');
@@ -400,7 +401,7 @@ function readInfo(size,rowData,p_this){
 				readInfo(size, rowData, p_this);
 			}
 		},function(){
-			$('#tabs_1_table').jqGrid('setRowData',i, {'status':'读取失败'});
+			$('#tabs_1_table').jqGrid('setRowData',item.uid, {'status':'读取失败'});
 			if(rowData.length == size+1){
 				p_this.parent().find('button').button('enable');
 				alert('读取命令执行完毕！');

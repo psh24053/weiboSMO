@@ -32,7 +32,7 @@ public class TextModel extends SuperModel {
 		}
 		
 		try {
-			pstmt = conn.prepareStatement("select * from wb_text where ttid = ? limit ? order by rand()");
+			pstmt = conn.prepareStatement("SELECT * FROM wb_text WHERE ttid = ? ORDER BY RAND() LIMIT ?");
 			pstmt.setInt(1, ttid);
 			pstmt.setInt(2, count);
 			rs = pstmt.executeQuery();

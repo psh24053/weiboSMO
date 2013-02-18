@@ -78,7 +78,7 @@ public class GetTextListAction extends PshAction{
 		
 		try {
 			for(int i = 0 ; i < data.size() ; i ++){
-				list.put(data.get(i).getTid());
+				list.put(data.get(i).getText());
 			}
 			payload.put("list", list);
 		} catch (JSONException e) {

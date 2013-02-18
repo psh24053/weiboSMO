@@ -148,7 +148,53 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
-	}
+	},
+	Action_3009_GetTextTypeList:function(Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3009,
+			Success:Success,
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3008_GetTextList:function(ttid, count, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3008,
+			Success:Success,
+			prm:{
+				ttid: ttid,
+				count: count
+			},
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3024_SearchTargetUser:function(opts, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3024,
+			prm:{
+				nickName: opts.nickName,
+				tag: opts.tag,
+				school: opts.school,
+				company: opts.company,
+				prov: opts.prov,
+				city: opts.city,
+				age: opts.age,
+				sex: opts.sex,
+				info: opts.info,
+				fol: opts.fol,
+				fans: opts.fans,
+				count: opts.count
+			},
+			Success:Success,
+			Error:Error
+		}).send(Before);
+		
+	},
+
 
 		
 		

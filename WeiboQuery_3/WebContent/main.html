@@ -127,6 +127,96 @@
 				<input type="button" value="上传"/>
 			</form>
 		</div>
+		<div class="dialog_editorcontent">
+			<textarea class="editorcontent" style="width:95%;height:95%;"></textarea>
+		</div>
+		<div class="dialog_randomsendweibocontent">
+			<a>选择分类:</a>
+			<select class="texttype_name" ></select>
+			<br>
+		</div>
+		<div class="dialog_searchtargetuser">
+			<a>昵称</a>
+			<input type="text" class="nickname" style="width: 200px;" placeholder="请输入昵称关键字" />
+			<br>
+			<a>简介</a>
+			<input type="text" class="info" style="width: 200px;" placeholder="请输入简介关键字" />
+			<br>
+			<a>公司</a>
+			<input type="text" class="company" style="width: 200px;" placeholder="请输入公司关键字" />
+			<br>
+			<a>学校</a>
+			<input type="text" class="school" style="width: 200px;" placeholder="请输入学校关键字" />
+			<br>
+			<a>标签</a>
+			<input type="text" class="tags" style="width: 200px;" placeholder="多个标签以逗号分隔 'a,b'" />
+			<br>
+			<a>地区</a>
+			<select class="prov" onchange="changeCity()" >
+				<option value="0">不限</option>
+				<option value="34">安徽</option>
+				<option value="11">北京</option>
+				<option value="50">重庆</option>
+				<option value="35">福建</option>
+				<option value="62">甘肃</option>
+				<option value="44">广东</option>
+				<option value="45">广西</option>
+				<option value="52">贵州</option>
+				<option value="46">海南</option>
+				<option value="13">河北</option>
+				<option value="23">黑龙江</option>
+				<option value="41">河南</option>
+				<option value="42">湖北</option>
+				<option value="43">湖南</option>
+				<option value="15">内蒙古</option>
+				<option value="32">江苏</option>
+				<option value="36">江西</option>
+				<option value="22">吉林</option>
+				<option value="21">辽宁</option>
+				<option value="64">宁夏</option>
+				<option value="63">青海</option>
+				<option value="14">山西</option>
+				<option value="37">山东</option>
+				<option value="31">上海</option>
+				<option value="51">四川</option>
+				<option value="12">天津</option>
+				<option value="54">西藏</option>
+				<option value="65">新疆</option>
+				<option value="53">云南</option>
+				<option value="33">浙江</option>
+				<option value="61">陕西</option>
+				<option value="71">台湾</option>
+				<option value="81">香港</option>
+				<option value="82">澳门</option>
+				<option value="400">海外</option>
+				<option value="100">其他</option>
+			</select>
+			<select class="city" ></select>
+			<br>
+			<a>性别</a>
+			<select class="sex" >
+				<option value="">不限</option>
+				<option value="男">男</option>
+				<option value="女">女</option>
+			</select>
+			<br>
+			<a>年龄</a>
+			<input type="text" pattern="\d{1,2}(~\d+|\+|-|=)" class="age" style="width: 200px;" placeholder="请输入日期匹配符，n~m|n+|n-|n=" />
+			<br>
+			<a>关注数</a>
+			<input type="text" pattern="\d{1,2}(~\d+|\+|-|=)" class="fol" style="width: 200px;" placeholder="请输入关注匹配符，n~m|n+|n-|n=" />
+			<br>
+			<a>粉丝数</a>
+			<input type="text" pattern="\d{1,2}(~\d+|\+|-|=)" class="fans" style="width: 200px;" placeholder="请输入粉丝匹配符，n~m|n+|n-|n=" />
+			<br>
+			<a>结果比例（一个账号匹配n个@用户）</a>
+			<select class="count">
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+			</select>
+			<br>
+		</div>
 	</div>
 
 
