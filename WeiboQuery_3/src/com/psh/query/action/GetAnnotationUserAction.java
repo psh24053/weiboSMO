@@ -256,6 +256,7 @@ public class GetAnnotationUserAction extends PshAction{
 		
 		try {
 			payload.put("list", array);
+			payload.put("count", array.length());
 //			payload.put("array", array);
 		} catch (JSONException e) {
 			PshLogger.logger.error("JSONException failed.");
