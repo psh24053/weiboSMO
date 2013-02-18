@@ -1,3 +1,4 @@
+<%@page import="com.psh.query.bean.LocalQueryTaskBean"%>
 <%@page import="com.psh.query.model.LocalQueryTaskModel"%>
 <%@page import="java.util.List"%>
 <%@page import="com.psh.query.model.LocalUserQueryTaskModel"%>
@@ -726,8 +727,14 @@ function getConditions(taskID){
 			
 			for(int i = 0 ; i < taskList.size() ; i++){
 				int count = localUserQueryTask.getCountByQueryID(taskList.get(i));
+				LocalQueryTaskBean localTask = localQueryTask.getLocalQueryTaskInfoByID(taskList.get(i));
 				%>
 				<label><%=i %>.<a href="#" onclick="getConditions(<%=taskList.get(i)%>)">条件</a> <a>搜到:<%=count %>条</a>&nbsp<a href="#" onclick="getInfoDetail(<%=taskList.get(i)%>)">查看明细</a></label><br>
+				<%
+				%>
+					
+					if()
+				
 				<%
 			}
 		%>
