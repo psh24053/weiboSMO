@@ -2,7 +2,7 @@ package com.psh.query.bean;
 
 import com.psh.query.model.SuperModel;
 
-public class MsgBean extends SuperModel {
+public class MsgBean {
 
 	private String mid;
 	private String type;
@@ -11,6 +11,7 @@ public class MsgBean extends SuperModel {
 	private long ouid;
 	private String onck;
 	private String con;
+	private String image;
 	
 	public String getMid() {
 		return mid;
@@ -53,6 +54,12 @@ public class MsgBean extends SuperModel {
 	}
 	public void setCon(String con) {
 		this.con = con;
+	}
+	public String getImage() {
+		return image;
+	}
+	public void setImage(String image) {
+		this.image = image;
 	}
 	
 	
