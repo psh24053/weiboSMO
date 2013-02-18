@@ -1,6 +1,7 @@
 package com.psh.query.action;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.psh.base.common.PshAction;
@@ -17,6 +18,7 @@ import com.psh.query.model.GetFirstQueryPageNumber;
 import com.psh.query.model.GetFirstQueryUser;
 import com.psh.query.model.ProvModel;
 import com.psh.query.model.QueryTaskModel;
+import com.psh.query.model.UserModel;
 import com.psh.query.model.UserQueryTaskModel;
 
 
@@ -199,60 +201,54 @@ public class GetAnnotationUserAction extends PshAction{
 			
 		}
 		
-		if(!prov.equals("0")){
+		if(!prov.equals("")){
 			
-			ProvModel provModel = new ProvModel();
-			String provName = provModel.getProvNameByID(Integer.parseInt(prov));
-			
-			if(!city.equals(1000)){
-				
-//				url += "&region=custom:" + prov + ":" + city;
-//				
-//				CityModel cityModel = new CityModel();
-//				String cityName = cityModel.getProvNameByID(Integer.parseInt(city), Integer.parseInt(prov));
-//				
-//				query.setQprov(provName);
-//				query.setQcity(cityName);
-			}else{
-//				
-//				url += "&region=custom:" + prov + ":1000";
-//				query.setQprov(provName);
-//				query.setQcity("");
-				
-			}
-			
-		}else{
-			
-//			query.setQprov("");
-//			query.setQcity("");
+			condiMap.put("prov", prov);
 			
 		}
 		
-		if(age != null && !age.equals("") && !age.equals("all")){
+		if(!city.equals("")){
+			condiMap.put("city", city);
+		}
+		
+		if(age != null && !age.equals("")){
 			
-//			url += "&age=" + age;
-//			query.setQage(age);
-		}else{
-//			query.setQage("");
+			condiMap.put("age", age);
 		}
 		
 		if(sex != null && !sex.equals("")){
 			
-//			url += "&gender=" + sex;
-//			query.setQsex(sex);
-		}else{
-//			query.setQsex("");
+			condiMap.put("sex", sex);
+		}
+		
+		if(info != null && !sex.equals("")){
+			
+			condiMap.put("info", info);
+		}
+		
+		if(fans != null && !fans.equals("")){
+			
+			condiMap.put("fans", fans);
+		}
+		
+		if(fol != null && !fol.equals("")){
+			
+			condiMap.put("fol", fol);
 		}
 		
 		JSONObject payload = new JSONObject();
 		//查找该次搜索的数据源数量
 		
+		UserModel userModel = new UserModel();
+		List<String> userNameList = userModel.getUserNameLocalQuery(condiMap,count);
+//		
+//		JSONArray array = new JSONArray();
+//		for(int i = 0 ; i < count ; i++){
+//			
+//			array.put("非常开心" + i);
+//		}
 		
-		JSONArray array = new JSONArray();
-		for(int i = 0 ; i < count ; i++){
-			
-			array.put("非常开心" + i);
-		}
+		JSONArray array = new JSONArray(userNameList);
 		
 		try {
 			payload.put("list", array);

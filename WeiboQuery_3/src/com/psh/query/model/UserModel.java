@@ -394,6 +394,140 @@ public class UserModel {
 		
 	}
 	
+	
+	//指定条件搜索本地获得@的用户名
+	public List<String> getUserNameLocalQuery(Map<String, Object> conditions,int count){
+
+		List<String> userNameList = new ArrayList<String>();
+		
+		conn = SQLConn.getInstance().getConnection();
+		
+		String sql = "select nck from wb_user where ";
+		
+		if(conditions.containsKey("nck")){
+			sql += "nck like '%" + conditions.get("nck").toString() + "%' ";
+		}
+		
+		if(conditions.containsKey("prov")){
+			sql += "and prov='" + conditions.get("prov").toString() + "' ";
+		}
+		
+		if(conditions.containsKey("city")){
+			sql += "and city='" + conditions.get("city").toString() + "' ";
+		}
+		
+		if(conditions.containsKey("sex")){
+			sql += "and sex='" + conditions.get("sex").toString() + "' ";
+		}
+		
+		if(conditions.containsKey("emo")){
+			sql += "and emo like '%" + conditions.get("emo").toString() + "%' ";
+		}
+		
+		//年龄
+		if(conditions.containsKey("date")){
+			String dateString = (String)conditions.get("date");
+			if(dateString.indexOf("+") != -1){
+				
+				sql += "and ((2013 - LEFT(DATE,LOCATE('年', DATE)-1)) > " + Integer.parseInt(dateString.substring(0,dateString.indexOf("+")-1)) + ") ";
+			}else if(dateString.indexOf("-") != -1){
+				sql += "and ((2013 - LEFT(DATE,LOCATE('年', DATE)-1)) < " + Integer.parseInt(dateString.substring(0,dateString.indexOf("-")-1)) + ") ";
+			}else if(dateString.indexOf("~") != -1){
+				
+				sql += "and ((2013 - LEFT(DATE,LOCATE('年', DATE)-1)) between " + Integer.parseInt(dateString.substring(0,dateString.indexOf("~")-1)) + " and " + Integer.parseInt(dateString.substring(dateString.indexOf("~")+1,dateString.length())) + ") ";
+				
+			}else if(dateString.indexOf("=") != -1){
+				
+				sql += "and ((2013 - LEFT(DATE,LOCATE('年', DATE)-1)) = " + Integer.parseInt(dateString.substring(0,dateString.indexOf("=")-1)) + ") ";
+				
+			}
+		}
+		
+		if(conditions.containsKey("blo")){
+			sql += "and blo='" + conditions.get("blo").toString() + "' ";
+		}
+		
+		if(conditions.containsKey("tag")){
+			sql += "and tag like '%" + conditions.get("tag") + "%' ";
+		}
+		
+		//粉丝>=<?大于?
+		if(conditions.containsKey("fans")){
+			String fansString = (String)conditions.get("fans");
+			if(fansString.indexOf("~") != -1){
+				
+				sql += "and (fans between " + Integer.parseInt(fansString.substring(0, fansString.indexOf("~")-1)) + " and " + Integer.parseInt(fansString.substring(fansString.indexOf("~") + 1, fansString.length())) + ") ";
+				
+			}else if(fansString.indexOf("+") != -1){
+				
+				sql +="and fans > " + Integer.parseInt(fansString.substring(0, fansString.indexOf("+")-1)) + " ";
+				
+			}else if(fansString.indexOf("-") != -1){
+				
+				sql +="and fans < " + Integer.parseInt(fansString.substring(0, fansString.indexOf("-")-1)) + " ";
+				
+			}
+		}
+		
+		//关注>=<?大于?
+		if(conditions.containsKey("fol")){
+
+			String fansString = (String)conditions.get("fol");
+			if(fansString.indexOf("~") != -1){
+				
+				sql += "and (fol between " + Integer.parseInt(fansString.substring(0, fansString.indexOf("~")-1)) + " and " + Integer.parseInt(fansString.substring(fansString.indexOf("~") + 1, fansString.length())) + ") ";
+				
+			}else if(fansString.indexOf("+") != -1){
+				
+				sql +="and fol > " + Integer.parseInt(fansString.substring(0, fansString.indexOf("+")-1)) + " ";
+				
+			}else if(fansString.indexOf("-") != -1){
+				
+				sql +="and fol < " + Integer.parseInt(fansString.substring(0, fansString.indexOf("-")-1)) + " ";
+				
+			}
+			
+		}
+		
+		if(conditions.containsKey("info")){
+			sql += "and info like '%" + conditions.get("info").toString() + "%' ";
+		}
+		
+		if(conditions.containsKey("com")){
+			sql += "and com like '%" + conditions.get("com").toString() + "%' ";
+		}
+		
+		if(conditions.containsKey("stu")){
+			sql += "and stu like '%" + conditions.get("stu").toString() + "%' ";
+		}
+		
+		sql += " limit 0," + count;
+		
+		try {
+			ps = conn.prepareStatement(sql);
+			
+			rs = ps.executeQuery();
+			
+			if(rs == null){
+				
+				return null;
+				
+			}
+			
+			while(rs.next()){
+				
+				userNameList.add(rs.getString("nck"));
+			}
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		}
+		
+		return userNameList;
+		
+		
+	}
+	
 	private synchronized void closeConnection(){
 		
 		if(this.rs != null){
