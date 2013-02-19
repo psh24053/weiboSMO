@@ -844,6 +844,36 @@ public class WeiboLoginService {
 	 * @return
 	 */
 	public boolean forward(String content, String mid){
+		HttpPost httpPost = new HttpPost("http://s.weibo.com/ajax/mblog/forward?__rnd="+System.currentTimeMillis());
+		
+		HttpResponse httpResponse = null;
+		List<NameValuePair> formslist = new ArrayList<NameValuePair>();
+		
+		formslist.add(new BasicNameValuePair("appkey", ""));
+		formslist.add(new BasicNameValuePair("mid", mid));
+		formslist.add(new BasicNameValuePair("style_type", "1"));
+		formslist.add(new BasicNameValuePair("resson", content));
+		formslist.add(new BasicNameValuePair("location", ""));
+		formslist.add(new BasicNameValuePair("_t", "0"));
+		
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity(formslist,"utf-8"));
+		} catch (UnsupportedEncodingException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		try {
+			httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		return false;
 	}
 	/**
