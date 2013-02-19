@@ -845,6 +845,7 @@ public class WeiboLoginService {
 	 */
 	public boolean forward(String content, String mid){
 		HttpPost httpPost = new HttpPost("http://s.weibo.com/ajax/mblog/forward?__rnd="+System.currentTimeMillis());
+		httpPost.addHeader("Referer", "http://s.weibo.com/weibo/");
 		
 		HttpResponse httpResponse = null;
 		List<NameValuePair> formslist = new ArrayList<NameValuePair>();
@@ -852,7 +853,7 @@ public class WeiboLoginService {
 		formslist.add(new BasicNameValuePair("appkey", ""));
 		formslist.add(new BasicNameValuePair("mid", mid));
 		formslist.add(new BasicNameValuePair("style_type", "1"));
-		formslist.add(new BasicNameValuePair("resson", content));
+		formslist.add(new BasicNameValuePair("reason", content));
 		formslist.add(new BasicNameValuePair("location", ""));
 		formslist.add(new BasicNameValuePair("_t", "0"));
 		
@@ -864,15 +865,23 @@ public class WeiboLoginService {
 		}
 		
 		try {
-			httpClient.execute(httpPost);
+			httpResponse = httpClient.execute(httpPost);
 		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
 		}
 		
+		if(httpResponse == null){
+			return false;
+		}
+		String responseString = HtmlTools.getHtmlByBr(httpResponse);
+		
+		if(responseString.contains("\"code\":\"100000\"")){
+			return true;
+		}
 		
 		return false;
 	}
@@ -1280,6 +1289,43 @@ public class WeiboLoginService {
 	 * @return
 	 */
 	public boolean attention(long uid){
+		HttpPost httpPost = new HttpPost("http://s.weibo.com/ajax/user/follow?__rnd="+System.currentTimeMillis());
+		httpPost.addHeader("Referer", "http://s.weibo.com/user/");
+		
+		HttpResponse httpResponse = null;
+		List<NameValuePair> formslist = new ArrayList<NameValuePair>();
+		
+		formslist.add(new BasicNameValuePair("uid", uid+""));
+		formslist.add(new BasicNameValuePair("type", "followed"));
+		formslist.add(new BasicNameValuePair("wforce", "0"));
+		formslist.add(new BasicNameValuePair("_t", "0"));
+		
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity(formslist,"utf-8"));
+		} catch (UnsupportedEncodingException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		if(httpResponse == null){
+			return false;
+		}
+		String responseString = HtmlTools.getHtmlByBr(httpResponse);
+		
+		if(responseString.contains("\"code\":\"100000\"")){
+			return true;
+		}
+		
 		return false;
 	}
 	/**
@@ -1357,13 +1403,15 @@ public class WeiboLoginService {
 //			}
 //			
 //		}
-//		AccountBean account = new AccountBean();
-//		account.setEmail("psh24053@yahoo.cn");
-//		account.setPassword("caicai520");
-//		account.setUid(1661461070);
-//		
-//		WeiboLoginService l = new WeiboLoginService(account);
-//		l.Login();
+		AccountBean account = new AccountBean();
+		account.setEmail("psh24053@yahoo.cn");
+		account.setPassword("caicai520");
+		account.setUid(1661461070);
+		
+		WeiboLoginService l = new WeiboLoginService(account);
+		l.Login();
+		l.attention(3154924132l);
+//		l.forward("转发一个试试", "3547483110422351");
 //		l.modifyInfo(null);
 //		
 //		
