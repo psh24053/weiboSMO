@@ -15,9 +15,10 @@ function initStatus(){
 	
 	if(localStorage.weibo == undefined || localStorage.weibo == null){
 		localStorage.weibo = new Date();
-		// 初始化更新资料目前的状态
+		// 初始化LocalStorage目前的状态
 		localStorage.ModifyGroup = 'none';
 		localStorage.SendWeiboGroup = 'none';
+		localStorage.ForwardGroup = 'none';
 		return;
 	}
 	
@@ -35,7 +36,28 @@ function initStyle(){
 		      activeHeader: "ui-icon-circle-arrow-s"
 		  }
     });
-	$('#tabs').tabs();
+	$('#tabs').tabs({
+		activate: function(event, ui){
+			
+			switch (ui.newPanel.selector) {
+			case '#tabs_7':
+				if($(ui.newPanel).find('iframe').size() == 0){
+					$(ui.newPanel).html('<iframe src="activation.jsp" width="100%" height="300px" style="border: none;"></iframe>');
+				}
+				
+				break;
+			case '#tabs_8':
+				if($(ui.newPanel).find('iframe').size() == 0){
+					$(ui.newPanel).html('<iframe src="sourceManager.jsp" width="100%" height="300px" style="border: none;"></iframe>');
+				}
+				break;
+
+			default:
+				break;
+			}
+			
+		}
+	});
 }
 /**
  * 初始化表格
@@ -91,6 +113,30 @@ function initTable(){
    	 	toolbar: [true,"top"],
    	 	loadComplete: function(){
    	 		initSendMessage_Toolbar();
+   	 	}
+	});
+	
+	// 转发消息
+	$('#tabs_3_table').jqGrid({
+		datatype: "local",
+		height: 420,
+		colNames:['uid','邮箱','转发目标','转发理由','状态','dataStore'],
+	   	colModel:[
+	   		{name:'uid',index:'uid', width:20, align:'center', sortable:false},
+	   		{name:'email',index:'email', width:40, align:'center', sortable:false},
+	   		{name:'target',index:'target', width:40 , sortable:false},
+	   		{name:'content',index:'content', width:40,sortable:false},		
+	   		{name:'status',index:'status', width:40,align:"right",sortable:false},		
+	   		{name:'dataStore',index:'dataStore',hidden:true}
+	   	],
+	   	rownumbers:true,
+   		rowNum: 50,
+   	   	pager: "#tabs_3_pager",
+   	 	viewrecords: true,
+   	   	width: $('#tabs_1').width(),
+   	 	toolbar: [true,"top"],
+   	 	loadComplete: function(){
+   	 		initForward_Toolbar();
    	 	}
 	});
 	
@@ -696,8 +742,10 @@ function loadH3Content(h3, div, cid){
 				  var group_usercount = $('<span></span>').text('用户:'+item.count).addClass('group_usercount');
 				  var group_action = $('<span></span>').addClass('group_action');
 				  
-				  var action_modify = $('<a gid="'+item.gid+'" class="group_action_add" href="javascript:void(0)">改</a>');
+				  var action_modify = $('<a gid="'+item.gid+'" class="group_action_modify" href="javascript:void(0)">改</a>');
 				  var action_delete = $('<a gid="'+item.gid+'" class="group_action_delete" href="javascript:void(0)">删</a>');
+				  var action_adduser = $('<a gid="'+item.gid+'" class="group_action_adduser" href="javascript:void(0)">导入</a>');
+					  
 				  
 				  action_modify.click(function(){
 					  var p_this = $(this);
@@ -737,7 +785,17 @@ function loadH3Content(h3, div, cid){
 				  });
 				  
 				  
-				  group_action.append(action_modify).append(action_delete);
+				  action_adduser.click(function(){
+					  $('.dialog_addusergroup').dialog({
+						  	modal: true,
+							title: '向分组中添加用户',
+							resizable: false,
+							width: $(document).width() * 0.3,
+						    height: $(document).height() * 0.5,
+					  });
+				  });
+				  
+				  group_action.append(action_modify).append(action_delete).append(action_adduser);
 				  
 				  group_item.append(group_name).append(group_status).append(group_usercount).append(group_action);
 				  
@@ -778,9 +836,10 @@ function loadFirstH3(){
 			  var group_usercount = $('<span></span>').text('用户:'+item.count).addClass('group_usercount');
 			  var group_action = $('<span></span>').addClass('group_action');
 			  
-			  var action_modify = $('<a gid="'+item.gid+'" class="group_action_add" href="javascript:void(0)">改</a>');
+			  var action_modify = $('<a gid="'+item.gid+'" class="group_action_modify" href="javascript:void(0)">改</a>');
 			  var action_delete = $('<a gid="'+item.gid+'" class="group_action_delete" href="javascript:void(0)">删</a>');
-			  
+			  var action_adduser = $('<a gid="'+item.gid+'" class="group_action_adduser" href="javascript:void(0)">导入</a>');
+				
 			  action_modify.click(function(){
 				  var p_this = $(this);
 				  weibo.Propmt('请输入要设置的用户数量',item.count,'设置用户数量',function(data){
@@ -818,9 +877,49 @@ function loadFirstH3(){
 				  });
 			  });
 			  
+			  action_adduser.click(function(){
+				  $('.dialog_addusergroup').dialog({
+					  	modal: true,
+						title: '向分组中添加用户',
+						resizable: false,
+						width: $(document).width() * 0.3,
+					    height: $(document).height() * 0.5,
+					    open: function(){
+					    	$('.dialog_addusergroup').find('.group_name').text(item.name);
+					    },
+					    buttons: {
+					    	'添加': function(){
+					    		var uid = $('.dialog_addusergroup').find('.uid').val();
+					    		var email = $('.dialog_addusergroup').find('.email').val();
+					    		var password = $('.dialog_addusergroup').find('.password').val();
+					    		var gid = item.gid;
+					    		
+					    		weibo.Action_3025_AddUserByGroup({
+					    			uid: uid,
+					    			email: email,
+					    			password: password,
+					    			gid: gid
+					    		},function(data){
+					    			if(data.res){
+					    				alert('添加成功');
+					    				$('.dialog_addusergroup').dialog('close');
+					    				loadCategoryInfo();
+					    			}else{
+					    				alert('添加失败');
+					    				$('.dialog_addusergroup').dialog('close');
+					    			}
+					    		},function(err){
+					    			alert('添加失败');
+					    			console.debug(err);
+					    		});
+					    		
+					    	}
+					    }
+				  });
+			  });
 			  
-			  group_action.append(action_modify).append(action_delete);
-			  
+			  group_action.append(action_modify).append(action_delete).append(action_adduser);
+			 
 			  group_item.append(group_name).append(group_status).append(group_usercount).append(group_action);
 			  
 			  first_div.append(group_item);

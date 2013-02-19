@@ -221,6 +221,48 @@ public class AccountModel extends SuperModel {
 		return result != -1;
 	}
 	/**
+	 * 插入account对象
+	 * @param ttid
+	 * @return
+	 */
+	public boolean InsertAccountByGid(AccountBean bean, int gid){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = -1;
+		
+		
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return false;
+		}
+		if(bean == null || bean.getUid() == 0){
+			PshLogger.logger.error("AccountBean uid is 0");
+			return false;
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("insert into wb_account(uid,email,password,gid) values(?,?,?,?)");
+			pstmt.setLong(1, bean.getUid());
+			pstmt.setString(2, bean.getEmail());
+			pstmt.setString(3, bean.getPassword());
+			pstmt.setInt(4, gid);
+			
+			result = pstmt.executeUpdate();
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return result != -1;
+	}
+	/**
 	 * 根据uid，获取用户对象
 	 * @param ttid
 	 * @return

@@ -194,7 +194,36 @@ var weibo = {
 		}).send(Before);
 		
 	},
-
+	Action_3025_AddUserByGroup:function(opts, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3025,
+			Success:Success,
+			prm:{
+				uid: opts.uid,
+				email: opts.email,
+				password: opts.password,
+				gid: opts.gid
+			},
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3026_ForwardMessage:function(opts, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3025,
+			Success:Success,
+			prm:{
+				uid: opts.uid,
+				mid: opts.mid,
+				content: opts.content
+			},
+			Error:Error
+		}).send(Before);
+		
+	}
+	
 
 		
 		
