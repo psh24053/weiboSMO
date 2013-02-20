@@ -43,11 +43,6 @@ function onClick_editorContent_forward(obj, uid){
 	var rowItem = $('#tabs_3_table').jqGrid('getRowData',uid);
 	var con = $(obj).parent().text().substring(2);
 	
-	if(!rowItem.target){
-		alert('请先指定@目标用户!');
-		return;
-	}
-	
 	
 	$('.dialog_editorcontent').dialog({
 		modal: true,
@@ -223,80 +218,71 @@ function onClick_getTargetForward_forward(){
 		alert('没有加载账号信息或该分组没有账号数据！');
 		return;
 	}
-	$('.dialog_searchtargetuser').dialog({
+	$('.dialog_getforwardsource').dialog({
 		modal: true,
-		title: '获取@目标用户',
+		title: '获取转发目标',
 		resizable: false,
-		width: $(document).width() * 0.4,
-	    height: $(document).height() * 0.7,
+		width: $(document).width() * 0.5,
+	    height: $(document).height() * 0.85,
 	    open: function(){
 	    },
+	    create: function(){
+	    	$('#dialog_getforwardsource_table').jqGrid({
+	    		datatype: "local",
+	    		height: 420,
+	    		colNames:['mid','内容','时间','dataStore'],
+	    	   	colModel:[
+	    	   		{name:'mid',index:'mid', width:20, align:'center', sortable:false},
+	    	   		{name:'content',index:'content', width:40, align:'center', sortable:false},
+	    	   		{name:'time',index:'time', width:40 , sortable:false},
+	    	   		{name:'dataStore',index:'dataStore',hidden:true}
+	    	   	],
+	    	   	rownumbers:true,
+	    	   	multiselect: true,
+	       		rowNum: 50,
+	       	   	pager: "#dialog_getforwardsource_pager",
+	       	 	viewrecords: true,
+	       	   	width: $(document).width() * 0.45,
+	       	 	toolbar: [true,"top"],
+	       	 	loadComplete: function(){
+	       	 		initGetTargetForwardSourceToolbar();
+	       	 	}
+	    	});
+	    	
+	    	
+	    },
 	    buttons:{
-	    	'搜索':function(){
-	    		var dom = $('.dialog_searchtargetuser');
-	    		var nickname = !dom.find('.nickname').val() ? '':dom.find('.nickname').val();
-	    		var info = !dom.find('.info').val() ? '':dom.find('.info').val();
-	    		var company = !dom.find('.company').val() ? '':dom.find('.company').val();
-	    		var school = !dom.find('.school').val() ? '':dom.find('.school').val();
-	    		var tags = !dom.find('.tags').val() ? '':dom.find('.tags').val();
-	    		var prov = dom.find('.prov option:checked').text() == '不限' ? '': dom.find('.prov option:checked').text();
-	    		var city = dom.find('.city option:checked').text() == '不限' ? '': dom.find('.city option:checked').text();
-	    		var sex = dom.find('.sex').val();
-	    		var age = !dom.find('.age').val() ? '':dom.find('.age').val();
-	    		var fol = !dom.find('.fol').val() ? '':dom.find('.fol').val();
-	    		var fans = !dom.find('.fans').val() ? '':dom.find('.fans').val();
-	    		var count = dom.find('.count').val();
-	    		
-	    		var wait = new weibo.WaitAlert('正在搜索...');
-	    		wait.show();
-	    		
-	    		weibo.Action_3024_SearchTargetUser({
-	    			nickName: nickname,
-	    			tag: tags,
-					school: school,
-					company: company,
-					prov: prov,
-					city: city,
-					age: age,
-					sex: sex,
-					info: info,
-					fol: fol,
-					fans: fans,
-					count: count * $('#tabs_3_table').jqGrid('getRowData').length
-	    		},function(data){
-	    			if(data.res){
-	    				var list = data.pld.list;
-	    				var s_count = data.pld.count;
-	    				wait.close();
-	    				alert('搜索到 '+s_count+' 条目标用户');
-	    				$('.dialog_searchtargetuser').dialog('close');
-	    				if(s_count == 0){
-	    					return;
-	    				}
-	    				
-	    				var rowData = $('#tabs_3_table').jqGrid('getRowData');
-	    				var z_count = s_count / count;
-	    				for(var i = 0 ; i < z_count ; i ++){
-	    					
-	    					var str = "";
-	    					for(var j = 0 ; j < count ; j ++){
-	    						str += '@' +list.pop();
-	    					}
-	    					$('#tabs_3_table').jqGrid('setRowData',rowData[i].uid,{target: str});
-	    				}
-	    				
-	    			}
-	    			
-	    			
-	    		},function(err){
-	    			wait.close();
-	    			$('.dialog_searchtargetuser').dialog('close');
-	    		});
+	    	'确定':function(){
 	    		
 	    		
 	    	}
 	    }
 	});
+	
+}
+/**
+ * 初始化获取转发目标的toolbar
+ */
+function initGetTargetForwardSourceToolbar(){
+	var toolbar = $('#t_dialog_getforwardsource_table');
+	
+	toolbar.css('padding-top','5px').css('padding-bottom','5px').css('height','auto');
+	
+	var label = $('<label></label>').text('请输入目标uid').css('margin-left','5px');
+	var input = $('<input type="text" class="source_uid" />');
+	var search = $('<button>搜索</button>').button().click(function(){
+		var uid = $(this).parent().find('.source_uid').val();
+		
+		if(uid == null || uid == undefined || uid.length == 0){
+			alert('uid不能为空');
+			return;
+		}
+		
+		alert(uid);
+		
+	});
+	
+	toolbar.append(label).append(input).append(search);
 	
 }
 /**

@@ -27,12 +27,12 @@ import com.psh.query.service.ModifyService;
 import com.psh.query.service.WeiboLoginService;
 
 
-public class ForwardMessageAction extends PshAction{
+public class AttentionUserAction extends PshAction{
 	
-	public ForwardMessageAction(){
+	public AttentionUserAction(){
 		
-		super.code = 3026;
-		super.name = "ForwardMessageAction";
+		super.code = 3027;
+		super.name = "AttentionUserAction";
 		
 	}
 	
@@ -59,26 +59,6 @@ public class ForwardMessageAction extends PshAction{
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE);
 		}
-		String content = null;
-		
-		try {
-			content = parameter.getString("content");	
-		} catch (JSONException e) {
-			PshLogger.logger.error("Missing: \"content\"" );
-			PshLogger.logger.error(e.getMessage());
-			return generator.toError(parser, 
-					ErrorCode.ERROR_CODE);
-		}
-		String mid = null;
-		
-		try {
-			mid = parameter.getString("mid");	
-		} catch (JSONException e) {
-			PshLogger.logger.error("Missing: \"mid\"" );
-			PshLogger.logger.error(e.getMessage());
-			return generator.toError(parser, 
-					ErrorCode.ERROR_CODE);
-		}
 		
 		JSONObject payload = new JSONObject();
 		AccountModel accountmodel = new AccountModel();
@@ -88,14 +68,14 @@ public class ForwardMessageAction extends PshAction{
 		if(!weiboLogin.Login()){
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
-					"error, reason: 转发资料失败,登录失败");
+					"error, reason: 关注失败,登录失败");
 		}
 		
 		
-		if(!weiboLogin.forward(content, mid)){
+		if(!weiboLogin.attention(uid)){
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
-					"error, reason: 转发失败");
+					"error, reason: 关注失败");
 		}
 		
 		return generator.toSuccess(parser, payload);
