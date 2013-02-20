@@ -2,7 +2,7 @@ package com.psh.query.bean;
 
 import com.psh.query.model.SuperModel;
 
-public class MsgBean {
+public class MsgBean extends SuperModel {
 
 	private String mid;
 	private String type;

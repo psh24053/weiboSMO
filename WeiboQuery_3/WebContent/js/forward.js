@@ -268,21 +268,35 @@ function initGetTargetForwardSourceToolbar(){
 	
 	toolbar.css('padding-top','5px').css('padding-bottom','5px').css('height','auto');
 	
-	var label = $('<label></label>').text('请输入目标uid').css('margin-left','5px');
-	var input = $('<input type="text" class="source_uid" />');
+	var labeluid = $('<label></label>').text('请输入目标uid').css('margin-left','5px');
+	var uid = $('<input type="text" class="source_uid" />');
+	var labelcount = $('<label></label>').text('数量').css('margin-left','5px');
+	var count = $('<input type="number" class="source_count" />');
 	var search = $('<button>搜索</button>').button().click(function(){
-		var uid = $(this).parent().find('.source_uid').val();
-		
+		var uidVal = $(this).parent().find('.source_uid').val();
+		var countVal = $(this).parent().find('.source_count').val();
 		if(uid == null || uid == undefined || uid.length == 0){
 			alert('uid不能为空');
 			return;
 		}
+		if(countVal == null || countVal == undefined || countVal < 1){
+			alert('数量不能为空且不能小于1');
+			return;
+		}
 		
-		alert(uid);
+		weibo.Action_3028_SearchWeiboByUid({
+			uid: uidVal,
+			count: countVal
+		},function(data){
+			console.debug(data);
+		},function(err){
+			console.debug(err);
+		});
+		
 		
 	});
 	
-	toolbar.append(label).append(input).append(search);
+	toolbar.append(labeluid).append(uid).append(labelcount).append(count).append(search);
 	
 }
 /**
