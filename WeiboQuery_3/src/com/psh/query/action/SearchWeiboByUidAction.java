@@ -1,5 +1,6 @@
 package com.psh.query.action;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.psh.base.common.PshAction;
@@ -81,7 +82,28 @@ public class SearchWeiboByUidAction extends PshAction{
 					ErrorCode.ERROR_CODE, 
 					"error, reason: 读取资料失败,登录失败");
 		}
-		List<MsgBean> data = weiboLogin.searchUid(uid, count);
+		
+		List<MsgBean> data = new ArrayList<MsgBean>();
+		
+		for(int i = 0 ; i < 1000 ; i++){
+			
+			List<MsgBean> data_1 = weiboLogin.searchUid(uid,i+1);
+			if(data_1 == null){
+				//页数已超过用户
+				break;
+			}
+			if(data_1.size() == 0){
+				continue;
+			}
+			data.addAll(data_1);
+			if(data.size() >= count){
+				break;
+			}
+		}
+		
+		
+		data = data.subList(0, count);
+		
 		JSONArray list = new JSONArray();
 		
 		try {

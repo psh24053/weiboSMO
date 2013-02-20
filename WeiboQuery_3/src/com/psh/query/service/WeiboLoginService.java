@@ -1490,12 +1490,12 @@ public class WeiboLoginService {
 	 * @param uid
 	 * @return
 	 */
-	public List<MsgBean> searchUid(long uid, int count){
+	public List<MsgBean> searchUid(long uid, int page){
 		String contentUrl = null;
 		if(account.getUid() == uid){
-			contentUrl = "http://weibo.com/"+uid+"/profile";
+			contentUrl = "http://weibo.com/"+uid+"/profile?page=" + page;
 		}else{
-			contentUrl = "http://weibo.com/u/"+uid;
+			contentUrl = "http://weibo.com/u/"+uid +"?page=" + page;
 		}
 		
 		HttpPost httpPost = new HttpPost(contentUrl);
@@ -1519,6 +1519,10 @@ public class WeiboLoginService {
 		}
 				
 		String result = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
+		
+		if(result == null || result.equals("")){
+			return null;
+		}
 		
 		result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
 		result = result.replace('\\','`');
@@ -1578,7 +1582,7 @@ public class WeiboLoginService {
 		
 		List<MsgBean> freshList_1 = new ArrayList<MsgBean>();
 		
-		freshList_1 = getMsgMouseRollEvent(uid, 0);
+		freshList_1 = getMsgMouseRollEvent(uid, 0,page);
 		
 		if(freshList_1 == null || freshList_1.size() == 0){
 			return list;
@@ -1588,7 +1592,7 @@ public class WeiboLoginService {
 		
 		List<MsgBean> freshList_2 = new ArrayList<MsgBean>();
 		
-		freshList_2 = getMsgMouseRollEvent(uid, 1);
+		freshList_2 = getMsgMouseRollEvent(uid, 1,page);
 		
 		
 		if(freshList_2 == null || freshList_2.size() == 0){
@@ -1606,9 +1610,9 @@ public class WeiboLoginService {
 	 * @param uid
 	 * @return
 	 */
-	public List<MsgBean> getMsgMouseRollEvent(long uid,int pageBar){
+	public List<MsgBean> getMsgMouseRollEvent(long uid,int pageBar,int page){
 		
-		HttpPost httpPost = new HttpPost("http://weibo.com/aj/mblog/mbloglist?_wv=5&page=1&count=15&pre_page=1&pagebar=" + pageBar + "&_k=13612872994886" + pageBar + "&uid=" + uid + "&_t=0");
+		HttpPost httpPost = new HttpPost("http://weibo.com/aj/mblog/mbloglist?_wv=5&page=" + page + "&count=15&pre_page=1&pagebar=" + pageBar + "&_k=13612872994886" + pageBar + "&uid=" + uid + "&_t=0");
 		httpPost.addHeader("Referer", "http://weibo.com/u/" + uid);
 		HttpResponse httpResponse = null;
 		List<MsgBean> list = new ArrayList<MsgBean>();
