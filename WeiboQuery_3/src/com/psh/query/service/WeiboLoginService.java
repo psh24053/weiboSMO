@@ -1796,7 +1796,6 @@ public class WeiboLoginService {
 			System.out.println("time :" + msg.getTime());
 			list.add(msg);
 		}
-		
 		List<MsgBean> freshList_1 = new ArrayList<MsgBean>();
 		
 		freshList_1 = getMsgMouseRollEvent(uid, 0,page);

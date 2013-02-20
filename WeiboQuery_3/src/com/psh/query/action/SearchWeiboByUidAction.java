@@ -90,6 +90,7 @@ public class SearchWeiboByUidAction extends PshAction{
 		for(int i = 0 ; i < 1000 ; i++){
 			
 			List<MsgBean> data_1 = weiboLogin.searchUid(uid,i+1);
+			System.err.println(data_1.size());
 			if(data_1 == null){
 				//页数已超过用户
 				break;
@@ -99,12 +100,12 @@ public class SearchWeiboByUidAction extends PshAction{
 			}
 			data.addAll(data_1);
 			if(data.size() >= count){
+				data = data.subList(0, count);
 				break;
 			}
 		}
 		
 		
-		data = data.subList(0, count);
 		
 		JSONArray list = new JSONArray();
 		
