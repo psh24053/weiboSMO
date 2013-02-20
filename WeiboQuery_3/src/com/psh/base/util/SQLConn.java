@@ -17,13 +17,13 @@ public class SQLConn {
 	
 	private static SQLConn instance = null;
 	
-	private static String databaseUrl = "jdbc:mysql://127.0.0.1/wbdb_beifen?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&maxReconnects=5";
+	private static String databaseUrl = "jdbc:mysql://127.0.0.1/wbdb?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&maxReconnects=5";
 	
 	private static String driverClassName = "com.mysql.jdbc.Driver";
 	
 	private static String databaseUserName = "root";
 	
-	private static String databaseUserPassword = "tiger";
+	private static String databaseUserPassword = "root";
 	
 	private static DataSource datasource = null;
 	

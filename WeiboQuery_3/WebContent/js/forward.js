@@ -230,12 +230,11 @@ function onClick_getTargetForward_forward(){
 	    	$('#dialog_getforwardsource_table').jqGrid({
 	    		datatype: "local",
 	    		height: 420,
-	    		colNames:['mid','内容','时间','dataStore'],
+	    		colNames:['mid','内容','时间'],
 	    	   	colModel:[
 	    	   		{name:'mid',index:'mid', width:20, align:'center', sortable:false},
 	    	   		{name:'content',index:'content', width:40, align:'center', sortable:false},
-	    	   		{name:'time',index:'time', width:40 , sortable:false},
-	    	   		{name:'dataStore',index:'dataStore',hidden:true}
+	    	   		{name:'time',index:'time', width:40 , sortable:false}
 	    	   	],
 	    	   	rownumbers:true,
 	    	   	multiselect: true,
@@ -253,7 +252,9 @@ function onClick_getTargetForward_forward(){
 	    },
 	    buttons:{
 	    	'确定':function(){
+	    		var selarrrow = $('#dialog_getforwardsource_table').jqGrid('getGridParam','selarrrow');
 	    		
+	    		console.debug(selarrrow);
 	    		
 	    	}
 	    }
@@ -295,9 +296,7 @@ function initGetTargetForwardSourceToolbar(){
 			if(data.res){
 				var list = data.pld.list;
 				$('#dialog_getforwardsource_table').jqGrid('clearGridData');
-				
-				
-				
+				$('#dialog_getforwardsource_table').jqGrid('addRowData', 'mid', list);
 			}
 			
 			wait.close();
