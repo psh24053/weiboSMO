@@ -1549,9 +1549,13 @@ public class WeiboLoginService {
 			}
 			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").size() > 0){
 				
-				msg.setCon(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").get(0).text());
+				String contentChinese = elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").get(0).text();
+				
+				contentChinese = HtmlTools.decodeUnicode(contentChinese);
+				
+				msg.setCon(contentChinese);
 			}
-			System.out.println("content :" + msg.getCon().replaceAll("u", "\\u"));
+			System.out.println("content :" + msg.getCon());
 			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").size() > 0){
 				
 				msg.setImage(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").get(0).attr("src"));
