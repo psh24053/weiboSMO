@@ -1491,6 +1491,8 @@ public class WeiboLoginService {
 	 * @return
 	 */
 	public List<MsgBean> searchUid(long uid, int count){
+		
+		
 		HttpPost httpPost = new HttpPost("http://weibo.com/u/"+uid);
 		httpPost.addHeader("Referer", "http://weibo.com/");
 		HttpResponse httpResponse = null;
@@ -1510,10 +1512,8 @@ public class WeiboLoginService {
 			PshLogger.logger.error("searchUid httpResponse is null");
 			return list;
 		}
-		
-		String result = HtmlTools.getHtmlByBr(httpResponse);
-		
-		System.out.println(result);
+				
+		String result = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
 		
 		result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
 		result = result.replace('\\','`');
@@ -1551,7 +1551,7 @@ public class WeiboLoginService {
 				
 				msg.setCon(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").get(0).text());
 			}
-			System.out.println("content :" + msg.getCon());
+			System.out.println("content :" + msg.getCon().replaceAll("u", "\\u"));
 			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").size() > 0){
 				
 				msg.setImage(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").get(0).attr("src"));
@@ -1568,10 +1568,129 @@ public class WeiboLoginService {
 			list.add(msg);
 		}
 		
+		List<MsgBean> freshList_1 = new ArrayList<MsgBean>();
+		
+		freshList_1 = getMsgMouseRollEvent(uid, 0);
+		
+		if(freshList_1 == null || freshList_1.size() == 0){
+			return list;
+		}
+		
+		list.addAll(freshList_1);
+		
+		List<MsgBean> freshList_2 = new ArrayList<MsgBean>();
+		
+		freshList_2 = getMsgMouseRollEvent(uid, 1);
+		
+		
+		if(freshList_2 == null || freshList_2.size() == 0){
+			return list;
+		}
+		
+		list.addAll(freshList_2);
+		
 		
 		return list;
 	}
 	
+	/**
+	 * 获取刷新的
+	 * @param uid
+	 * @return
+	 */
+	public List<MsgBean> getMsgMouseRollEvent(long uid,int pageBar){
+		
+		HttpPost httpPost = new HttpPost("http://weibo.com/aj/mblog/mbloglist?_wv=5&page=1&count=15&pre_page=1&pagebar=" + pageBar + "&_k=13612872994886" + pageBar + "&uid=" + uid + "&_t=0");
+		httpPost.addHeader("Referer", "http://weibo.com/u/" + uid);
+		HttpResponse httpResponse = null;
+		List<MsgBean> list = new ArrayList<MsgBean>();
+		
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return list;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return list;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("searchUid httpResponse is null");
+			return list;
+		}
+				
+		String JsonResult = HtmlTools.getHtmlByBr(httpResponse);
+		
+		JSONObject json = null;
+		try {
+			json = new JSONObject(JsonResult);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String result = "";
+		try {
+			result = json.getString("data").toString();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+		result = result.replace('\\','`');
+		result = result.replaceAll("`n", "");
+		result = result.replaceAll("`t", "");
+		result = result.replaceAll("`r", "");
+		result = result.replaceAll("`", "");
+		result = "<html><body>" + result + "</body></html>";
+		
+		Document doc = Jsoup.parse(result);
+		
+		Elements elements = doc.getElementsByAttribute("mid");
+		System.out.println(elements.size());
+		
+		List<MsgBean> msgList = new ArrayList<MsgBean>();
+		//遍历每页的用户
+		for(int i = 0 ; i < elements.size() ; i ++){
+			
+			MsgBean msg = new MsgBean();
+			if(elements.get(i).attr("class").equals("WB_handle")){
+				continue;
+			}
+			msg.setMid(elements.get(i).attr("mid"));
+			if(msg.getMid().equals("") || msg.getMid() == null){
+				continue;
+			}
+			System.out.println("mid :" + msg.getMid());
+			if(elements.get(i).attr("isforward") == null || elements.get(i).attr("isforward").equals("")){
+				
+			}else{
+				msg.setType("1");
+				System.out.println("type :" + msg.getType());
+			}
+			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").size() > 0){
+				
+				msg.setCon(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").get(0).text());
+			}
+			System.out.println("content :" + msg.getCon());
+			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").size() > 0){
+				
+				msg.setImage(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").get(0).attr("src"));
+				System.out.println("Image :" + msg.getImage());
+			}
+			
+			if(elements.get(i).getElementsByAttribute("date").size() > 0){
+				
+				msg.setTime(elements.get(i).getElementsByAttribute("date").get(0).text());
+			}else if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_item_date").size() > 0){
+				msg.setTime(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_item_date").get(0).text());
+			}
+			System.out.println("time :" + msg.getTime());
+			msgList.add(msg);
+		}
+		
+		return list;
+	}
 	
 	/**
 	 * @param args
@@ -1611,11 +1730,12 @@ public class WeiboLoginService {
 //		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
-//		l.searchUid(2363715054l, 0);
+		l.searchUid(1661461070l, 0);
+//		l.getMsgMouseRollEvent(2363715054l, 0);
 //		l.attention(3154924132l);
 //		l.forward("转发一个试试", "3547483110422351");
 //		l.modifyInfo(null);
-		l.SendWeibo("今天真J8累啊");
+//		l.SendWeibo("今天真J8累啊");
 		
 		
 //		
