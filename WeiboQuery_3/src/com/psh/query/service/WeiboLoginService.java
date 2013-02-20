@@ -1801,6 +1801,7 @@ public class WeiboLoginService {
 		freshList_1 = getMsgMouseRollEvent(uid, 0,page);
 		
 		if(freshList_1 == null || freshList_1.size() == 0){
+			System.out.println("fresh1 is null____________");
 			return list;
 		}
 		
@@ -1812,12 +1813,13 @@ public class WeiboLoginService {
 		
 		
 		if(freshList_2 == null || freshList_2.size() == 0){
+			System.out.println("fresh2 is null____________");
 			return list;
 		}
 		
 		list.addAll(freshList_2);
 		
-		
+		System.out.println("in list size *************" + list.size());
 		return list;
 	}
 	
@@ -1877,7 +1879,6 @@ public class WeiboLoginService {
 		Elements elements = doc.getElementsByAttribute("mid");
 		System.out.println(elements.size());
 		
-		List<MsgBean> msgList = new ArrayList<MsgBean>();
 		//遍历每页的用户
 		for(int i = 0 ; i < elements.size() ; i ++){
 			
@@ -1914,7 +1915,7 @@ public class WeiboLoginService {
 				msg.setTime(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_item_date").get(0).text());
 			}
 			System.out.println("time :" + msg.getTime());
-			msgList.add(msg);
+			list.add(msg);
 		}
 		
 		return list;
@@ -1958,10 +1959,10 @@ public class WeiboLoginService {
 //		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
-		l.searchUid(2363715054l, 1);
+//		l.searchUid(2363715054l, 1);
 //		l.searchKeywordPageNumber("http://s.weibo.com/weibo/哈哈&Refer=index");
 //		l.searchKeyword("哈哈", 10);
-//		l.getMsgMouseRollEvent(2363715054l, 0);
+		l.getMsgMouseRollEvent(2363715054l, 0,1);
 //		l.attention(3154924132l);
 //		l.forward("转发一个试试", "3547483110422351");
 //		l.modifyInfo(null);
