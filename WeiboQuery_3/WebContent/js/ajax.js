@@ -234,9 +234,24 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
+	},
+	Action_3028_SearchWeiboByUid:function(opts, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3028,
+			Success:Success,
+			prm:{
+				uid: opts.uid,
+				count: opts.count
+			},
+			Error:Error
+		}).send(Before);
+		
 	}
 	
 	
+	
+
 
 		
 		

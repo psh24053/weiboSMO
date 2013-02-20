@@ -9,6 +9,9 @@ import java.sql.SQLException;
 import java.sql.Wrapper;
 import java.util.HashMap;
 
+import com.psh.base.json.JSONException;
+import com.psh.base.json.JSONObject;
+
 public class SuperModel implements Serializable {
 
 	public Serializable data = new HashMap();
@@ -75,6 +78,31 @@ public class SuperModel implements Serializable {
 		
 		
 		return super.toString()+"   "+str;
+	}
+	
+	public JSONObject toJSON() {
+		// TODO Auto-generated method stub
+		String str = "";
+		Field[] fields = getClass().getDeclaredFields();
+		JSONObject json = new JSONObject();
+		
+		for(Field f : fields){
+			try {
+				json.put(f.getName(), f.get(this));
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return json;
+		
 	}
 	
 	
