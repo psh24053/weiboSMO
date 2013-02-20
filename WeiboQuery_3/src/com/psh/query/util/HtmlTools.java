@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -461,6 +462,26 @@ public class HtmlTools {
 		}
 		
 		return result;
+	}
+	public static void writeFile(HttpResponse httpResponse, String path){
+		String content = getHtmlByBr(httpResponse);
+		
+		File file = new File(path);
+		
+		try {
+			FileOutputStream out = new FileOutputStream(file);
+			out.write(content.getBytes());
+			out.flush();
+			out.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 	}
 	/**
 	 * 获取html,String支持换行

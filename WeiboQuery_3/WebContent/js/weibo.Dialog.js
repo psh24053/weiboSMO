@@ -54,6 +54,7 @@ weibo.Confirm = function(str, tit, onResult){
 	});
 	
 };
+weibo.WaitArray = new Array();
 /**
  * 等待窗口组件
  */
@@ -83,6 +84,7 @@ weibo.WaitAlert = function(str, tit, id){
 	}
 	
 	this.show = function(){
+		this.closeAll();
 		
 		this.dom.attr('times',this.times).css('text-align','center').css('width','100%').css('margin-top','10px').html(str+"<br /><br /><img src='Image/ajax-loader.gif'>").dialog({
 			modal: true,
@@ -92,6 +94,8 @@ weibo.WaitAlert = function(str, tit, id){
 		});
 		
 		$('.ui-dialog-title:contains('+tit+')').parent().remove();
+
+		weibo.WaitArray.push(this);
 	};
 	
 	this.setText = function(txt){
@@ -102,7 +106,15 @@ weibo.WaitAlert = function(str, tit, id){
 		
 		$('div[times='+this.times+']').dialog( "close" );
 		$('div[times='+this.times+']').remove();
+		
 	};
+	this.closeAll = function(){
+		for(var i = 0 ; i < weibo.WaitArray.length ; i ++){
+			weibo.WaitArray.pop().close();
+		}
+	};
+	
+	
 };
 /**
  * Propmt组件

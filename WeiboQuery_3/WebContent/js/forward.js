@@ -284,13 +284,26 @@ function initGetTargetForwardSourceToolbar(){
 			return;
 		}
 		
+		var wait =new weibo.WaitAlert('正在搜索...');
+		wait.show();
+		
 		weibo.Action_3028_SearchWeiboByUid({
 			uid: uidVal,
 			count: countVal
 		},function(data){
 			console.debug(data);
+			if(data.res){
+				var list = data.pld.list;
+				$('#dialog_getforwardsource_table').jqGrid('clearGridData');
+				
+				
+				
+			}
+			
+			wait.close();
 		},function(err){
-			console.debug(err);
+			alert('搜索失败');
+			wait.close();
 		});
 		
 		

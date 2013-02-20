@@ -1491,9 +1491,14 @@ public class WeiboLoginService {
 	 * @return
 	 */
 	public List<MsgBean> searchUid(long uid, int count){
+		String contentUrl = null;
+		if(account.getUid() == uid){
+			contentUrl = "http://weibo.com/"+uid+"/profile";
+		}else{
+			contentUrl = "http://weibo.com/u/"+uid;
+		}
 		
-		
-		HttpPost httpPost = new HttpPost("http://weibo.com/u/"+uid);
+		HttpPost httpPost = new HttpPost(contentUrl);
 		httpPost.addHeader("Referer", "http://weibo.com/");
 		HttpResponse httpResponse = null;
 		List<MsgBean> list = new ArrayList<MsgBean>();
@@ -1524,8 +1529,7 @@ public class WeiboLoginService {
 		result = "<html><body>" + result + "</body></html>";
 		System.out.println(result);
 		
-		Document doc = Jsoup.parse(result);
-		
+		Document doc = Jsoup.parse(result,"UTF-8");
 		Elements elements = doc.getElementsByAttribute("mid");
 		System.out.println(elements.size());
 		
@@ -1555,7 +1559,7 @@ public class WeiboLoginService {
 				
 				msg.setCon(contentChinese);
 			}
-			System.out.println("content :" + msg.getCon());
+			System.out.println("contentsss :" + msg.getCon());
 			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").size() > 0){
 				
 				msg.setImage(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").get(0).attr("src"));
@@ -1734,7 +1738,7 @@ public class WeiboLoginService {
 //		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
-		l.searchUid(1661461070l, 0);
+		l.searchUid(2363715054l, 0);
 //		l.getMsgMouseRollEvent(2363715054l, 0);
 //		l.attention(3154924132l);
 //		l.forward("转发一个试试", "3547483110422351");
