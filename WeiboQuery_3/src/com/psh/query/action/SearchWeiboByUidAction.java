@@ -86,7 +86,12 @@ public class SearchWeiboByUidAction extends PshAction{
 		
 		try {
 			for(int i = 0 ; i < data.size() ; i ++){
-				list.put(data.get(i).toJSON());
+				JSONObject json = new JSONObject();
+				json.put("mid", data.get(i).getMid());
+				json.put("time", data.get(i).getTime());
+				json.put("content", data.get(i).getCon());
+				
+				list.put(json);
 			}
 			payload.put("list", list);
 		} catch (JSONException e) {
