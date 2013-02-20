@@ -1477,12 +1477,160 @@ public class WeiboLoginService {
 	public List<MsgBean> getLetter(String mid){
 		return null;
 	}
+	
+	/**
+	 * 根据关键字搜索内容的页数
+	 */
+	public int searchKeywordPageNumber(String keyword){
+		
+		int pageNumber = -1;
+		
+		HttpPost httpPost = new HttpPost("http://s.weibo.com/weibo/" + keyword + "&Refer=index");
+		httpPost.addHeader("Referer", "http://s.weibo.com/?topnav=1&wvr=5");
+		HttpResponse httpResponse = null;
+		
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return pageNumber;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return pageNumber;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("searchUid httpResponse is null");
+			return -1;
+		}
+				
+		String result = HtmlTools.getHtmlByBr(httpResponse, false, "search_page clearfix");
+		
+		if(result == null || result.equals("")){
+			return -1;
+		}
+		
+		
+		result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+		result = result.replace('\\','`');
+		result = result.replaceAll("`n", "");
+		result = result.replaceAll("`t", "");
+		result = result.replaceAll("`r", "");
+		result = result.replaceAll("`", "");
+		result = "<html><body>" + result + "</body></html>";
+		System.out.println(result);
+		
+		Document doc = Jsoup.parse(result);
+		
+		Elements elements = doc.getElementsByAttributeValue("class", "search_page_M");
+		System.out.println(elements.size());
+		
+		String resultStringPage = "-1";
+		
+		if(elements.size() > 0){
+			
+			System.out.println(elements.get(0).getElementsByTag("li").size());
+			Elements elements_1 = elements.get(0).getElementsByTag("li");
+			
+			resultStringPage = elements_1.get(elements_1.size() - 2).text();
+			System.out.println(resultStringPage);
+			
+		}
+		
+		return Integer.parseInt(resultStringPage);
+		
+	}
+	
 	/**
 	 * 根据关键字搜索内容列表
 	 * @param keyword
 	 * @return
 	 */
 	public List<MsgBean> searchKeyword(String keyword, int count){
+		
+		List<MsgBean> list = new ArrayList<MsgBean>();
+		
+		int pageNumber = searchKeywordPageNumber(keyword);
+		
+		for(int i = 0 ; i < pageNumber; i++){
+			
+			HttpPost httpPost = new HttpPost("http://s.weibo.com/weibo/" + keyword + "&Refer=index&page=" + (i + 1));
+			httpPost.addHeader("Referer", "http://s.weibo.com/?topnav=1&wvr=5");
+			HttpResponse httpResponse = null;
+			
+			try {
+				httpResponse = httpClient.execute(httpPost);
+			} catch (ClientProtocolException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			} catch (IOException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			}
+			
+			if(httpResponse == null){
+				PshLogger.logger.error("searchUid httpResponse is null");
+				return list;
+			}
+			
+			String result = HtmlTools.getHtmlByBr(httpResponse, false, "feed_lists W_linka W_texta");
+			
+			if(result == null || result.equals("")){
+				return list;
+			}
+			
+			result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+			result = result.replace('\\','`');
+			result = result.replaceAll("`n", "");
+			result = result.replaceAll("`t", "");
+			result = result.replaceAll("`r", "");
+			result = result.replaceAll("`", "");
+			result = "<html><body>" + result + "</body></html>";
+			System.out.println(result);
+			
+			Document doc = Jsoup.parse(result,"UTF-8");
+			
+			Elements elements = doc.getElementsByAttributeValue("class", "feed_list");
+			System.out.println(elements.size());
+			
+			List<MsgBean> msgList = new ArrayList<MsgBean>();
+			//遍历每页的用户
+			for(int j = 0 ; j < elements.size() ; j ++){
+				
+				MsgBean msg = new MsgBean();
+				msg.setMid(elements.get(j).attr("mid"));
+				System.out.println(msg.getMid());
+				if(elements.get(j).attr("isforward") == null || elements.get(j).attr("isforward").equals("")){
+					
+				}else{
+					msg.setType("1");
+				}
+				String usercard = elements.get(j).getElementsByAttribute("nick-name").get(0).attr("usercard");
+				msg.setUid(Long.parseLong(usercard.substring(usercard.indexOf("=")+1, usercard.indexOf("&"))));
+				System.out.println(msg.getUid());
+				msg.setCon(elements.get(j).getElementsByTag("em").get(0).text());
+				System.out.println(msg.getCon());
+				if(elements.get(j).getElementsByClass("bigcursor").size() > 0){
+					
+					msg.setImage(elements.get(j).getElementsByClass("bigcursor").get(0).attr("src"));
+					System.out.println(msg.getImage());
+				}
+				
+				msg.setTime(elements.get(j).getElementsByClass("date").get(0).text());
+				System.out.println(msg.getTime());
+				msgList.add(msg);
+			}
+			
+			list.addAll(msgList);
+			if(list.size() >= count){
+				
+				return list.subList(0, count);
+				
+			}
+			
+		}
+		
+		
 		return null;
 	}
 	/**
@@ -1742,7 +1890,9 @@ public class WeiboLoginService {
 //		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
-		l.searchUid(2363715054l, 0);
+//		l.searchUid(2363715054l, 0);
+//		l.searchKeywordPageNumber("http://s.weibo.com/weibo/哈哈&Refer=index");
+		l.searchKeyword("哈哈", 10);
 //		l.getMsgMouseRollEvent(2363715054l, 0);
 //		l.attention(3154924132l);
 //		l.forward("转发一个试试", "3547483110422351");

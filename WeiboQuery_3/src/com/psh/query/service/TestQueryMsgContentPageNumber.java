@@ -36,9 +36,9 @@ import com.psh.query.bean.UserBean;
 import com.psh.query.bean.UserQueryTaskBean;
 import com.psh.query.util.ProxyManager;
 
-public class TestQueryMsgContent {
+public class TestQueryMsgContentPageNumber {
 	
-	public void getFirstQuery(){
+	public void getFirstQueryNumber(){
 		
 		PoolingClientConnectionManager connectionManager = new PoolingClientConnectionManager();
 		connectionManager.setMaxTotal(2000);
@@ -68,9 +68,6 @@ public class TestQueryMsgContent {
 		httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0");
 		
 		//0级遍历
-		for(int j = 0 ; j <= 1 ; j++){
-			
-			
 			headerList.add(new BasicHeader("Host", "s.weibo.com"));
 			headerList.add(new BasicHeader("Origin", "s.weibo.com"));
 			headerList.add(new BasicHeader("Referer", "	http://s.weibo.com/?topnav=1&wvr=5"));
@@ -83,7 +80,7 @@ public class TestQueryMsgContent {
 //			System.out.println("拿到代理IP" + proxy.getIp());
 //			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
 			
-			HttpPost httpPost = new HttpPost("http://s.weibo.com/weibo/%25E5%25BE%2588%25E5%25A5%25BD&Refer=index");
+			HttpPost httpPost = new HttpPost("http://s.weibo.com/weibo/%25E5%2593%2588%25E5%2593%2588&Refer=index");
 			
 			HttpResponse httpResponse = null;
 			try {
@@ -112,7 +109,7 @@ public class TestQueryMsgContent {
 			
 			try {
 				while((item = in.readLine()) != null){
-					if(item.trim().indexOf("feed_lists W_linka W_texta") != -1){
+					if(item.trim().indexOf("search_page clearfix") != -1){
 						result = item.trim();
 					}
 				}
@@ -133,7 +130,6 @@ public class TestQueryMsgContent {
 
 			}
 			
-			System.out.println(result);
 			System.out.println("已获取到 html");
 			result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
 			result = result.replace('\\','`');
@@ -146,46 +142,24 @@ public class TestQueryMsgContent {
 			
 			Document doc = Jsoup.parse(result);
 			
-			Elements elements = doc.getElementsByAttributeValue("class", "feed_list");
+			Elements elements = doc.getElementsByAttributeValue("class", "search_page_M");
 			System.out.println(elements.size());
 			
-			List<MsgBean> msgList = new ArrayList<MsgBean>();
-			//遍历每页的用户
-			for(int i = 0 ; i < elements.size() ; i ++){
+			if(elements.size() > 0){
 				
-				MsgBean msg = new MsgBean();
-				msg.setMid(elements.get(i).attr("mid"));
-				System.out.println(msg.getMid());
-				if(elements.get(i).attr("isforward") == null || elements.get(i).attr("isforward").equals("")){
-					
-				}else{
-					msg.setType("1");
-				}
-				String usercard = elements.get(i).getElementsByAttribute("nick-name").get(0).attr("usercard");
-				msg.setUid(Long.parseLong(usercard.substring(usercard.indexOf("=")+1, usercard.indexOf("&"))));
-				System.out.println(msg.getUid());
-				msg.setCon(elements.get(i).getElementsByTag("em").get(0).text());
-				System.out.println("span -------------" + elements.get(i).getElementsByTag("em").get(0).tagName("span").text());
-				System.out.println(msg.getCon());
-				if(elements.get(i).getElementsByClass("bigcursor").size() > 0){
-					
-					msg.setImage(elements.get(i).getElementsByClass("bigcursor").get(0).attr("src"));
-					System.out.println(msg.getImage());
-				}
+				System.out.println(elements.get(0).getElementsByTag("li").size());
+				Elements elements_1 = elements.get(0).getElementsByTag("li");
 				
-				msg.setTime(elements.get(i).getElementsByClass("date").get(0).text());
-				System.out.println(msg.getTime());
-				msgList.add(msg);
+				System.out.println(elements_1.get(elements_1.size() - 2).text());
+				
 			}
 			
-			
-		}
-		
+			//遍历每页的用户
 	}
 	
 	public static void main(String[] args) {
-		TestQueryMsgContent test = new TestQueryMsgContent();
-		test.getFirstQuery();
+		TestQueryMsgContentPageNumber test = new TestQueryMsgContentPageNumber();
+		test.getFirstQueryNumber();
 	}
 	
 }
