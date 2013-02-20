@@ -274,6 +274,7 @@ function Ajax(Settings){
 	this.Complete = function(){};
 	this.dataType = "json";
 	this.data = null;
+	this.async = true;
 	
 	if(Settings){
 		for(var key in Settings){
@@ -298,26 +299,40 @@ function Ajax(Settings){
 		if(run != undefined){
 			run();
 		}
-		if(this.Method == "post"){
-			$.post(this.Servlet,
-			JSON.stringify(this.RequestJson),
-			function(data){
+		$.ajax({
+			type: this.Method,
+			async: this.async,
+			url: this.Servlet,
+			data: JSON.stringify(this.RequestJson),
+			success: function(data){
 				this.data = data;
 
 				p_this.Success(data);
 				
-			},this.dataType).error(this.Error).complete(this.Complete);
-		}
-		if(this.Method == "get"){
-			$.get(this.Servlet,{
-				json:JSON.stringify(this.RequestJson)
-			},function(data){
-				this.data = data;
-
-				p_this.Success(data);
-
-			},this.dataType).error(this.Error).complete(this.Complete);
-		}
+			},
+			dataType: this.dataType
+		}).error(this.Error).complete(this.Complete);;
+//		if(this.Method == "post"){
+//			
+//			$.post(this.Servlet,
+//			JSON.stringify(this.RequestJson),
+//			function(data){
+//				this.data = data;
+//
+//				p_this.Success(data);
+//				
+//			},this.dataType).error(this.Error).complete(this.Complete);
+//		}
+//		if(this.Method == "get"){
+//			$.get(this.Servlet,{
+//				json:JSON.stringify(this.RequestJson)
+//			},function(data){
+//				this.data = data;
+//
+//				p_this.Success(data);
+//
+//			},this.dataType).error(this.Error).complete(this.Complete);
+//		}
 	};
 	this.set = function(key,value){
 		if(this[key]){

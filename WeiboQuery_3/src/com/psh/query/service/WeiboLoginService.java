@@ -495,11 +495,9 @@ public class WeiboLoginService {
 		}else if(scriptSize == 1){
 			// 这代表未知状态
 			System.out.println("script size = 1");
-			System.out.println(htmlAjaxLogin);
 			
 			// 得到location准备跳转
 			String url = getScriptLocationReplace(htmlAjaxLogin);
-			System.out.println("[458]");
 			System.out.println(url);
 			httpGet = new HttpGet(url);
 			try {
@@ -990,7 +988,7 @@ public class WeiboLoginService {
 		}else{
 			payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
 		}
-		
+		System.out.println(payload.responseString);
 		if(payload.responseString.contains("\"code\":\"100000\"")){
 			return true;
 		}

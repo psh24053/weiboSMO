@@ -19,6 +19,7 @@ function initStatus(){
 		localStorage.ModifyGroup = 'none';
 		localStorage.SendWeiboGroup = 'none';
 		localStorage.ForwardGroup = 'none';
+		localStorage.AttentionGroup = 'none';
 		return;
 	}
 	
@@ -137,6 +138,29 @@ function initTable(){
    	 	toolbar: [true,"top"],
    	 	loadComplete: function(){
    	 		initForward_Toolbar();
+   	 	}
+	});
+	
+	// 关注他人
+	$('#tabs_4_table').jqGrid({
+		datatype: "local",
+		height: 420,
+		colNames:['uid','邮箱','关注目标','状态','dataStore'],
+	   	colModel:[
+	   		{name:'uid',index:'uid', width:20, align:'center', sortable:false},
+	   		{name:'email',index:'email', width:40, align:'center', sortable:false},
+	   		{name:'target',index:'target', width:40 , sortable:false},
+	   		{name:'status',index:'status', width:40,align:"right",sortable:false},		
+	   		{name:'dataStore',index:'dataStore',hidden:true}
+	   	],
+	   	rownumbers:true,
+   		rowNum: 50,
+   	   	pager: "#tabs_4_pager",
+   	 	viewrecords: true,
+   	   	width: $('#tabs_1').width(),
+   	 	toolbar: [true,"top"],
+   	 	loadComplete: function(){
+   	 		initAttention_Toolbar();
    	 	}
 	});
 	

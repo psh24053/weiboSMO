@@ -91,7 +91,6 @@ public class ForwardMessageAction extends PshAction{
 					"error, reason: 转发资料失败,登录失败");
 		}
 		
-		
 		if(!weiboLogin.forward(content, mid)){
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
