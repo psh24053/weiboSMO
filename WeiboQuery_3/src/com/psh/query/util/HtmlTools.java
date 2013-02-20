@@ -385,6 +385,53 @@ public class HtmlTools {
 	 * @throws IllegalStateException
 	 * @throws IOException
 	 */
+	public static String getHtmlByBr(HttpResponse httpResponse, boolean a, String str){
+		BufferedReader in = null;
+		try {
+			in = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(),"UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String temp = "";
+		String result = "";
+		
+		try {
+			while((temp = in.readLine()) != null){
+				if(temp.contains(str)){
+					result += temp.trim();
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+			return null;
+		}
+		
+		try {
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	/**
+	 * 获取html,String支持换行
+	 * @param entity
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
 	public static String getHtmlByBr(HttpResponse httpResponse){
 		BufferedReader in = null;
 		try {

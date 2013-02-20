@@ -41,6 +41,7 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.params.ConnRoutePNames;
@@ -877,8 +878,8 @@ public class WeiboLoginService {
 		if(httpResponse == null){
 			return false;
 		}
-		String responseString = HtmlTools.getHtmlByBr(httpResponse);
 		
+		String responseString = HtmlTools.getHtmlByBr(httpResponse);
 		if(responseString.contains("\"code\":\"100000\"")){
 			return true;
 		}
@@ -1365,9 +1366,96 @@ public class WeiboLoginService {
 	 * @param keyword
 	 * @return
 	 */
-	public List<MsgBean> searchKeyword(String keyword){
+	public List<MsgBean> searchKeyword(String keyword, int count){
 		return null;
 	}
+	/**
+	 * 根据uid搜索，对应用户的所有微博
+	 * @param uid
+	 * @return
+	 */
+	public List<MsgBean> searchUid(long uid, int count){
+		HttpPost httpPost = new HttpPost("http://weibo.com/u/"+uid);
+		httpPost.addHeader("Referer", "http://weibo.com/");
+		HttpResponse httpResponse = null;
+		List<MsgBean> list = new ArrayList<MsgBean>();
+		
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return list;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return list;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("searchUid httpResponse is null");
+			return list;
+		}
+		
+		String result = HtmlTools.getHtmlByBr(httpResponse);
+		
+		System.out.println(result);
+		
+		result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+		result = result.replace('\\','`');
+		result = result.replaceAll("`n", "");
+		result = result.replaceAll("`t", "");
+		result = result.replaceAll("`r", "");
+		result = result.replaceAll("`", "");
+		result = "<html><body>" + result + "</body></html>";
+		System.out.println(result);
+		
+		Document doc = Jsoup.parse(result);
+		
+		Elements elements = doc.getElementsByAttribute("mid");
+		System.out.println(elements.size());
+		
+		//遍历每页的用户
+		for(int i = 0 ; i < elements.size() ; i ++){
+			
+			MsgBean msg = new MsgBean();
+			if(elements.get(i).attr("class").equals("WB_handle")){
+				continue;
+			}
+			msg.setMid(elements.get(i).attr("mid"));
+			if(msg.getMid().equals("") || msg.getMid() == null){
+				continue;
+			}
+			System.out.println("mid :" + msg.getMid());
+			if(elements.get(i).attr("isforward") == null || elements.get(i).attr("isforward").equals("")){
+				
+			}else{
+				msg.setType("1");
+				System.out.println("type :" + msg.getType());
+			}
+			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").size() > 0){
+				
+				msg.setCon(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").get(0).text());
+			}
+			System.out.println("content :" + msg.getCon());
+			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").size() > 0){
+				
+				msg.setImage(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_media_bgimg").get(0).attr("src"));
+				System.out.println("Image :" + msg.getImage());
+			}
+			
+			if(elements.get(i).getElementsByAttribute("date").size() > 0){
+				
+				msg.setTime(elements.get(i).getElementsByAttribute("date").get(0).text());
+			}else if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_item_date").size() > 0){
+				msg.setTime(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_item_date").get(0).text());
+			}
+			System.out.println("time :" + msg.getTime());
+			list.add(msg);
+		}
+		
+		
+		return list;
+	}
+	
 	
 	/**
 	 * @param args
@@ -1410,7 +1498,8 @@ public class WeiboLoginService {
 		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
-		l.attention(3154924132l);
+		l.searchUid(2363715054l, 0);
+//		l.attention(3154924132l);
 //		l.forward("转发一个试试", "3547483110422351");
 //		l.modifyInfo(null);
 //		
@@ -1436,7 +1525,7 @@ public class WeiboLoginService {
 //		formslist.add(new BasicNameValuePair("setting_rid", "pOFM6XuIwfJG9hBEahelyTtTmUA="));
 //		cHNoMjQwNTMlNDB5YWhvby5jbg==
 //		pOFM6XuIwfJG9hBEahelyTtTmUA=
-		System.out.println(encodeUserName("weibo.com/u/1661461070"));
+//		System.out.println(encodeUserName("weibo.com/u/1661461070"));
 		
 //		getUserInfo(l.httpClient, "http://weibo.com/1661461070/info");
 	}

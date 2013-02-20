@@ -212,7 +212,7 @@ var weibo = {
 	Action_3026_ForwardMessage:function(opts, Success, Error, Before){
 		
 		new Ajax({
-			ActionCode:3025,
+			ActionCode:3026,
 			Success:Success,
 			prm:{
 				uid: opts.uid,
@@ -222,7 +222,20 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
+	},
+	Action_3027_AttentionUser:function(opts, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3027,
+			Success:Success,
+			prm:{
+				uid: opts.uid
+			},
+			Error:Error
+		}).send(Before);
+		
 	}
+	
 	
 
 		
