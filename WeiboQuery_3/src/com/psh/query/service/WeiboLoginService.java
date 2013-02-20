@@ -98,6 +98,15 @@ public class WeiboLoginService {
 		public int execitme;
 		
 	}
+	/**
+	 * 重新登录返回值对象
+	 * @author Administrator
+	 *
+	 */
+	private class PayloadInfo{
+		public String responseString;
+		public boolean success;
+	}
 	
 	
 	public WeiboLoginService(AccountBean account){
@@ -679,6 +688,7 @@ public class WeiboLoginService {
 			// 到这里代表登录成功，接下来开始做cookie持久化
 			System.out.println(cookieStore.getCookies().size());
 			
+			
 			try {
 				SaveCookieStore(account.getEmail(), (Serializable) cookieStore);
 			} catch (IOException e) {
@@ -734,15 +744,78 @@ public class WeiboLoginService {
 		}
 		
 		String location = getHeaderLocation(httpResponse);
-		
-		if(location != null && !location.equals("")){
-			return reLoginFormSendWeibo(location, content);
+		PayloadInfo payload = new PayloadInfo();
+		if(location != null && location.length() > 0){
+			if(!reLogin(location, payload)){
+				return false;
+			}
 		}else{
-			String responseString = HtmlTools.getHtmlByBr(httpResponse);
-			return responseString.contains("\"code\":\"100000\"");
-			
+			payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
 		}
 		
+		return payload.responseString.contains("\"code\":\"100000\"");
+			
+		
+	}
+	/**
+	 * 登录超时后调用
+	 * @param location
+	 * @return
+	 */
+	public boolean reLogin(String location, PayloadInfo payload){
+		HttpGet httpGet = new HttpGet(location);
+		
+		HttpResponse httpResponse = null;
+		try {
+			httpResponse = httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		if(httpResponse == null){
+			PshLogger.logger.error("[reLogin] httpResponse is null");
+			return false;
+		}
+		String html = HtmlTools.getHtmlByBr(httpResponse);
+		
+		//到这里代表需要重新登录了
+		if(html.contains("<title>新浪微博登录 </title>")){
+			removeCookieStore(account.getEmail());
+			return Login();
+		}
+		
+		// 这里代表 还处在重新登录的状态中
+		location = getScriptLocationReplace(html);
+		System.out.println("[reLogin] url "+location);
+		httpGet = new HttpGet(location);
+		try {
+			httpResponse = httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		if(httpResponse == null){
+			PshLogger.logger.error("[reLogin] httpResponse is null");
+			return false;
+		}
+		payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+		System.out.println("[reLogin] "+getHeaderLocation(httpResponse));
+		System.out.println("[reLogin] "+HtmlTools.getHtmlByBr(httpResponse));
+		
+		// 重新写出cookie
+		try {
+			SaveCookieStore(account.getEmail(), (Serializable) httpClient.getCookieStore());
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		return true;
 	}
 	/**
 	 * 重新登录
@@ -878,9 +951,20 @@ public class WeiboLoginService {
 		if(httpResponse == null){
 			return false;
 		}
+		String location = getHeaderLocation(httpResponse);
+		PayloadInfo payload = new PayloadInfo();
+
+		if(location != null && location.length() > 0){
+			if(reLogin(location, payload)){
+				return forward(content, mid);
+			}else{
+				return false;
+			}
+		}else{
+			payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+		}
 		
-		String responseString = HtmlTools.getHtmlByBr(httpResponse);
-		if(responseString.contains("\"code\":\"100000\"")){
+		if(payload.responseString.contains("\"code\":\"100000\"")){
 			return true;
 		}
 		
@@ -910,9 +994,18 @@ public class WeiboLoginService {
 			PshLogger.logger.error("[readInfo] httpResponse is null");
 			return null;
 		}
-		
-		String html = HtmlTools.getHtmlByBr(httpResponse);
-	
+		String location = getHeaderLocation(httpResponse);
+		PayloadInfo payload = new PayloadInfo();
+		if(location != null && location.length() > 0){
+			if(reLogin(location, payload)){
+				return readInfo(syn);
+			}else{
+				return null;
+			}
+		}else{
+			payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+		}
+		String html = payload.responseString;
 		if(html == null){
 			System.out.println("[readInfo] html is null");
 			PshLogger.logger.error("[readInfo] html is null");
@@ -1171,7 +1264,18 @@ public class WeiboLoginService {
 			PshLogger.logger.error(e.getMessage(),e);
 			return null;
 		}
-		String setting_rid_html = HtmlTools.getHtmlByBr(httpResponse);
+		String location = getHeaderLocation(httpResponse);
+		PayloadInfo payload = new PayloadInfo();
+		if(location != null && location.length() > 0){
+			if(reLogin(location, payload)){
+				return getSetting_rid(httpClient);
+			}else{
+				return null;
+			}
+		}else{
+			payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+		}
+		String setting_rid_html = payload.responseString;
 		Document doc = Jsoup.parse(setting_rid_html);
 		Elements scripts = doc.select("script");
 		String rid_Result = null;
@@ -1321,9 +1425,21 @@ public class WeiboLoginService {
 		if(httpResponse == null){
 			return false;
 		}
-		String responseString = HtmlTools.getHtmlByBr(httpResponse);
 		
-		if(responseString.contains("\"code\":\"100000\"")){
+		String location = getHeaderLocation(httpResponse);
+		PayloadInfo payload = new PayloadInfo();
+		if(location != null && location.length() > 0){
+			if(reLogin(location, payload)){
+				return attention(uid);
+			}else{
+				return false;
+			}
+		}else{
+			payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+		}
+		
+		
+		if(payload.responseString.contains("\"code\":\"100000\"")){
 			return true;
 		}
 		
@@ -1471,9 +1587,6 @@ public class WeiboLoginService {
 	 */
 	public static void main(String[] args) throws JSONException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, ClientProtocolException, IOException {
 		
-		
-		
-		
 //		System.out.println(getHeaderLocation(httpResponse));
 //		System.out.println(HtmlTools.getHtmlByBr(httpResponse.getEntity()));
 		
@@ -1495,14 +1608,16 @@ public class WeiboLoginService {
 		account.setEmail("psh24053@yahoo.cn");
 		account.setPassword("caicai520");
 		account.setUid(1661461070);
-		
+//		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
-		l.searchUid(2363715054l, 0);
+//		l.searchUid(2363715054l, 0);
 //		l.attention(3154924132l);
 //		l.forward("转发一个试试", "3547483110422351");
 //		l.modifyInfo(null);
-//		
+		l.SendWeibo("今天真J8累啊");
+		
+		
 //		
 //		formslist.add(new BasicNameValuePair("Date_Year", "1991"));
 //		formslist.add(new BasicNameValuePair("birthday_d", "24"));
@@ -1528,6 +1643,10 @@ public class WeiboLoginService {
 //		System.out.println(encodeUserName("weibo.com/u/1661461070"));
 		
 //		getUserInfo(l.httpClient, "http://weibo.com/1661461070/info");
+	}
+	
+	public static void Stt(String a){
+		a = "asdkljasd";
 	}
 	
 	public static void getUserInfo(HttpClient httpClient, String referer) throws ClientProtocolException, IOException{
