@@ -54,7 +54,7 @@ public class HtmlTools {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}else{
+		}else if(str.matches("u\\w{4}")){
 			
 			Pattern p = Pattern.compile("u\\w{4}");
 			Matcher m = p.matcher(str);
@@ -68,9 +68,10 @@ public class HtmlTools {
 				}
 				
 			}
-			return result;
+			return result; 
 		}
-		return null;
+		
+		return str;
 		
 	}
 	/**
