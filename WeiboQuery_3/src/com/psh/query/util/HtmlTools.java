@@ -443,8 +443,8 @@ public class HtmlTools {
 		
 		try {
 			while((temp = in.readLine()) != null){
-				if(temp.contains(str)){
-					result += temp.trim();
+				if(temp.trim().indexOf(str) != -1){
+					result = temp.trim();
 				}
 			}
 		} catch (IOException e) {
