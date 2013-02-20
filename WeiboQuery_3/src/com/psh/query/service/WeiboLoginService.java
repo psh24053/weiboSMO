@@ -804,7 +804,34 @@ public class WeiboLoginService {
 			PshLogger.logger.error("[reLogin] httpResponse is null");
 			return false;
 		}
-		payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+		String locationStr = getHeaderLocation(httpResponse);
+		if(locationStr != null){
+			System.out.println("[reLogin] "+locationStr);
+			// 判断Url是否包含http
+			if(!(locationStr.charAt(0) == 'h' || locationStr.charAt(0) == 'H')){
+				locationStr = "http://weibo.com" + locationStr;
+			}
+			
+			httpGet = new HttpGet(locationStr);
+			try {
+				httpResponse = httpClient.execute(httpGet);
+			} catch (ClientProtocolException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return false;
+			} catch (IOException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return false;
+			}
+			if(httpResponse == null){
+				PshLogger.logger.error("[reLogin] httpResponse is null");
+				return false;
+			}
+			payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+			
+		}else{
+			payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+			
+		}
 		System.out.println("[reLogin] "+getHeaderLocation(httpResponse));
 		System.out.println("[reLogin] "+HtmlTools.getHtmlByBr(httpResponse));
 		
@@ -1646,13 +1673,13 @@ public class WeiboLoginService {
 			contentUrl = "http://weibo.com/u/"+uid +"?page=" + page;
 		}
 		
-		HttpPost httpPost = new HttpPost(contentUrl);
-		httpPost.addHeader("Referer", "http://weibo.com/");
+		HttpGet HttpGet = new HttpGet(contentUrl);
+		HttpGet.addHeader("Referer", "http://weibo.com/");
 		HttpResponse httpResponse = null;
 		List<MsgBean> list = new ArrayList<MsgBean>();
 		
 		try {
-			httpResponse = httpClient.execute(httpPost);
+			httpResponse = httpClient.execute(HttpGet);
 		} catch (ClientProtocolException e) {
 			PshLogger.logger.error(e.getMessage(),e);
 			return list;
@@ -1666,7 +1693,43 @@ public class WeiboLoginService {
 			return list;
 		}
 				
-		String result = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
+		String location = getHeaderLocation(httpResponse);
+		
+		String result = null;
+		if(location.contains("login") && location.contains("sso")){
+			PayloadInfo payload = new PayloadInfo();
+			if(location != null && location.length() > 0){
+				if(reLogin(location, payload)){
+					return searchUid(uid, page);
+				}else{
+					return list;
+				}
+			}else{
+				payload.responseString = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
+			}		
+			result = payload.responseString;
+		}else{
+			// 判断Url是否包含http
+			if(!(location.charAt(0) == 'h' || location.charAt(0) == 'H')){
+				location = "http://weibo.com" + location;
+			}
+			HttpGet = new HttpGet(location);
+			try {
+				httpResponse = httpClient.execute(HttpGet);
+			} catch (ClientProtocolException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			} catch (IOException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			}
+			
+			if(httpResponse == null){
+				PshLogger.logger.error("searchUid httpResponse is null");
+				return list;
+			}
+			result = HtmlTools.getHtmlByBr(httpResponse);
+		}
 		
 		if(result == null || result.equals("")){
 			return null;
@@ -1679,7 +1742,6 @@ public class WeiboLoginService {
 		result = result.replaceAll("`r", "");
 		result = result.replaceAll("`", "");
 		result = "<html><body>" + result + "</body></html>";
-		System.out.println(result);
 		
 		Document doc = Jsoup.parse(result,"UTF-8");
 		Elements elements = doc.getElementsByAttribute("mid");

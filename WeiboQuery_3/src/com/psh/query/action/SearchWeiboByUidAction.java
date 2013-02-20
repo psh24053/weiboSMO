@@ -73,8 +73,10 @@ public class SearchWeiboByUidAction extends PshAction{
 		}
 		
 		JSONObject payload = new JSONObject();
-		AccountModel accountmodel = new AccountModel();
-		AccountBean account = accountmodel.getAccount(uid);
+		AccountBean account = new AccountBean();
+		account.setEmail("psh24053@yahoo.cn");
+		account.setPassword("caicai520");
+		account.setUid(1661461070);
 		WeiboLoginService weiboLogin = new WeiboLoginService(account);
 		
 		if(!weiboLogin.Login()){
