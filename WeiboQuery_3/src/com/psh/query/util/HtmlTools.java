@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -28,12 +30,47 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 
+import com.psh.base.json.JSONException;
+import com.psh.base.json.JSONTokener;
+
 public class HtmlTools {
 
 	public static void main(String[] args) {
 		
+		System.out.println(decodeUnicode("u68eeu548cu7b54u5929u4e0bu7f51u5546u4e3bu7f16u8bb8u7ef4"));
 		
-		System.out.println(getHtml("http://weibo.com/nguide/relation"));
+	}
+	/**
+	 * 将unicode转换为汉字
+	 * @param str
+	 * @return
+	 */
+	public static String decodeUnicode(String str){
+		
+		if(str.matches('\\'+'\\'+"u\\w{4}")){
+			try {
+				return new JSONTokener("'"+str+"'").nextValue().toString();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}else{
+			
+			Pattern p = Pattern.compile("u\\w{4}");
+			Matcher m = p.matcher(str);
+			String result = "";
+			while(m.find()){
+				try {
+					result += new JSONTokener("'\\"+m.group()+"'").nextValue().toString();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+			return result;
+		}
+		return null;
 		
 	}
 	/**
