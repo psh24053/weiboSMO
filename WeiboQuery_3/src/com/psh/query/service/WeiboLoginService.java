@@ -1696,40 +1696,47 @@ public class WeiboLoginService {
 		String location = getHeaderLocation(httpResponse);
 		
 		String result = null;
-		if(location.contains("login") && location.contains("sso")){
-			PayloadInfo payload = new PayloadInfo();
-			if(location != null && location.length() > 0){
-				if(reLogin(location, payload)){
-					return searchUid(uid, page);
+		
+		if(location != null){
+			
+			if(location.contains("login") && location.contains("sso")){
+				PayloadInfo payload = new PayloadInfo();
+				if(location != null && location.length() > 0){
+					if(reLogin(location, payload)){
+						return searchUid(uid, page);
+					}else{
+						return list;
+					}
 				}else{
+					payload.responseString = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
+				}		
+				result = payload.responseString;
+			}else{
+				// 判断Url是否包含http
+				if(!(location.charAt(0) == 'h' || location.charAt(0) == 'H')){
+					location = "http://weibo.com" + location;
+				}
+				HttpGet = new HttpGet(location);
+				try {
+					httpResponse = httpClient.execute(HttpGet);
+				} catch (ClientProtocolException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return list;
+				} catch (IOException e) {
+					PshLogger.logger.error(e.getMessage(),e);
 					return list;
 				}
-			}else{
-				payload.responseString = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
-			}		
-			result = payload.responseString;
+				
+				if(httpResponse == null){
+					PshLogger.logger.error("searchUid httpResponse is null");
+					return list;
+				}
+				result = HtmlTools.getHtmlByBr(httpResponse);
+			}
 		}else{
-			// 判断Url是否包含http
-			if(!(location.charAt(0) == 'h' || location.charAt(0) == 'H')){
-				location = "http://weibo.com" + location;
-			}
-			HttpGet = new HttpGet(location);
-			try {
-				httpResponse = httpClient.execute(HttpGet);
-			} catch (ClientProtocolException e) {
-				PshLogger.logger.error(e.getMessage(),e);
-				return list;
-			} catch (IOException e) {
-				PshLogger.logger.error(e.getMessage(),e);
-				return list;
-			}
-			
-			if(httpResponse == null){
-				PshLogger.logger.error("searchUid httpResponse is null");
-				return list;
-			}
 			result = HtmlTools.getHtmlByBr(httpResponse);
 		}
+		
 		
 		if(result == null || result.equals("")){
 			return null;
@@ -1952,9 +1959,9 @@ public class WeiboLoginService {
 //		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
-//		l.searchUid(2363715054l, 0);
+		l.searchUid(2363715054l, 1);
 //		l.searchKeywordPageNumber("http://s.weibo.com/weibo/哈哈&Refer=index");
-		l.searchKeyword("哈哈", 10);
+//		l.searchKeyword("哈哈", 10);
 //		l.getMsgMouseRollEvent(2363715054l, 0);
 //		l.attention(3154924132l);
 //		l.forward("转发一个试试", "3547483110422351");
