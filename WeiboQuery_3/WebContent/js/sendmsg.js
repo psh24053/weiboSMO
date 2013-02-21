@@ -9,7 +9,7 @@ function initSendMessage_Toolbar(){
 	
 	var currentGroup = $('<span></span>').addClass('currentGroup').css('margin-left','5px');
 	
-	if(localStorage.SendWeiboGroup == 'none'){
+	if(!localStorage.SendWeiboGroup || localStorage.SendWeiboGroup == 'none'){
 		currentGroup.text('请选择分组');
 	}else{
 		currentGroup.text('当前分组：'+localStorage.SendWeiboGroupName);

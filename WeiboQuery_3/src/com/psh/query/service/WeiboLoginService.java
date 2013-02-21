@@ -1232,6 +1232,48 @@ public class WeiboLoginService {
 		return true;
 	}
 	/**
+	 * 检查uid是否存在
+	 * @param uid
+	 * @return
+	 */
+	public boolean checkUid(long uid){
+		HttpGet httpGet = new HttpGet("http://weibo.com/u/"+uid);
+		httpGet.addHeader("Referer", "http://weibo.com/");
+		
+		HttpResponse httpResponse = null;
+	
+		try {
+			httpResponse = httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("[checkUid] httpResponse is null");
+			return false;
+		}
+		String location = getHeaderLocation(httpResponse);
+		System.out.println(location);
+		
+		if(location.contains("login") && location.contains("sso")){
+			PayloadInfo payload = new PayloadInfo();
+			if(reLogin(location, payload)){
+				return checkUid(uid);
+			}else{
+				return false;
+			}
+		}else if(location.contains("usernotexists") || location.contains("pagenotfound")){
+			return false;
+			// 判断Url是否包含http
+		}
+		
+		return true;
+	}
+	/**
 	 * 上传头像
 	 * @param file
 	 * @return

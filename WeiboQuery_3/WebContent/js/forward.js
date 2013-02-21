@@ -9,7 +9,7 @@ function initForward_Toolbar(){
 	
 	var currentGroup = $('<span></span>').addClass('currentGroup').css('margin-left','5px');
 	
-	if(localStorage.ForwardGroup == 'none'){
+	if(!localStorage.ForwardGroup || localStorage.ForwardGroup == 'none'){
 		currentGroup.text('请选择分组');
 	}else{
 		currentGroup.text('当前分组：'+localStorage.ForwardGroupName);
@@ -197,71 +197,6 @@ function Forward(size, rowData, p_this, mids, m_index, mid){
 		}
 	});
 } 
-/**
- * 随即获取内容库
- */
-function onClick_getRandom_forward(){
-	if(localStorage.ForwardGroup != 'run'){
-		alert('请选选择分组!');
-		return;
-	}
-	var rowData = $('#tabs_3_table').jqGrid('getRowData');
-	if(rowData.length == 0){
-		alert('没有加载账号信息或该分组没有账号数据！');
-		return;
-	}
-	
-	var dialog = $('.dialog_randomForwardcontent').dialog({
-		modal: true,
-		title: '随机获取发言内容',
-		resizable: false,
-		width: $(document).width() * 0.2,
-	    height: $(document).height() * 0.3,
-	    open: function(event, ui){
-	    	weibo.Action_3009_GetTextTypeList(function(data){
-	    		if(data.res){
-	    			$('.dialog_randomForwardcontent').find('.texttype_name option').remove();
-	    			var list = data.pld.list;
-	    			for(var i = 0 ; i < list.length ; i ++){
-	    				var option = $('<option></option>').text(list[i].name).val(list[i].ttid);
-	    				$('.dialog_randomForwardcontent').find('.texttype_name').append(option);
-	    			}
-	    			
-	    		}
-	    		
-	    	},function(err){
-	    		console.debug(err);
-	    	});
-	    },
-	    buttons:{
-	    	'随机获取': function(){
-	    		var ttid = $('.dialog_randomForwardcontent').find('.texttype_name').val();
-	    		var count = $('#tabs_3_table').jqGrid('getRowData').length;
-	    		var wait = new weibo.WaitAlert('正在获取...');
-	    		wait.show();
-	    		weibo.Action_3008_GetTextList(ttid, count, function(data){
-	    			if(data.res){
-	    				var list = data.pld.list;
-	    				var rowData = $('#tabs_3_table').jqGrid('getRowData');
-	    				for(var i = 0 ; i < list.length ; i ++){
-	    					$('#tabs_3_table').jqGrid('setRowData',rowData[i].uid,{content: '<button onclick="onClick_editorContent_forward(this,'+rowData[i].uid+');">编辑</button>'+list[i]});
-	    				}
-	    			}
-	    			wait.close();
-	    			$('.dialog_randomForwardcontent').dialog('close');
-	    			alert('获取成功！');
-	    		},function(err){
-	    			wait.close();
-	    			$('.dialog_randomForwardcontent').dialog('close');
-	    			alert('获取失败！');
-	    		});
-	    	}
-	    }
-	});
-	
-	
-	
-}
 /**
  * 获取转发目标
  */

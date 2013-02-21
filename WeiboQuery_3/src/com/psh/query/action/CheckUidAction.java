@@ -27,12 +27,12 @@ import com.psh.query.service.ModifyService;
 import com.psh.query.service.WeiboLoginService;
 
 
-public class AttentionUserAction extends PshAction{
+public class CheckUidAction extends PshAction{
 	
-	public AttentionUserAction(){
+	public CheckUidAction(){
 		
-		super.code = 3027;
-		super.name = "AttentionUserAction";
+		super.code = 3029;
+		super.name = "CheckUidAction";
 		
 	}
 	
@@ -49,44 +49,34 @@ public class AttentionUserAction extends PshAction{
 		}
 		
 		// Start to retrieve required parameters from request
-		long myuid = -1;
+		long uid = -1;
 		
 		try {
-			myuid = parameter.getLong("myuid");	
+			uid = parameter.getLong("uid");	
 		} catch (JSONException e) {
-			PshLogger.logger.error("Missing: \"myuid\"" );
+			PshLogger.logger.error("Missing: \"uid\"" );
 			PshLogger.logger.error(e.getMessage());
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE);
 		}
-		
-		long attuid = -1;
-		
-		try {
-			attuid = parameter.getLong("attuid");	
-		} catch (JSONException e) {
-			PshLogger.logger.error("Missing: \"attuid\"" );
-			PshLogger.logger.error(e.getMessage());
-			return generator.toError(parser, 
-					ErrorCode.ERROR_CODE);
-		}
-		
 		JSONObject payload = new JSONObject();
-		AccountModel accountmodel = new AccountModel();
-		AccountBean account = accountmodel.getAccount(myuid);
+		AccountBean account = new AccountBean();
+		account.setEmail("psh24053@yahoo.cn");
+		account.setPassword("caicai520");
+		account.setUid(1661461070);
 		WeiboLoginService weiboLogin = new WeiboLoginService(account);
 		
 		if(!weiboLogin.Login()){
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
-					"error, reason: 关注失败,登录失败");
+					"error, reason: 检查uid失败,登录失败");
 		}
 		
 		
-		if(!weiboLogin.attention(attuid)){
+		if(!weiboLogin.checkUid(uid)){
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
-					"error, reason: 关注失败");
+					"error, reason: 检查uid失败");
 		}
 		
 		return generator.toSuccess(parser, payload);

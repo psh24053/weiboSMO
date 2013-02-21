@@ -176,7 +176,7 @@ function initModifyInfo_Toolbar(){
 	
 	var currentGroup = $('<span></span>').addClass('currentGroup').css('margin-left','5px');
 	
-	if(localStorage.ModifyGroup == 'none'){
+	if(!localStorage.ModifyGroup || localStorage.ModifyGroup == 'none'){
 		currentGroup.text('请选择分组');
 	}else{
 		currentGroup.text('当前分组：'+localStorage.ModifyGroupName);
@@ -816,6 +816,37 @@ function loadH3Content(h3, div, cid){
 							resizable: false,
 							width: $(document).width() * 0.3,
 						    height: $(document).height() * 0.5,
+						    open: function(){
+						    	$('.dialog_addusergroup').find('.group_name').text(item.name);
+						    },
+						    buttons: {
+						    	'添加': function(){
+						    		var uid = $('.dialog_addusergroup').find('.uid').val();
+						    		var email = $('.dialog_addusergroup').find('.email').val();
+						    		var password = $('.dialog_addusergroup').find('.password').val();
+						    		var gid = item.gid;
+						    		
+						    		weibo.Action_3025_AddUserByGroup({
+						    			uid: uid,
+						    			email: email,
+						    			password: password,
+						    			gid: gid
+						    		},function(data){
+						    			if(data.res){
+						    				alert('添加成功');
+						    				$('.dialog_addusergroup').dialog('close');
+						    				loadCategoryInfo();
+						    			}else{
+						    				alert('添加失败');
+						    				$('.dialog_addusergroup').dialog('close');
+						    			}
+						    		},function(err){
+						    			alert('添加失败');
+						    			console.debug(err);
+						    		});
+						    		
+						    	}
+						    }
 					  });
 				  });
 				  

@@ -233,6 +233,31 @@
 			<table id="dialog_getforwardsource_table"></table>
 			<div id="dialog_getforwardsource_pager"></div>
 		</div>
+		<div class="dialog_getattentionsource">
+			<div class="dialog_getattentionsource_search">
+				<label>直接输入uid<input type="number" class="uid" /><button class="search_sina">搜索</button><button class="search_local">本地库搜索</button></label><br>
+			</div>
+			<table id="dialog_getattentionsource_table"></table>
+			<div id="dialog_getattentionsource_pager"></div>
+		</div>
+		
+		<div class="dialog_attentionsearchtargetuser">
+			<a>昵称</a>
+			<input type="text" class="nickname" style="width: 200px;" placeholder="请输入昵称关键字" />
+			<br>
+			<a>标签</a>
+			<input type="text" class="tags" style="width: 200px;" placeholder="多个标签以逗号分隔 'a,b'" />
+			<br>
+			<a>关注数</a>
+			<input type="text" pattern="\d{1,2}(~\d+|\+|-|=)" class="fol" style="width: 200px;" placeholder="请输入关注匹配符，n~m|n+|n-|n=" />
+			<br>
+			<a>粉丝数</a>
+			<input type="text" pattern="\d{1,2}(~\d+|\+|-|=)" class="fans" style="width: 200px;" placeholder="请输入粉丝匹配符，n~m|n+|n-|n=" />
+			<br>
+			<a>数量限制</a>
+			<input type="number" class="count" />
+			<br>
+		</div>
 	</div>
 
 

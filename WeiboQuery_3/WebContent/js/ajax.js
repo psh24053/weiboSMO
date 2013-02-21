@@ -229,7 +229,8 @@ var weibo = {
 			ActionCode:3027,
 			Success:Success,
 			prm:{
-				uid: opts.uid
+				myuid: opts.myuid,
+				attuid: opts.attuid
 			},
 			Error:Error
 		}).send(Before);
@@ -247,8 +248,42 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
-	}
-	
+	},
+	Action_3029_CheckUid:function(uid, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3029,
+			Success:Success,
+			prm:{
+				uid: uid,
+			},
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3030_GetLocalUser:function(opts, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3030,
+			prm:{
+				nickName: opts.nickName,
+				tag: opts.tag,
+				school: opts.school,
+				company: opts.company,
+				prov: opts.prov,
+				city: opts.city,
+				age: opts.age,
+				sex: opts.sex,
+				info: opts.info,
+				fol: opts.fol,
+				fans: opts.fans,
+				count: opts.count
+			},
+			Success:Success,
+			Error:Error
+		}).send(Before);
+		
+	},
 	
 	
 

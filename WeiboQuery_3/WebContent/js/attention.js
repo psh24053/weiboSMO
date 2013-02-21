@@ -9,7 +9,7 @@ function initAttention_Toolbar(){
 	
 	var currentGroup = $('<span></span>').addClass('currentGroup').css('margin-left','5px');
 	
-	if(localStorage.AttentionGroup == 'none'){
+	if(!localStorage.AttentionGroup || localStorage.AttentionGroup == 'none'){
 		currentGroup.text('请选择分组');
 	}else{
 		currentGroup.text('当前分组：'+localStorage.AttentionGroupName);
@@ -36,41 +36,7 @@ function initAttention_Toolbar(){
 	
 }
 /**
- * 编辑内容
- */
-function onClick_editorContent_Attention(obj, uid){
-	
-	var rowItem = $('#tabs_4_table').jqGrid('getRowData',uid);
-	var con = $(obj).parent().text().substring(2);
-	
-	
-	$('.dialog_editorcontent').dialog({
-		modal: true,
-		title: '编辑文本内容',
-		resizable: false,
-		width: $(document).width() * 0.4,
-	    height: $(document).height() * 0.5,
-	    open: function(event, ui){
-	    	$('.dialog_editorcontent').find('.editorcontent').val(con);
-	    },
-	    buttons:{
-	    	'保存': function(){
-	    		var val = $('.dialog_editorcontent').find('.editorcontent').val();
-	    		if(val.length > 140){
-	    			alert("转发理由内容数量过长，请减少 "+(val.length - 140)+" 个字符");
-	    			return;
-	    		}
-	    		
-	    		$('#tabs_4_table').jqGrid('setRowData',uid,{content: '<button onclick="onClick_editorContent_Attention(this,'+uid+');">编辑</button>'+val});
-	    		$('.dialog_editorcontent').dialog('close');
-	    		
-	    	}
-	    }
-	});
-	
-}
-/**
- * 执行发送微博操作
+ * 执行关注操作
  */
 function onClick_execute_Attention(){
 	if(localStorage.AttentionGroup != 'run'){
@@ -82,188 +48,80 @@ function onClick_execute_Attention(){
 		alert('没有加载账号信息或该分组没有账号数据！');
 		return;
 	}
-	var mids = JSON.parse(localStorage.AttentionMidArray);
-	if(!mids || mids.length == 0){
-		alert('请选择转发目标');
+	var uids = JSON.parse(localStorage.AttentionUidArray);
+	if(!uids || uids.length == 0){
+		alert('请选择关注目标');
 		return;
 	}
 	
-	
-	// 验证是否存在空字段
-	for(var i = 0 ; i < rowData.length ; i ++){
-		var row = rowData[i];
-		var contentLength = row.content.substring(row.content.lastIndexOf('>')+1).length;
-		if(contentLength > 140 ){
-			alert("第 "+i+" 行的转发理由的字符过长，请减少 "+(contentLength - 140)+" 个字符");
-			return;
-		}
-		
-	}
 	
 	$(this).parent().find('button').button('disable');
 	var p_this = $(this);
 	var size = 0;
-	var m_index = 0;
-	var mid = mids[m_index];
+	var u_index = 0;
+	var uid = uids[u_index];
 	
 	
-	
-//	for(var m = 0 ; m < mids.length ; m ++){
-//		var mid = mids[m];
-//		$(this).text('正在转发 mid: '+mid);
-//		
-//		for(var i = 0 ; i < rowData.length ; i ++){
-//			var item = rowData[i];
-//			$('#tabs_4_table').jqGrid('setRowData',item.uid, {'status':'正在操作...'});
-//			weibo.Action_3026_AttentionMessage({
-//				uid: item.uid,
-//				mid: mid,
-//				content: item.content.substring(item.content.lastIndexOf('>')+1)
-//			}, function(data){
-//				if(data.res){
-//					$('#tabs_4_table').jqGrid('setRowData',item.uid, {
-//						'status': '转发成功'
-//					});
-//					
-//				}else{
-//					$('#tabs_4_table').jqGrid('setRowData',item.uid, {'status':'转发失败'});
-//				}
-//			},function(){
-//				$('#tabs_4_table').jqGrid('setRowData',item.uid, {'status':'发送失败'});
-//			});
-//			
-//		}
-//		
-//	}
-//	$(this).parent().find('button').button('enable');
-//	$(this).text('开始转发');
-	$(this).find('span').text('正在转发 mid: '+mid);
-	Attention(size, rowData, p_this, mids, m_index, mid);
+	$(this).find('span').text('正在关注 uid: '+uid);
+	Attention(size, rowData, p_this, uids, u_index, uid);
 }
 /**
  * 发送微博的递归
  */
-function Attention(size, rowData, p_this, mids, m_index, mid){
+function Attention(size, rowData, p_this, uids, u_index, uid){
 	var i = size;
 	var item = rowData[i];
 	$('#tabs_4_table').jqGrid('setRowData',item.uid, {'status':'正在操作...'});
-	weibo.Action_3026_AttentionMessage({
-		uid: item.uid,
-		mid: mid,
-		content: item.content.substring(item.content.lastIndexOf('>')+1)
-	}
-	, function(data){
+	weibo.Action_3027_AttentionUser({
+		myuid: item.uid,
+		attuid: uid
+	}, function(data){
 		if(data.res){
 			$('#tabs_4_table').jqGrid('setRowData',item.uid, {
-				'status': '转发成功'
+				'status': '关注成功'
 			});
 			
 		}else{
-			$('#tabs_4_table').jqGrid('setRowData',item.uid, {'status':'转发失败'});
+			$('#tabs_4_table').jqGrid('setRowData',item.uid, {'status':'关注失败'});
 		}
 		if(rowData.length == size+1){
-			if(mids.length == m_index + 1){
+			if(uids.length == u_index + 1){
 				p_this.parent().find('button').button('enable');
-				p_this.find('span').text('开始转发');
-				alert('发送命令执行完毕！');
+				p_this.find('span').text('开始关注');
+				alert('关注命令执行完毕！');
 			}else{
 				size = 0;
-				m_index ++;
-				mid = mids[m_index];
-				p_this.find('span').text('正在转发 mid: '+mid);
-				Attention(size, rowData, p_this, mids, m_index, mid);
+				u_index ++;
+				uid = uids[u_index];
+				p_this.find('span').text('正在关注 uid: '+uid);
+				Attention(size, rowData, p_this, uids,u_index, uid);
 			}
 		}else{
 			size++;
-			Attention(size, rowData, p_this, mids, m_index, mid);
+			Attention(size, rowData, p_this, uids, u_index, uid);
 		}
 	},function(){
 		$('#tabs_4_table').jqGrid('setRowData',item.uid, {'status':'发送失败'});
 		if(rowData.length == size+1){
-			if(mids.length == m_index + 1){
+			if(uids.length == u_index + 1){
 				p_this.parent().find('button').button('enable');
-				p_this.find('span').text('开始转发');
-				alert('发送命令执行完毕！');
+				p_this.find('span').text('开始关注');
+				alert('关注命令执行完毕！');
 			}else{
 				size = 0;
-				m_index ++;
-				mid = mids[m_index];
-				p_this.find('span').text('正在转发 mid: '+mid);
-				Attention(size, rowData, p_this, mids, m_index, mid);
+				u_index ++;
+				uid = uids[u_index];
+				p_this.find('span').text('正在关注 uid: '+uid);
+				Attention(size, rowData, p_this, uids, u_index, uid);
 			}
 		}else{
 			size++;
-			Attention(size, rowData, p_this, mids, m_index, mid);
+			Attention(size, rowData, p_this, uids, u_index, uid);
 		}
 	});
 } 
 /**
- * 随即获取内容库
- */
-function onClick_getRandom_Attention(){
-	if(localStorage.AttentionGroup != 'run'){
-		alert('请选选择分组!');
-		return;
-	}
-	var rowData = $('#tabs_4_table').jqGrid('getRowData');
-	if(rowData.length == 0){
-		alert('没有加载账号信息或该分组没有账号数据！');
-		return;
-	}
-	
-	var dialog = $('.dialog_randomAttentioncontent').dialog({
-		modal: true,
-		title: '随机获取发言内容',
-		resizable: false,
-		width: $(document).width() * 0.2,
-	    height: $(document).height() * 0.3,
-	    open: function(event, ui){
-	    	weibo.Action_3009_GetTextTypeList(function(data){
-	    		if(data.res){
-	    			$('.dialog_randomAttentioncontent').find('.texttype_name option').remove();
-	    			var list = data.pld.list;
-	    			for(var i = 0 ; i < list.length ; i ++){
-	    				var option = $('<option></option>').text(list[i].name).val(list[i].ttid);
-	    				$('.dialog_randomAttentioncontent').find('.texttype_name').append(option);
-	    			}
-	    			
-	    		}
-	    		
-	    	},function(err){
-	    		console.debug(err);
-	    	});
-	    },
-	    buttons:{
-	    	'随机获取': function(){
-	    		var ttid = $('.dialog_randomAttentioncontent').find('.texttype_name').val();
-	    		var count = $('#tabs_4_table').jqGrid('getRowData').length;
-	    		var wait = new weibo.WaitAlert('正在获取...');
-	    		wait.show();
-	    		weibo.Action_3008_GetTextList(ttid, count, function(data){
-	    			if(data.res){
-	    				var list = data.pld.list;
-	    				var rowData = $('#tabs_4_table').jqGrid('getRowData');
-	    				for(var i = 0 ; i < list.length ; i ++){
-	    					$('#tabs_4_table').jqGrid('setRowData',rowData[i].uid,{content: '<button onclick="onClick_editorContent_Attention(this,'+rowData[i].uid+');">编辑</button>'+list[i]});
-	    				}
-	    			}
-	    			wait.close();
-	    			$('.dialog_randomAttentioncontent').dialog('close');
-	    			alert('获取成功！');
-	    		},function(err){
-	    			wait.close();
-	    			$('.dialog_randomAttentioncontent').dialog('close');
-	    			alert('获取失败！');
-	    		});
-	    	}
-	    }
-	});
-	
-	
-	
-}
-/**
- * 获取转发目标
+ * 获取关注目标
  */
 function onClick_getTargetAttention_Attention(){
 	if(localStorage.AttentionGroup != 'run'){
@@ -275,66 +133,149 @@ function onClick_getTargetAttention_Attention(){
 		alert('没有加载账号信息或该分组没有账号数据！');
 		return;
 	}
-	$('.dialog_getAttentionsource').dialog({
+	$('.dialog_getattentionsource').dialog({
 		modal: true,
-		title: '获取转发目标',
+		title: '获取关注目标',
 		resizable: false,
 		width: $(document).width() * 0.5,
 	    height: $(document).height() * 0.85,
 	    open: function(){
 	    },
 	    create: function(){
-	    	$('#dialog_getAttentionsource_table').jqGrid({
+	    	$('#dialog_getattentionsource_table').jqGrid({
 	    		datatype: "local",
-	    		height: 420,
-	    		colNames:['mid','内容','时间'],
+	    		height: 350,
+	    		colNames:['uid','操作'],
 	    	   	colModel:[
-	    	   		{name:'mid',index:'mid', width:30, align:'center', sortable:false},
-	    	   		{name:'content',index:'content', width:50, align:'center', sortable:false},
-	    	   		{name:'time',index:'time', width:30 , align:'center', sortable:false}
+	    	   		{name:'uid',index:'uid', width:30, align:'center', sortable:false},
+	    	   		{name:'actions',index:'actions', width:30, align:'center', sortable:false}
 	    	   	],
 	    	   	rownumbers:true,
-	    	   	multiselect: true,
 	       		rowNum: 50,
-	       	   	pager: "#dialog_getAttentionsource_pager",
+	       	   	pager: "#dialog_getattentionsource_pager",
 	       	 	viewrecords: true,
 	       	   	width: $(document).width() * 0.45,
-	       	 	toolbar: [true,"top"],
 	       	 	loadComplete: function(){
-	       	 		initGetTargetAttentionSourceToolbar();
-	       	 		
 	       	 		
 	       	 	}
 	    	});
-	    	
+	    	$('.dialog_getattentionsource_search .search_sina').click(function(){
+	    		var uid = $(this).parent().find('.uid').val();
+	    		if(!uid || uid < 100000){
+	    			alert('没有输入uid或uid格式不正确');
+	    			return;
+	    		}
+	    		var rowData = $('#dialog_getattentionsource_table').jqGrid('getRowData');
+	    		for(var i = 0 ; i < rowData.length ; i ++){
+	    			var rowItem = rowData[i];
+	    			if(rowItem.uid == uid){
+	    				alert('该uid已存在');
+		    			return;
+	    			}
+	    		}
+	    		
+	    		var wait = new weibo.WaitAlert('正在搜索...');
+	    		wait.show();
+	    		weibo.Action_3029_CheckUid(uid, function(data){
+	    			if(data.res){
+	    				alert('uid: '+uid+' 状态正常！');
+	    				var act = '<a href="#" onclick="onClick_deleteSearchUidByTable(\''+uid+'\')">删除</a>';
+	    				$('#dialog_getattentionsource_table').jqGrid('addRowData','uid',[{uid: uid,actions: act}]);
+	    			}else{
+	    				alert('uid: '+uid+' 账号不存在或搜索错误！');
+	    			}
+	    			wait.close();
+	    		},function(err){
+	    			alert('uid: '+uid+' 账号不存在或搜索错误！');
+	    			wait.close();
+	    		});
+	    		
+	    	});
+	    	$('.dialog_getattentionsource_search .search_local').click(function(){
+	    		$('.dialog_attentionsearchtargetuser').dialog({
+	    			modal: true,
+	    			title: '本地库搜索',
+	    			resizable: false,
+	    			width: $(document).width() * 0.4,
+	    		    height: $(document).height() * 0.5,
+	    		    buttons: {
+	    		    	'搜索': function(){
+	    		    		var dom = $('.dialog_attentionsearchtargetuser');
+	    		    		var nickname = !dom.find('.nickname').val() ? '':dom.find('.nickname').val();
+	    		    		var tags = !dom.find('.tags').val() ? '':dom.find('.tags').val();
+	    		    		var fol = !dom.find('.fol').val() ? '':dom.find('.fol').val();
+	    		    		var fans = !dom.find('.fans').val() ? '':dom.find('.fans').val();
+	    		    		var count = dom.find('.count').val();
+	    		    		
+	    		    		var wait = new weibo.WaitAlert('正在搜索...');
+	    		    		wait.show();
+	    		    		
+	    		    		weibo.Action_3030_GetLocalUser({
+	    		    			nickName: nickname,
+	    		    			tag: tags,
+	    						school: '',
+	    						company: '',
+	    						prov: '',
+	    						city: '',
+	    						age: '',
+	    						sex: '',
+	    						info: '',
+	    						fol: fol,
+	    						fans: fans,
+	    						count: count
+	    		    		},function(data){
+	    		    			if(data.res){
+	    		    				var list = data.pld.list;
+	    		    				var s_count = data.pld.count;
+	    		    				wait.close();
+	    		    				alert('搜索到 '+s_count+' 条目标用户');
+	    		    				$('.dialog_attentionsearchtargetuser').dialog('close');
+	    		    				if(s_count == 0){
+	    		    					return;
+	    		    				}
+	    		    				for(var i = 0 ; i < list.length ; i ++){
+	    		    					var item = list[i];
+	    		    					var act = '<a href="#" onclick="onClick_deleteSearchUidByTable(\''+item.uid+'\')">删除</a>';
+	    		    					item.actions = act;
+	    		    					
+	    		    				}
+	    		    				$('#dialog_getattentionsource_table').jqGrid('addRowData','uid',list);
+	    		    				
+	    		    			}
+	    		    			
+	    		    			
+	    		    		},function(err){
+	    		    			wait.close();
+	    		    			$('.dialog_attentionsearchtargetuser').dialog('close');
+	    		    		});
+	    		    	}
+	    		    }
+	    		});
+	    	});
 	    	
 	    },
 	    buttons:{
 	    	'确定':function(){
-	    		var selarrrow = $('#dialog_getAttentionsource_table').jqGrid('getGridParam','selarrrow');
-	    		
-	    		$('.dialog_getAttentionsource').dialog('close');
-	    		
-	    		localStorage.AttentionMidArray = JSON.stringify(selarrrow);
-	    		
+	    		var rowData = $('#dialog_getattentionsource_table').jqGrid('getRowData');
+	    		$('.dialog_getattentionsource').dialog('close');
+	    		var uids = [];
 	    		var target = "";
-	    		for(var i = 0 ; i < selarrrow.length ; i ++){
-	    			var mid = selarrrow[i];
-	    			var rowItem = $('#dialog_getAttentionsource_table').jqGrid('getRowData',mid);
-	    			
-	    			if(i == selarrrow.length - 1){
-	    				target += rowItem.mid;
-	    			}else{
-	    				target += rowItem.mid+",";
-	    			}
-	    			
-	    		}
-	    		
-	    		var rowData = $('#tabs_4_table').jqGrid('getRowData');
 	    		for(var i = 0 ; i < rowData.length ; i ++){
 	    			var rowItem = rowData[i];
-	    			$('#tabs_4_table').jqGrid('setRowData',rowItem.uid,{target: target,content:'<button onclick="onClick_editorContent_Attention(this,'+rowItem.uid+');">编辑</button>'});
+	    			uids.push(rowItem.uid);
+	    			if(i == rowData.length - 1){
+	    				target += rowItem.uid;
+	    			}else{
+	    				target += rowItem.uid+",";
+	    			}
 	    		}
+	    		localStorage.AttentionUidArray = JSON.stringify(uids);
+	    		var rowData_Tab4 = $('#tabs_4_table').jqGrid('getRowData');
+	    		for(var i = 0 ; i < rowData_Tab4.length ; i ++){
+	    			var rowItem = rowData_Tab4[i];
+	    			$('#tabs_4_table').jqGrid('setRowData',rowItem.uid,{target: target});
+	    		}
+	    		
 	    		
 	    	}
 	    }
@@ -342,53 +283,17 @@ function onClick_getTargetAttention_Attention(){
 	
 }
 /**
- * 初始化获取转发目标的toolbar
+ * 删除搜索出来的uid
+ * @param uid
  */
-function initGetTargetAttentionSourceToolbar(){
-	var toolbar = $('#t_dialog_getAttentionsource_table');
-	
-	toolbar.css('padding-top','5px').css('padding-bottom','5px').css('height','auto');
-	
-	var labeluid = $('<label></label>').text('请输入目标uid').css('margin-left','5px');
-	var uid = $('<input type="text" autocomplete="on" class="source_uid" />');
-	var labelcount = $('<label></label>').text('数量').css('margin-left','5px');
-	var count = $('<input type="number" class="source_count" />');
-	var search = $('<button>搜索</button>').button().click(function(){
-		var uidVal = $(this).parent().find('.source_uid').val();
-		var countVal = $(this).parent().find('.source_count').val();
-		if(uid == null || uid == undefined || uid.length == 0){
-			alert('uid不能为空');
-			return;
-		}
-		if(countVal == null || countVal == undefined || countVal < 1){
-			alert('数量不能为空且不能小于1');
-			return;
-		}
-		
-		var wait =new weibo.WaitAlert('正在搜索...');
-		wait.show();
-		
-		weibo.Action_3028_SearchWeiboByUid({
-			uid: uidVal,
-			count: countVal
-		},function(data){
-			console.debug(data);
-			if(data.res){
-				var list = data.pld.list;
-				$('#dialog_getAttentionsource_table').jqGrid('clearGridData');
-				$('#dialog_getAttentionsource_table').jqGrid('addRowData', 'mid', list);
-			}
-			
-			wait.close();
-		},function(err){
-			alert('搜索失败');
-			wait.close();
-		});
-		
-		
-	});
-	
-	toolbar.append(labeluid).append(uid).append(labelcount).append(count).append(search);
+function onClick_deleteSearchUidByTable(uid){
+	$('#dialog_getattentionsource_table').jqGrid('delRowData',uid);
+//	var rowData = $('#dialog_getattentionsource_table').jqGrid('getRowData');
+//	for(var i = 0 ; i < rowData.length ; i ++){
+//		if(rowData[i].uid == uid){
+//			$('#dialog_getattentionsource_table').jqGrid('delRowData',i);
+//		}
+//	}
 	
 }
 /**
