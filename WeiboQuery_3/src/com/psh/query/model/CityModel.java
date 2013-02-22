@@ -7,6 +7,7 @@ import java.sql.SQLException;
 
 import com.psh.base.util.PshLogger;
 import com.psh.base.util.SQLConn;
+import com.psh.query.bean.SuperModel;
 
 public class CityModel extends SuperModel{
 	

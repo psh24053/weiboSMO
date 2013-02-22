@@ -15,6 +15,7 @@ import com.psh.base.util.PshLogger;
 import com.psh.base.util.SQLConn;
 import com.psh.query.bean.AccountBean;
 import com.psh.query.bean.AccountBean;
+import com.psh.query.bean.SuperModel;
 
 public class AccountModel extends SuperModel {
 

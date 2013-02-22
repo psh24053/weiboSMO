@@ -3,7 +3,6 @@ package com.psh.query.bean;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.psh.query.model.SuperModel;
 
 public class AccountBean extends SuperModel {
 

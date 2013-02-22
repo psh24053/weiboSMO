@@ -221,11 +221,11 @@ function onClick_getTargetForward_forward(){
 	    create: function(){
 	    	$('#dialog_getforwardsource_table').jqGrid({
 	    		datatype: "local",
-	    		height: 420,
+	    		height: 350,
 	    		colNames:['mid','内容','时间'],
 	    	   	colModel:[
 	    	   		{name:'mid',index:'mid', width:30, align:'center', sortable:false},
-	    	   		{name:'content',index:'content', width:50, align:'center', sortable:false},
+	    	   		{name:'con',index:'con', width:50, align:'center', sortable:false},
 	    	   		{name:'time',index:'time', width:30 , align:'center', sortable:false}
 	    	   	],
 	    	   	rownumbers:true,

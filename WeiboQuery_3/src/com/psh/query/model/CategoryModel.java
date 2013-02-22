@@ -10,6 +10,7 @@ import java.util.List;
 import com.psh.base.util.PshLogger;
 import com.psh.base.util.SQLConn;
 import com.psh.query.bean.CategoryBean;
+import com.psh.query.bean.SuperModel;
 
 public class CategoryModel extends SuperModel {
 

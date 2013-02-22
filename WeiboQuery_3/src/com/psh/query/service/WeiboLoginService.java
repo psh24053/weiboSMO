@@ -1237,6 +1237,9 @@ public class WeiboLoginService {
 	 * @return
 	 */
 	public boolean checkUid(long uid){
+		if(uid == account.uid){
+			return true;
+		}
 		HttpGet httpGet = new HttpGet("http://weibo.com/u/"+uid);
 		httpGet.addHeader("Referer", "http://weibo.com/");
 		
@@ -1701,6 +1704,210 @@ public class WeiboLoginService {
 		return null;
 	}
 	/**
+	 * 根据uid搜索，对应用户的所有微博，psh版
+	 * @param uid
+	 * @param count
+	 * @return
+	 */
+	public List<MsgBean> searchUid_psh(long uid, int count){
+		if(!checkUid(uid)){
+			return null;
+		}
+		String contentUrl = null;
+		if(account.getUid() == uid){
+			contentUrl = "http://weibo.com/"+uid+"/profile";
+		}else{
+			contentUrl = "http://weibo.com/u/"+uid;
+		}
+		List<MsgBean> list = new ArrayList<MsgBean>();
+		HttpGet httpGet = new HttpGet(contentUrl);
+		HttpResponse httpResponse = null;
+		
+		try {
+			httpResponse = httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return list;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return list;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("[searchUid_psh] httpresponse is null");
+			return list;
+		}
+		
+		String location = getHeaderLocation(httpResponse);
+		String responseStr = null;
+		if(location != null){
+			location = addHttp(location, "http://weibo.com");
+			
+			if((location.contains("login") && location.contains("sso")) || location.contains("login.php")){
+				// 这代表cookie已超时，需要重新登录了。
+				PayloadInfo payload = new PayloadInfo();
+				if(!reLogin(location, payload)){
+					return null;
+				}
+				responseStr = payload.responseString;
+			}else{
+				// 这代表可能跳转到某个url去了
+				httpGet = new HttpGet(location);
+				try {
+					httpResponse = httpClient.execute(httpGet);
+				} catch (ClientProtocolException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return list;
+				} catch (IOException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return list;
+				}
+				if(httpResponse == null){
+					return list;
+				}
+				
+				responseStr = HtmlTools.getHtmlByBr(httpResponse);
+			}
+			
+		}else{
+			responseStr = HtmlTools.getHtmlByBr(httpResponse);
+		}
+		
+	 	list.addAll(parseWB_listHtml(responseStr,"<!-- 微博列表 -->","<!-- \\/微博列表 -->"));
+	 	
+	 	// 如果List 还小于count ，则继续使用翻页功能
+	 	if(list.size() >= count){
+	 		return list.subList(0, count);
+	 	}else if(list.size() < 15){
+	 		return list;
+	 	}
+	 	
+	 	int s_count = (count - list.size()) / 15;
+	 	int page = 1;
+	 	int pre_page = 1;
+	 	String pagebar = "0";
+	 	for(int i = 0 ; i < s_count+1 ; i ++){
+	 		String url = "http://weibo.com/aj/mblog/mbloglist?_wv=5&page="+page+"&count=15&pre_page="+pre_page+"&pagebar="+pagebar+"&_k=1361496085459413&uid="+uid+"&_t=0&__rnd="+System.currentTimeMillis();
+	 		httpGet = new HttpGet(url);
+		 	
+		 	try {
+				httpResponse = httpClient.execute(httpGet);
+			} catch (ClientProtocolException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			} catch (IOException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			}
+		 	if(httpResponse == null){
+		 		return list;
+		 	}
+		 	
+		 	responseStr = HtmlTools.getHtmlByBr(httpResponse);
+		 	JSONObject json = null;
+		 	try {
+				json = new JSONObject(responseStr);
+				list.addAll(parseWB_listHtml(json.getString("data"),"<!-- 微博列表 -->","<!-- /微博列表 -->"));
+			} catch (JSONException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			}
+		 	
+		 	if(pagebar.equals("0")){
+		 		pagebar = "1";
+		 		
+		 	}else if(pagebar.equals("1")){
+		 		pagebar = "";
+		 		page ++;
+		 	}else if(pagebar.equals("")){
+		 		pagebar = "0";
+		 		pre_page = page;
+		 	}
+		 	
+	 	}
+	 	
+	 	if(list.size() > count){
+	 		return list.subList(0, count);
+	 	}
+		
+		
+		return list;
+	}
+	public List<MsgBean> parseWB_listHtml(String html, String start, String end){
+		List<MsgBean> list = new ArrayList<MsgBean>();
+		// 由于返回的html界面格式不正常，需要先转换后才能供jsoup使用
+		html = html.substring(html.indexOf(start),html.indexOf(end));
+		
+		html = html.replace("\\"+"t", "");
+		html = html.replace("\\"+"n", "");
+		html = html.replace("\\"+"\"", "\"");
+		html = html.replace("\\/", "/");
+		Document doc = Jsoup.parse(html);
+		
+	 	Elements feedtypes = doc.select(".WB_feed_type");
+		
+	 	for(int i = 0 ; i < feedtypes.size() ; i ++){
+	 		Element feed = feedtypes.get(i);
+	 		MsgBean msg = new MsgBean();
+	 		msg.setMid(feed.attr("mid"));
+	 		
+	 		Elements WB_text = feed.select(".WB_text[node-type=feed_list_content]");
+	 		msg.setCon(WB_text.text());
+	 		
+	 		Elements WB_time = feed.select(".WB_time");
+	 		msg.setTime(WB_time.attr("title"));
+	 		
+	 		
+	 		Elements favorite = feed.select("a[action-type=feed_list_favorite]");
+	 		if(favorite.size() > 0){
+	 			msg.setUid(Long.valueOf(favorite.attr("diss-data").split("=")[1]));
+	 		}
+	 		
+	 		
+	 		if(feed.hasAttr("isforward")){
+		 		msg.setType("转发");
+		 		
+		 		Elements feed_list_originNick = feed.select("a[node-type=feed_list_originNick]");
+		 		if(feed_list_originNick.size() > 0){
+		 			
+		 			msg.setOnck(feed_list_originNick.attr("nick-name"));
+		 			String[] usercard = feed_list_originNick.attr("usercard").split("=");
+		 			if(usercard.length == 1){
+		 				System.out.println(feed);
+		 			}else{
+		 				msg.setOuid(Long.valueOf(usercard[1]));
+		 				
+		 			}
+		 		}
+		 		
+		 		
+	 		}else{
+	 			msg.setType("普通");
+	 			msg.setNck(WB_text.attr("nick-name"));
+	 		}
+	 		
+	 		Elements feed_list_media_bgimg = feed.select("img[node-type=feed_list_media_bgimg]");
+	 		if(feed_list_media_bgimg.size() > 0){
+		 		msg.setImage(feed_list_media_bgimg.attr("src"));
+	 		}
+	 		list.add(msg);
+	 	}
+	 	return list;
+	}
+	/**
+	 * 判断url是否包含http，如果不包含就为其增加
+	 * @param url
+	 * @param header
+	 * @return
+	 */
+	public String addHttp(String url, String header){
+		// 判断Url是否包含http
+		if(!(url.charAt(0) == 'h' || url.charAt(0) == 'H')){
+			url = header + url;
+		}
+		return url;
+	}
+	/**
 	 * 根据uid搜索，对应用户的所有微博
 	 * @param uid
 	 * @return
@@ -1999,10 +2206,11 @@ public class WeiboLoginService {
 //		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
+		l.searchUid_psh(1661461070, 500);
 //		l.searchUid(2363715054l, 1);
 //		l.searchKeywordPageNumber("http://s.weibo.com/weibo/哈哈&Refer=index");
 //		l.searchKeyword("哈哈", 10);
-		l.getMsgMouseRollEvent(2363715054l, 0,1);
+//		l.getMsgMouseRollEvent(2363715054l, 0,1);
 //		l.attention(3154924132l);
 //		l.forward("转发一个试试", "3547483110422351");
 //		l.modifyInfo(null);

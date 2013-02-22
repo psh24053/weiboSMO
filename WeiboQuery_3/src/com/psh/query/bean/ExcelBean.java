@@ -8,7 +8,6 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 
 import com.psh.query.model.CityModel;
 import com.psh.query.model.ProvModel;
-import com.psh.query.model.SuperModel;
 
 public class ExcelBean extends SuperModel {
 

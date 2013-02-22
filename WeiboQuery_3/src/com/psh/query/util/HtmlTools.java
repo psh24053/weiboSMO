@@ -483,6 +483,25 @@ public class HtmlTools {
 		
 		
 	}
+	public static void writeFile(String responseStr, String path){
+		
+		File file = new File(path);
+		
+		try {
+			FileOutputStream out = new FileOutputStream(file);
+			out.write(responseStr.getBytes());
+			out.flush();
+			out.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
 	/**
 	 * 获取html,String支持换行
 	 * @param entity

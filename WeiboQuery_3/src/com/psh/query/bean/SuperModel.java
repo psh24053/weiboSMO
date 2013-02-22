@@ -1,4 +1,4 @@
-package com.psh.query.model;
+package com.psh.query.bean;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;

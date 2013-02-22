@@ -82,43 +82,29 @@ public class SearchWeiboByUidAction extends PshAction{
 		if(!weiboLogin.Login()){
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
-					"error, reason: 读取资料失败,登录失败");
+					"error, reason: 读取微博失败,登录失败");
 		}
 		
-		List<MsgBean> data = new ArrayList<MsgBean>();
+		List<MsgBean> data = weiboLogin.searchUid_psh(uid, count);
 		
-		for(int i = 0 ; i < 1000 ; i++){
-			
-			List<MsgBean> data_1 = weiboLogin.searchUid(uid,i+1);
-			if(data_1 == null){
-				//页数已超过用户
-				System.out.println("data_1=============null");
-				break;
-			}
-			System.err.println("size++++++++++++" + data_1.size());
-			if(data_1.size() == 0){
-				System.out.println("------------");
-				continue;
-			}
-			data.addAll(data_1);
-			if(data.size() >= count){
-				data = data.subList(0, count);
-				break;
-			}
+		if(data == null){
+			return generator.toError(parser, 
+					ErrorCode.ERROR_CODE, 
+					"error, reason: 读取微博失败,用户不存在或登录失败");
 		}
 		
 		JSONArray list = new JSONArray();
 		
 		
-		
 		try {
 			for(int i = 0 ; i < data.size() ; i ++){
-				JSONObject json = new JSONObject();
-				json.put("mid", data.get(i).getMid());
-				json.put("time", data.get(i).getTime());
-				json.put("content", data.get(i).getCon());
+//				JSONObject json = new JSONObject();
+//				json.put("mid", data.get(i).getMid());
+//				json.put("time", data.get(i).getTime());
+//				json.put("content", data.get(i).getCon());
 				
-				list.put(json);
+				
+				list.put(data.get(i).toJSON());
 			}
 			payload.put("list", list);
 		} catch (JSONException e) {

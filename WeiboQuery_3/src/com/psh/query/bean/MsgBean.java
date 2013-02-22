@@ -1,17 +1,17 @@
 package com.psh.query.bean;
 
-import com.psh.query.model.SuperModel;
 
 public class MsgBean extends SuperModel {
 
-	private String mid;
-	private String type;
-	private String time;
-	private long uid;
-	private long ouid;
-	private String onck;
-	private String con;
-	private String image;
+	protected String mid;
+	protected String type;
+	protected String time;
+	protected long uid;
+	protected String nck;
+	protected long ouid;
+	protected String onck;
+	protected String con;
+	protected String image;
 	
 	public String getMid() {
 		return mid;
@@ -60,6 +60,12 @@ public class MsgBean extends SuperModel {
 	}
 	public void setImage(String image) {
 		this.image = image;
+	}
+	public String getNck() {
+		return nck;
+	}
+	public void setNck(String nck) {
+		this.nck = nck;
 	}
 	
 	
