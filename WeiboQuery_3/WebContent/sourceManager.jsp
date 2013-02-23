@@ -686,7 +686,7 @@ function getSource(){
 		width: $(document).width() * 0.3,
 	    height: $(document).height() * 1,
 	    close: function(event, ui){
-	    	$("#selectSource").css("display","none");
+	    	$(this).remove();
 	    }
 	});
 	
@@ -699,6 +699,25 @@ function getInfoDetail(taskID){
 	
 }
 
+function queryToDatabase(){
+	
+	
+	var condString = $("#nickNameInput").val() + " " +
+		$("#tagInput").val() + " " +
+		$("#schoolInput").val() + " " +
+		$("#companyInput").val() + " " +
+		$("#provSelect").val() + " " +
+		$("#citySelect").val() + " " +
+		$("#sexSelect").val() + " " +
+		$("#ageSelect").val() + " " +
+		$("#fansSelect").val() + " " +
+		$("#attSelect").val() + " " + 
+		$("#infoInput").val() + " ";
+	$('#condication').text(condString);
+	
+	$("#selectSource").parent().remove();
+}
+
 </script>
 </head>
 <body>
@@ -707,7 +726,7 @@ function getInfoDetail(taskID){
 		
 		<label>当前搜索:</label><br>
 		<a href="#" onclick="getSource();">选择条件 </a><label>当前状态:(正在运行/<a href="#">停止运行</a>) </label><label>已搜索到:4959条  </label><a href="#">查看明细</a><br>
-		<label>条件一:<a>地区:四川</a></label>&nbsp<label>条件二:<a>性别:男 </a></label>
+		<a>搜索条件:</a><label id="condication"></label>
 		
 	</div>
 	<br><br><br>
@@ -796,11 +815,11 @@ function getInfoDetail(taskID){
 	
 			<select class="select2" id="ageSelect">
 				<option value="all">不限</option>
-				<option value="18y">18岁以下</option>
-				<option value="22y">19~22岁</option>
-				<option value="29y">23~29岁</option>
-				<option value="39y">30~39岁</option>
-				<option value="40y">40岁以上</option>
+				<option value="18y">18-</option>
+				<option value="22y">19~22</option>
+				<option value="29y">23~29</option>
+				<option value="39y">30~39</option>
+				<option value="40y">40+</option>
 			</select>
 		
 		</div>
@@ -823,7 +842,7 @@ function getInfoDetail(taskID){
 			
 			<select class="select2" id="fansSelect">
 				<option value="">不限</option>
-				<option value="man">0~5000</option>
+				<option value="man">5000-</option>
 				<option value="man">5000~10000</option>
 				<option value="women">10000~20000</option>
 				<option value="women">20000+</option>
@@ -837,7 +856,7 @@ function getInfoDetail(taskID){
 			
 			<select class="select2" id="attSelect">
 				<option value="">不限</option>
-				<option value="man">0~5000</option>
+				<option value="man">5000-</option>
 				<option value="man">5000~10000</option>
 				<option value="women">10000~20000</option>
 				<option value="women">20000+</option>
