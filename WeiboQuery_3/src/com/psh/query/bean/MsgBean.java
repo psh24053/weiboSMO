@@ -8,10 +8,15 @@ public class MsgBean extends SuperModel {
 	protected String time;
 	protected long uid;
 	protected String nck;
-	protected long ouid;
-	protected String onck;
 	protected String con;
 	protected String image;
+	protected long ouid;
+	protected String onck;
+	protected String ocon;
+	protected String otime;
+	protected String omid;
+	protected long fuid;
+	protected int mark;
 	
 	public String getMid() {
 		return mid;
@@ -66,6 +71,36 @@ public class MsgBean extends SuperModel {
 	}
 	public void setNck(String nck) {
 		this.nck = nck;
+	}
+	public String getOcon() {
+		return ocon;
+	}
+	public void setOcon(String ocon) {
+		this.ocon = ocon;
+	}
+	public String getOtime() {
+		return otime;
+	}
+	public void setOtime(String otime) {
+		this.otime = otime;
+	}
+	public String getOmid() {
+		return omid;
+	}
+	public void setOmid(String omid) {
+		this.omid = omid;
+	}
+	public long getFuid() {
+		return fuid;
+	}
+	public void setFuid(long fuid) {
+		this.fuid = fuid;
+	}
+	public int getMark() {
+		return mark;
+	}
+	public void setMark(int mark) {
+		this.mark = mark;
 	}
 	
 	

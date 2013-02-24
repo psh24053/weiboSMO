@@ -17,6 +17,7 @@
 
 <link type="text/css" rel="stylesheet" href="css/main.css" />
 <script type="text/javascript" src="js/weibo.Dialog.js"></script>
+<script type="text/javascript" src="js/tome.js"></script>
 <script type="text/javascript" src="js/sendmsg.js"></script>
 <script type="text/javascript" src="js/forward.js"></script>
 <script type="text/javascript" src="js/attention.js"></script>
@@ -257,6 +258,20 @@
 			<a>数量限制</a>
 			<input type="number" class="count" />
 			<br>
+		</div>
+		
+		<div class="dialog_showreply">
+			<table id="dialog_showreply_table"></table>
+			<div id="dialog_showreply_pager"></div>
+		</div>
+		
+		<div class="dialog_forwardMsg">
+			<a>转发目标：</a><p class="target"></p><br />
+			<a>转发内容：</a><textarea style="width: 400px;height: 200px;" class="content"></textarea>
+		</div>
+		<div class="dialog_commentMsg">
+			<a>评论目标：</a><p class="target"></p><br />
+			<a>评论内容：</a><textarea style="width: 400px;height: 200px;" class="content"></textarea>
 		</div>
 	</div>
 

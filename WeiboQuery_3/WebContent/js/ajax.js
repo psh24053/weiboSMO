@@ -284,11 +284,63 @@ var weibo = {
 		}).send(Before);
 		
 	},
-	
-	
-
-
+	Action_3031_RefreshByLastMid:function(uid, mid, Success, Error, Before){
 		
+		new Ajax({
+			ActionCode:3031,
+			Success:Success,
+			prm:{
+				uid: uid,
+				mid: mid
+			},
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3032_GetReplyListByUid:function(uid, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3032,
+			Success:Success,
+			prm:{
+				uid: uid
+			},
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3033_UpdateMidMark:function(opts, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3033,
+			Success:Success,
+			prm:{
+				uid: opts.uid,
+				mid: opts.mid
+			},
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3034_CommentMsg:function(opts, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3034,
+			Success:Success,
+			prm:{
+				uid: opts.uid,
+				mid: opts.mid,
+				con: opts.con
+			},
+			Error:Error
+		}).send(Before);
+		
+	}
+	
+
+
+	
+	
 		
 		
 		
@@ -346,28 +398,7 @@ function Ajax(Settings){
 				
 			},
 			dataType: this.dataType
-		}).error(this.Error).complete(this.Complete);;
-//		if(this.Method == "post"){
-//			
-//			$.post(this.Servlet,
-//			JSON.stringify(this.RequestJson),
-//			function(data){
-//				this.data = data;
-//
-//				p_this.Success(data);
-//				
-//			},this.dataType).error(this.Error).complete(this.Complete);
-//		}
-//		if(this.Method == "get"){
-//			$.get(this.Servlet,{
-//				json:JSON.stringify(this.RequestJson)
-//			},function(data){
-//				this.data = data;
-//
-//				p_this.Success(data);
-//
-//			},this.dataType).error(this.Error).complete(this.Complete);
-//		}
+		}).error(this.Error).complete(this.Complete);
 	};
 	this.set = function(key,value){
 		if(this[key]){

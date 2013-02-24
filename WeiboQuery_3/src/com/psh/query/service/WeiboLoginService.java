@@ -18,7 +18,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -441,7 +448,7 @@ public class WeiboLoginService {
 		formlist.add(new BasicNameValuePair("pwencode", "rsa2"));
 		formlist.add(new BasicNameValuePair("returntype", "META"));
 		formlist.add(new BasicNameValuePair("rsakv", prelogin.rsakv));
-		formlist.add(new BasicNameValuePair("savestate", "0"));
+		formlist.add(new BasicNameValuePair("savestate", "7"));
 		formlist.add(new BasicNameValuePair("servertime", prelogin.servertime+""));
 		formlist.add(new BasicNameValuePair("service", "miniblog"));
 		formlist.add(new BasicNameValuePair("sp", sp));
@@ -914,7 +921,53 @@ public class WeiboLoginService {
 	 * @return
 	 */
 	public boolean SendComment(String content, String mid){
-		return false;
+		HttpPost httpPost = new HttpPost("http://weibo.com/aj/comment/add?_wv=5&__rnd="+System.currentTimeMillis());
+		httpPost.addHeader("Referer", "	http://weibo.com/at/weibo");
+		
+		List<NameValuePair> formNames = new ArrayList<NameValuePair>();
+		
+		formNames.add(new BasicNameValuePair("act", "post"));
+		formNames.add(new BasicNameValuePair("_t", "0"));
+		formNames.add(new BasicNameValuePair("forward", "0"));
+		formNames.add(new BasicNameValuePair("group_source", ""));
+		formNames.add(new BasicNameValuePair("isroot", "0"));
+		formNames.add(new BasicNameValuePair("location", "atme"));
+		formNames.add(new BasicNameValuePair("mid", mid));
+		formNames.add(new BasicNameValuePair("module", "scommlist"));
+		formNames.add(new BasicNameValuePair("uid", account.getUid()+""));
+		formNames.add(new BasicNameValuePair("content", content));
+		
+		HttpResponse httpResponse = null;
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity(formNames,"utf-8"));
+			httpResponse = httpClient.execute(httpPost);
+		} catch (UnsupportedEncodingException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("[SendWeibo] httpResponse is null");
+			return false;
+		}
+		
+		String location = getHeaderLocation(httpResponse);
+		PayloadInfo payload = new PayloadInfo();
+		if(location != null && location.length() > 0){
+			if(!reLogin(location, payload)){
+				return false;
+			}
+		}else{
+			payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+		}
+		
+		return payload.responseString.contains("\"code\":\"100000\"");
 	}
 	/**
 	 * 发送回复，成功返回true，失败返回false
@@ -1517,11 +1570,163 @@ public class WeiboLoginService {
 	}
 	/**
 	 * 获取@我的微博
-	 * @param mid 从这个Mid开始寻找，为Null则查找1天以内的，为all则查找全部
+	 * @param mid 从这个Mid开始寻找，为Null则查找7天以内的，为all则查找全部
 	 * @return
 	 */
 	public List<MsgBean> getToMeWeibo(String mid){
-		return null;
+		List<MsgBean> list = new ArrayList<MsgBean>();
+		HttpGet httpGet = new HttpGet("http://weibo.com/at/weibo");
+		HttpResponse httpResponse = null;
+		
+		try {
+			httpResponse = httpClient.execute(httpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return list;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return list;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("[getToMeWeibo] httpresponse is null");
+			return list;
+		}
+		String location = getHeaderLocation(httpResponse);
+		String responseStr = null;
+		if(location != null){
+			location = addHttp(location, "http://weibo.com");
+			
+			if((location.contains("login") && location.contains("sso")) || location.contains("login.php")){
+				// 这代表cookie已超时，需要重新登录了。
+				PayloadInfo payload = new PayloadInfo();
+				if(!reLogin(location, payload)){
+					return null;
+				}else{
+					return getToMeWeibo(mid);
+				}
+			}else{
+				// 这代表可能跳转到某个url去了
+				httpGet = new HttpGet(location);
+				try {
+					httpResponse = httpClient.execute(httpGet);
+				} catch (ClientProtocolException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return list;
+				} catch (IOException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return list;
+				}
+				if(httpResponse == null){
+					return list;
+				}
+				
+				responseStr = HtmlTools.getHtmlByBr(httpResponse);
+			}
+			
+		}else{
+			responseStr = HtmlTools.getHtmlByBr(httpResponse);
+		}
+		
+		long curTime = System.currentTimeMillis();
+		list.addAll(parseWBByToMe_listHtml(responseStr,"WB_feed","W_loading"));
+		final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+		for(int i = 0 ; i < list.size() ; i ++){
+			MsgBean msg = list.get(i);
+			Date d = null;
+			try {
+				d = sdf.parse(msg.getTime());
+			} catch (ParseException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list.subList(0, i);
+			}
+			
+			if(d.getTime() < curTime - 86400000 * 7 && mid == null){
+				return list.subList(0, i);
+			}
+			if(msg.getMid().equals(mid)){
+				if(i == 0){
+					list.clear();
+					return list;
+				}else{
+					return list.subList(0, i - 1 == 0 ? 1 : i - 1);
+				}
+				
+			}
+		}
+		
+		
+		// 如果List 还小于count ，则继续使用翻页功能
+	 	
+	 	int s_count = 1000;
+	 	int page = 1;
+	 	int pre_page = 1;
+	 	String pagebar = "0";
+	 	for(int i = 0 ; i < s_count+1 ; i ++){
+	 		String url = "http://weibo.com/aj/at/mblog/list?_wv=5&page="+page+"&count=15&pre_page="+pre_page+"&nofilter=0&pagebar="+pagebar+"&is_adv=0&filter_by_author=0&filter_by_type=0&_k=1361600255477177&_t=0&__rnd="+System.currentTimeMillis();
+	 		httpGet = new HttpGet(url);
+		 	
+		 	try {
+				httpResponse = httpClient.execute(httpGet);
+			} catch (ClientProtocolException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			} catch (IOException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			}
+		 	if(httpResponse == null){
+		 		return list;
+		 	}
+		 	responseStr = HtmlTools.getHtmlByBr(httpResponse);
+		 	JSONObject json = null;
+		 	try {
+				json = new JSONObject(responseStr);
+				HtmlTools.writeFile(json.getString("data"), "e:\\cc.html");
+				list.addAll(parseWBByToMe_listHtml(json.getString("data"),null,null));
+			} catch (JSONException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return list;
+			}
+		 	
+		 	if(pagebar.equals("0")){
+		 		pagebar = "1";
+		 		
+		 	}else if(pagebar.equals("1")){
+		 		pagebar = "";
+		 		page ++;
+		 	}else if(pagebar.equals("")){
+		 		pagebar = "0";
+		 		pre_page = page;
+		 	}
+		 	
+		 	for(int j = 0 ; j < list.size() ; j ++){
+				MsgBean msg = list.get(j);
+				Date d = null;
+				try {
+					d = sdf.parse(msg.getTime());
+				} catch (ParseException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return list.subList(0, i);
+				}
+				
+				if(d.getTime() < curTime - 86400000 * 7 && mid == null){
+					return list.subList(0, i);
+				}
+				if(msg.getMid().equals(mid)){
+					if(i == 0){
+						list.clear();
+						return list;
+					}else{
+						return list.subList(0, i - 1 == 0 ? 1 : i - 1);
+					}
+					
+				}
+			}
+		 	
+	 	}
+		
+		return list;
 	}
 	/**
 	 * 获取@我的评论
@@ -1832,6 +2037,59 @@ public class WeiboLoginService {
 		
 		
 		return list;
+	}
+	public List<MsgBean> parseWBByToMe_listHtml(String html, String start, String end){
+		List<MsgBean> list = new ArrayList<MsgBean>();
+		// 由于返回的html界面格式不正常，需要先转换后才能供jsoup使用
+		if(start != null && end != null){
+			html = html.substring(html.indexOf(start),html.indexOf(end));
+		}
+		
+		html = html.replace("\\"+"t", "");
+		html = html.replace("\\"+"n", "");
+		html = html.replace("\\"+"\"", "\"");
+		html = html.replace("\\/", "/");
+		Document doc = Jsoup.parse(html);
+		
+	 	Elements feedtypes = doc.select(".WB_feed_type");
+		
+	 	for(int i = 0 ; i < feedtypes.size() ; i ++){
+	 		Element feed = feedtypes.get(i);
+	 		MsgBean msg = new MsgBean();
+	 		msg.setMid(feed.attr("mid"));
+	 		
+	 		Elements S_func1 = feed.select(".WB_name.S_func1");
+	 		msg.setNck(S_func1.attr("nick-name"));
+	 		msg.setUid(Long.valueOf(S_func1.attr("usercard").split("=")[1]));
+	 		
+	 		Elements feed_list_content = feed.select(".WB_text[node-type=feed_list_content]");
+	 		msg.setCon(feed_list_content.text());
+	 		
+	 		Elements feed_list_originNick = feed.select("a[node-type=feed_list_originNick]");
+	 		if(feed_list_originNick.size() > 0){
+	 			msg.setOnck(feed_list_originNick.attr("nick-name"));
+		 		msg.setOuid(Long.valueOf(feed_list_originNick.attr("usercard").split("=")[1]));
+	 			msg.setOcon(feed.select(".WB_text[node-type=feed_list_reason]").text());
+	 		}
+	 		
+	 		Elements feed_time = feed.select("a[suda-data=key=tblog_home_new&value=feed_time]");
+	 		msg.setTime(feed_time.attr("title"));
+	 		
+	 		Elements handle = feed.select(".WB_handle[mid]");
+	 		if(handle.size() == 1){
+	 			msg.setOmid(handle.attr("mid"));
+	 			Elements time = handle.parents().select("a[node-type=feed_list_item_date]");
+	 			msg.setOtime(time.attr("title"));
+	 		}
+	 		
+	 		if(feed.hasAttr("isforward")){
+	 			msg.setType("转发");
+	 		}else{
+	 			msg.setType("普通");
+	 		}
+	 		list.add(msg);
+	 	}
+	 	return list;
 	}
 	public List<MsgBean> parseWB_listHtml(String html, String start, String end){
 		List<MsgBean> list = new ArrayList<MsgBean>();
@@ -2206,7 +2464,8 @@ public class WeiboLoginService {
 //		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
-		l.searchUid_psh(1661461070, 500);
+		System.out.println(l.getToMeWeibo(null).size());
+//		l.searchUid_psh(1661461070, 500);
 //		l.searchUid(2363715054l, 1);
 //		l.searchKeywordPageNumber("http://s.weibo.com/weibo/哈哈&Refer=index");
 //		l.searchKeyword("哈哈", 10);

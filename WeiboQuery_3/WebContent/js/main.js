@@ -20,6 +20,7 @@ function initStatus(){
 		localStorage.SendWeiboGroup = 'none';
 		localStorage.ForwardGroup = 'none';
 		localStorage.AttentionGroup = 'none';
+		localStorage.TomeGroup = 'none';
 		return;
 	}
 	
@@ -161,6 +162,30 @@ function initTable(){
    	 	toolbar: [true,"top"],
    	 	loadComplete: function(){
    	 		initAttention_Toolbar();
+   	 	}
+	});
+	
+	// 回复功能
+	$('#tabs_5_table').jqGrid({
+		datatype: "local",
+		height: 420,
+		colNames:['uid','邮箱','最新消息','状态','lastmid','cache'],
+	   	colModel:[
+	   		{name:'uid',index:'uid', width:20, align:'center', sortable:false},
+	   		{name:'email',index:'email', width:40, align:'center', sortable:false},
+	   		{name:'newmsg',index:'newmsg', width:40 , sortable:false},
+	   		{name:'status',index:'status', width:40,align:"right",sortable:false},		
+	   		{name:'lastmid',index:'lastmid',hidden:true},
+	   		{name:'cache',index:'cache',hidden:true}
+	   	],
+	   	rownumbers:true,
+   		rowNum: 50,
+   	   	pager: "#tabs_5_pager",
+   	 	viewrecords: true,
+   	   	width: $('#tabs_1').width(),
+   	 	toolbar: [true,"top"],
+   	 	loadComplete: function(){
+   	 		initTome_Toolbar();
    	 	}
 	});
 	
