@@ -4,6 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.psh.base.util.PshLogger;
 import com.psh.base.util.SQLConn;
@@ -98,17 +102,32 @@ public class FansGroupModel extends SuperModel {
 				return false;
 			}
 			
-			pstmt = conn.prepareStatement("select * as count from wb_account where gid = ? order by rand()");
+			pstmt = conn.prepareStatement("select * from wb_account where gid = ? order by rand()");
 			pstmt.setInt(1, gid);
 			rs = pstmt.executeQuery();
 			
+			int index = 0;
 			long boss = 0;
+			Map<Long, Object> masters = new HashMap<Long, Object>(); 
+			
 			
 			
 			while(rs.next()){
 				
+				if(boss == 0){
+					boss = rs.getLong("uid");
+				}else if(masters.size() < 9){
+					long temp = rs.getLong("uid");
+					List<Long> fans = new ArrayList<Long>();
+					while(rs.next() && fans.size() < 110){
+						fans.add(rs.getLong("uid"));
+					}
+					masters.put(temp, fans);
+					
+				}
 				
 				
+				index++;
 			}
 			
 			
