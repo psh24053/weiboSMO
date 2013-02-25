@@ -335,6 +335,18 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
+	},
+	Action_3035_FansGroupAutoExecute:function(gid, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3035,
+			Success:Success,
+			prm:{
+				gid: gid
+			},
+			Error:Error
+		}).send(Before);
+		
 	}
 	
 

@@ -18,7 +18,6 @@
     <servlet-name>UploadExcel</servlet-name>
     <url-pattern>/UploadExcel</url-pattern>
   </servlet-mapping>
-  
   <servlet>
     <display-name>ExportActivation</display-name>
     <servlet-name>ExportActivation</servlet-name>
@@ -28,5 +27,4 @@
     <servlet-name>ExportActivation</servlet-name>
     <url-pattern>/ExportActivation</url-pattern>
   </servlet-mapping>
-  
 </web-app>

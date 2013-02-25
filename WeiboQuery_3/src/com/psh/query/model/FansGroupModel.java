@@ -80,6 +80,7 @@ public class FansGroupModel extends SuperModel {
 		}
 		
 		try {
+			conn.setAutoCommit(false);
 			pstmt = conn.prepareStatement("select * from wb_group where gid = ?");
 			pstmt.setInt(1, gid);
 			rs = pstmt.executeQuery();
@@ -106,33 +107,86 @@ public class FansGroupModel extends SuperModel {
 			pstmt.setInt(1, gid);
 			rs = pstmt.executeQuery();
 			
-			int index = 0;
 			long boss = 0;
-			Map<Long, Object> masters = new HashMap<Long, Object>(); 
-			
-			
-			
+			Map<Long, List> masters = new HashMap<Long, List>(); 
+			// 进行分组操作
+			int index = 0;
+			long temp = 0;
+			List<Long> fans = null;
 			while(rs.next()){
 				
 				if(boss == 0){
 					boss = rs.getLong("uid");
-				}else if(masters.size() < 9){
-					long temp = rs.getLong("uid");
-					List<Long> fans = new ArrayList<Long>();
-					while(rs.next() && fans.size() < 110){
-						fans.add(rs.getLong("uid"));
-					}
-					masters.put(temp, fans);
+				}else{
 					
+					if(index == 0){
+						temp = rs.getLong("uid");
+						fans = new ArrayList<Long>();
+					}else if(index < 110){
+						fans.add(rs.getLong("uid"));
+						index ++;
+						if(fans.size() == 110){
+							masters.put(temp, fans);
+							index = 0;
+						}
+					}
+					
+					
+//					long temp = rs.getLong("uid");
+//					List<Long> fans = new ArrayList<Long>();
+//					int in = 0;
+//					while(rs.next() && fans.size() < 110){
+//						fans.add(rs.getLong("uid"));
+//					}
+//					masters.put(temp, fans);
 				}
 				
+			}
+			// 清理
+			pstmt = conn.prepareStatement("delete from wb_fansgroup where gid = ?");
+			pstmt.setInt(1, gid);
+			result = pstmt.executeUpdate();
+			
+			// 插入boss
+			pstmt = conn.prepareStatement("insert into wb_fansgroup(gid,uid,flag,parent) values(?,?,?,?)");
+			pstmt.setInt(1, gid);
+			pstmt.setLong(2, boss);
+			pstmt.setInt(3, 3);
+			pstmt.setLong(4, 0);
+			pstmt.executeUpdate();
+			
+			for(Long master : masters.keySet()){
+				pstmt = conn.prepareStatement("insert into wb_fansgroup(gid,uid,flag,parent) values(?,?,?,?)");
+				pstmt.setInt(1, gid);
+				pstmt.setLong(2, master);
+				pstmt.setInt(3, 2);
+				pstmt.setLong(4, boss);
+				pstmt.executeUpdate();
 				
-				index++;
+				List<Long> fanss = masters.get(master);
+				for(int i = 0 ; i < fanss.size() ; i ++){
+					Long fans_uid = fanss.get(i);
+					pstmt = conn.prepareStatement("insert into wb_fansgroup(gid,uid,flag,parent) values(?,?,?,?)");
+					pstmt.setInt(1, gid);
+					pstmt.setLong(2, fans_uid);
+					pstmt.setInt(3, 1);
+					pstmt.setLong(4, master);
+					pstmt.executeUpdate();
+				}
 			}
 			
+			conn.commit();
 			
 		} catch (SQLException e) {
 			PshLogger.logger.error(e.getMessage());
+			if(conn != null){
+				try {
+					conn.rollback();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			}
+			return false;
 		} finally {
 			closeSQL(rs);
 			closeSQL(pstmt);
@@ -140,7 +194,7 @@ public class FansGroupModel extends SuperModel {
 		}
 		
 		
-		return result != -1;
+		return true;
 	}
 	/**
 	 * 执行内部互粉操作
