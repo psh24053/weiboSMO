@@ -47,12 +47,6 @@ function onClick_editorContent_sendmsg(obj, uid){
 	var rowItem = $('#tabs_2_table').jqGrid('getRowData',uid);
 	var con = $(obj).parent().text().substring(2);
 	
-//	if(!rowItem.target){
-//		alert('请先指定@目标用户!');
-//		return;
-//	}
-	
-	
 	$('.dialog_editorcontent').dialog({
 		modal: true,
 		title: '编辑文本内容',

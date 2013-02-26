@@ -152,8 +152,10 @@ public class UpdateInfoAction extends PshAction{
 		if(!weiboLogin.modifyInfo(account)){
 			return generator.toError(parser, 
 					ErrorCode.ERROR_CODE, 
-					"error, reason: 更新资料失败");
+					weiboLogin.getErrorMsg() != null ? weiboLogin.getErrorMsg() : "更新失败");
 		}
+		
+		
 		
 		return generator.toSuccess(parser, payload);
 	}

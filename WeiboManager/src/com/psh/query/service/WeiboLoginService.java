@@ -88,6 +88,7 @@ public class WeiboLoginService {
 	private CookieStore cookieStore;
 	public static Map<String, File> fileCache = new HashMap<String, File>();
 	public static final File cookieDir = new File("e:\\cookiedirs");
+	private String errorMsg;
 	private ProxyBean proxy;
 	/**
 	 * PreLogin.php实体类
@@ -1261,6 +1262,7 @@ public class WeiboLoginService {
 			baseInfoJson = new JSONObject(baseInfoResponse);
 			System.out.println(baseInfoJson);
 			if(!baseInfoJson.getString("code").equals("100000")){
+				errorMsg = baseInfoJson.getString("msg");
 				return false;
 			}
 		} catch (JSONException e) {
@@ -1648,8 +1650,15 @@ public class WeiboLoginService {
 		}
 		
 		long curTime = System.currentTimeMillis();
-		list.addAll(parseWBByToMe_listHtml(responseStr,"WB_feed","W_loading"));
+		//没有@我的微博
+		if(!responseStr.contains("W_loading") && responseStr.contains("共0条")){
+			System.out.println("没有微博"+account.getEmail());
+			return list;
+		}
+//		HtmlTools.writeFile(responseStr, "e:\\"+account.getEmail()+".html");
+		list.addAll(parseWBByToMe_listHtml(responseStr,"WB_feed",responseStr.contains("W_loading") ? "W_loading":"feed_list_repeat"));
 		final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+		
 		for(int i = 0 ; i < list.size() ; i ++){
 			MsgBean msg = list.get(i);
 			Date d = null;
@@ -1673,7 +1682,9 @@ public class WeiboLoginService {
 				
 			}
 		}
-		
+		if(list.size() < 14){
+			return list;
+		}
 		
 		// 如果List 还小于count ，则继续使用翻页功能
 	 	
@@ -2636,4 +2647,35 @@ public class WeiboLoginService {
 		email = Base64.encodeBase64String(email.getBytes());
 		return email;
 	}
+	public AccountBean getAccount() {
+		return account;
+	}
+	public void setAccount(AccountBean account) {
+		this.account = account;
+	}
+	public DefaultHttpClient getHttpClient() {
+		return httpClient;
+	}
+	public void setHttpClient(DefaultHttpClient httpClient) {
+		this.httpClient = httpClient;
+	}
+	public CookieStore getCookieStore() {
+		return cookieStore;
+	}
+	public void setCookieStore(CookieStore cookieStore) {
+		this.cookieStore = cookieStore;
+	}
+	public String getErrorMsg() {
+		return errorMsg;
+	}
+	public void setErrorMsg(String errorMsg) {
+		this.errorMsg = errorMsg;
+	}
+	public ProxyBean getProxy() {
+		return proxy;
+	}
+	public void setProxy(ProxyBean proxy) {
+		this.proxy = proxy;
+	}
+	
 }
