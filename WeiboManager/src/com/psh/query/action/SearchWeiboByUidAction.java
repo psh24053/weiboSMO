@@ -84,7 +84,6 @@ public class SearchWeiboByUidAction extends PshAction{
 					ErrorCode.ERROR_CODE, 
 					"error, reason: 读取微博失败,登录失败");
 		}
-		
 		List<MsgBean> data = weiboLogin.searchUid_psh(uid, count);
 		
 		if(data == null){

@@ -1312,20 +1312,39 @@ public class WeiboLoginService {
 			PshLogger.logger.error("[checkUid] httpResponse is null");
 			return false;
 		}
-		String location = getHeaderLocation(httpResponse);
-		System.out.println(location);
 		
-		if(location.contains("login") && location.contains("sso")){
-			PayloadInfo payload = new PayloadInfo();
-			if(reLogin(location, payload)){
-				return checkUid(uid);
+		String location = getHeaderLocation(httpResponse);
+		
+		if(location != null){
+			if(location.contains("login") && location.contains("sso")){
+				PayloadInfo payload = new PayloadInfo();
+				if(reLogin(location, payload)){
+					return checkUid(uid);
+				}else{
+					return false;
+				}
+			}else if(location.contains("usernotexists") || location.contains("pagenotfound")){
+				return false;
+				// 判断Url是否包含http
+			}else if(location.contains("signup.php")){
+				removeCookieStore(account.getEmail());
+				if(Login()){
+					return checkUid(uid);
+				}else{
+					return false;
+				}
+				
+			}
+			
+		}else{
+			String result = HtmlTools.getHtmlByBr(httpResponse);
+			if(result!= null){
+				return true;
 			}else{
 				return false;
 			}
-		}else if(location.contains("usernotexists") || location.contains("pagenotfound")){
-			return false;
-			// 判断Url是否包含http
 		}
+		
 		
 		return true;
 	}
