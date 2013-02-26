@@ -1274,12 +1274,14 @@ public class WeiboLoginService {
 		for(String key : this.account.getTagsMap().keySet()){
 			long tagid = Long.valueOf(key);
 			if(!delTag(tagid)){
+				errorMsg = "基本资料更新成功，但删除标签失败";
 				return false;
 			}
 		}
 		String[] tags_map = acc.getTags().split(",");
 		for(int i = 0 ; i < tags_map.length ; i ++){
 			if(!addTag(tags_map[i])){
+				errorMsg = "基本资料更新成功，但增加标签失败";
 				return false;
 			}
 		}
