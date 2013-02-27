@@ -347,6 +347,19 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
+	},
+	Action_3036_SearchWeiboByKeyword:function(keyword, count, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3036,
+			Success:Success,
+			prm:{
+				keyword: keyword,
+				count: count
+			},
+			Error:Error
+		}).send(Before);
+		
 	}
 	
 

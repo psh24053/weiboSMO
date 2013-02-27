@@ -381,7 +381,7 @@ function loadH3Content(h3, div, cid){
 				  var action_modify = $('<a gid="'+item.gid+'" class="group_action_modify" href="javascript:void(0)">改</a>');
 				  var action_delete = $('<a gid="'+item.gid+'" class="group_action_delete" href="javascript:void(0)">删</a>');
 				  var action_adduser = $('<a gid="'+item.gid+'" class="group_action_adduser" href="javascript:void(0)">导入</a>');
-					  
+				    
 				  
 				  action_modify.click(function(){
 					  var p_this = $(this);

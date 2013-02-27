@@ -30,9 +30,103 @@ function initForward_Toolbar(){
 	sendSource.click(onClick_getTargetForward_forward);
 	toolbar.append(sendSource);
 	
+	var getTargetUser = $('<button></button>').text('获取@目标源').button().attr('title','从新浪搜索转发目标并读取到表格中');
+	getTargetUser.click(onClick_getTargetUser_forward);
+	toolbar.append(getTargetUser);
+	
 	var executeContent = $('<button></button>').text('开始转发').button().attr('title','开始发送微博');
 	executeContent.click(onClick_execute_forward);
 	toolbar.append(executeContent);
+	
+}
+/**
+ * 获取@目标源
+ */
+function onClick_getTargetUser_forward(){
+	if(localStorage.ForwardGroup != 'run'){
+		alert('请选选择分组!');
+		return;
+	}
+	var rowData = $('#tabs_3_table').jqGrid('getRowData');
+	if(rowData.length == 0){
+		alert('没有加载账号信息或该分组没有账号数据！');
+		return;
+	}
+	
+	$('.dialog_searchtargetuser').dialog({
+		modal: true,
+		title: '获取@目标用户',
+		resizable: false,
+		width: $(document).width() * 0.4,
+	    height: $(document).height() * 0.7,
+	    open: function(){
+	    },
+	    buttons:{
+	    	'搜索':function(){
+	    		var dom = $('.dialog_searchtargetuser');
+	    		var nickname = !dom.find('.nickname').val() ? '':dom.find('.nickname').val();
+	    		var info = !dom.find('.info').val() ? '':dom.find('.info').val();
+	    		var company = !dom.find('.company').val() ? '':dom.find('.company').val();
+	    		var school = !dom.find('.school').val() ? '':dom.find('.school').val();
+	    		var tags = !dom.find('.tags').val() ? '':dom.find('.tags').val();
+	    		var prov = dom.find('.prov option:checked').text() == '不限' ? '': dom.find('.prov option:checked').text();
+	    		var city = dom.find('.city option:checked').text() == '不限' ? '': dom.find('.city option:checked').text();
+	    		var sex = dom.find('.sex').val();
+	    		var age = !dom.find('.age').val() ? '':dom.find('.age').val();
+	    		var fol = !dom.find('.fol').val() ? '':dom.find('.fol').val();
+	    		var fans = !dom.find('.fans').val() ? '':dom.find('.fans').val();
+	    		var count = dom.find('.count').val();
+	    		
+	    		var wait = new weibo.WaitAlert('正在搜索...');
+	    		wait.show();
+	    		
+	    		weibo.Action_3024_SearchTargetUser({
+	    			nickName: nickname,
+	    			tag: tags,
+					school: school,
+					company: company,
+					prov: prov,
+					city: city,
+					age: age,
+					sex: sex,
+					info: info,
+					fol: fol,
+					fans: fans,
+					count: count * $('#tabs_3_table').jqGrid('getRowData').length
+	    		},function(data){
+	    			if(data.res){
+	    				var list = data.pld.list;
+	    				var s_count = data.pld.count;
+	    				wait.close();
+	    				alert('搜索到 '+s_count+' 条目标用户');
+	    				$('.dialog_searchtargetuser').dialog('close');
+	    				if(s_count == 0){
+	    					return;
+	    				}
+	    				
+	    				var rowData = $('#tabs_3_table').jqGrid('getRowData');
+	    				var z_count = s_count / count;
+	    				for(var i = 0 ; i < z_count ; i ++){
+	    					
+	    					var str = "";
+	    					for(var j = 0 ; j < count ; j ++){
+	    						str += '@' +list.pop();
+	    					}
+	    					$('#tabs_3_table').jqGrid('setRowData',rowData[i].uid,{content: '<button onclick="onClick_editorContent_forward(this,'+rowData[i].uid+');">编辑</button>'+str});
+	    				}
+	    				
+	    			}
+	    			
+	    			
+	    		},function(err){
+	    			wait.close();
+	    			$('.dialog_searchtargetuser').dialog('close');
+	    		});
+	    		
+	    		
+	    	}
+	    }
+	});
 	
 }
 /**

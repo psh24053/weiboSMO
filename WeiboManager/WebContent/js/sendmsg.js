@@ -34,9 +34,74 @@ function initSendMessage_Toolbar(){
 	randomContent.click(onClick_getRandom_sendmsg);
 	toolbar.append(randomContent);
 	
+	var searchKeyword = $('<button></button>').text('关键字搜微博').button().attr('title','从新浪根据关键字搜索微博');
+	searchKeyword.click(onClick_searchkeyword_sendmsg);
+	toolbar.append(searchKeyword);
+	
 	var executeContent = $('<button></button>').text('开始发送').button().attr('title','开始发送微博');
 	executeContent.click(onClick_execute_sendmsg);
 	toolbar.append(executeContent);
+	
+}
+/**
+ * 根据关键字搜索微博
+ */
+function onClick_searchkeyword_sendmsg(){
+	if(localStorage.SendWeiboGroup != 'run'){
+		alert('请选选择分组!');
+		return;
+	}
+	var rowData = $('#tabs_2_table').jqGrid('getRowData');
+	if(rowData.length == 0){
+		alert('没有加载账号信息或该分组没有账号数据！');
+		return;
+	}
+	$('.dialog_searchkeyword').dialog({
+		modal: true,
+		title: '搜索关键字',
+		resizable: false,
+		width: $(document).width() * 0.3,
+	    height: $(document).height() * 0.3,
+	    buttons: {
+	    	'搜索': function(){
+	    		var keyword = $('.dialog_searchkeyword').find('.keyword').val();
+	    		var count = $('.dialog_searchkeyword').find('.count').val();
+	    		
+	    		if(!count || count <= 0){
+	    			alert('数量不能小于0');
+	    			return;
+	    		}
+	    		
+	    		if(!keyword || keyword.length == 0 || keyword == ''){
+	    			alert('关键字不能为空');
+	    			return;
+	    		}
+	    		var wait = new weibo.WaitAlert('正在搜索...');
+	    		wait.show();
+	    		weibo.Action_3036_SearchWeiboByKeyword(keyword, count, function(data){
+	    			if(data.res){
+	    				var list = data.pld.list;
+	    				alert('搜索到 '+list.length+' 条微博');
+	    				for(var i = 0 ; i < list.length ; i ++){
+	    					var item = list[i];
+	    					var row = rowData[i];
+		    				$('#tabs_2_table').jqGrid('setRowData',row.uid,{content: '<button onclick="onClick_editorContent_sendmsg(this,'+row.uid+');">编辑</button>'+item.con});
+	    					
+	    				}
+	    			}else{
+	    				alert('搜索失败');
+	    			}
+	    			wait.close();
+	    			console.debug(data);
+	    		},function(err){
+	    			alert('搜索失败');
+	    			wait.close();
+	    			console.debug(err);
+	    		});
+	    		
+	    	}
+	    }
+	});
 	
 }
 /**
