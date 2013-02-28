@@ -2459,6 +2459,215 @@ public class WeiboLoginService {
 	}
 	
 	/**
+	 * 根据uid和关键字,判断用户发送的微博中是否有该关键字
+	 * @param uid
+	 * @return
+	 */
+	public boolean searchUidAndKeyWords(long uid, int page,String keyWords){
+		String contentUrl = null;
+		if(account.getUid() == uid){
+			contentUrl = "http://weibo.com/"+uid+"/profile?page=" + page;
+		}else{
+			contentUrl = "http://weibo.com/u/"+uid +"?page=" + page;
+		}
+		
+		HttpGet HttpGet = new HttpGet(contentUrl);
+		HttpGet.addHeader("Referer", "http://weibo.com/");
+		HttpResponse httpResponse = null;
+		
+		try {
+			httpResponse = httpClient.execute(HttpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("searchUid httpResponse is null");
+			return false;
+		}
+				
+		String location = getHeaderLocation(httpResponse);
+		
+		String result = null;
+		
+		if(location != null){
+			
+			if(location.contains("login") && location.contains("sso")){
+				PayloadInfo payload = new PayloadInfo();
+				if(location != null && location.length() > 0){
+					if(reLogin(location, payload)){
+						return searchUidAndKeyWords(uid, page, keyWords);
+					}else{
+						return false;
+					}
+				}else{
+					System.out.println("??");
+					payload.responseString = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
+				}		
+				result = payload.responseString;
+			}else{
+				// 判断Url是否包含http
+				if(!(location.charAt(0) == 'h' || location.charAt(0) == 'H')){
+					location = "http://weibo.com" + location;
+				}
+				HttpGet = new HttpGet(location);
+				try {
+					httpResponse = httpClient.execute(HttpGet);
+				} catch (ClientProtocolException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return false;
+				} catch (IOException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return false;
+				}
+				
+				if(httpResponse == null){
+					PshLogger.logger.error("searchUid httpResponse is null");
+					return false;
+				}
+				result = HtmlTools.getHtmlByBr(httpResponse);
+			}
+		}else{
+			result = HtmlTools.getHtmlByBr(httpResponse);
+		}
+		
+		
+		if(result == null || result.equals("")){
+			return false;
+		}
+		
+		result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+		result = result.replace('\\','`');
+		result = result.replaceAll("`n", "");
+		result = result.replaceAll("`t", "");
+		result = result.replaceAll("`r", "");
+		result = result.replaceAll("`", "");
+		result = "<html><body>" + result + "</body></html>";
+		
+		Document doc = Jsoup.parse(result,"UTF-8");
+		Elements elements = doc.getElementsByAttribute("mid");
+		System.out.println("前面的" + elements.size());
+		
+		//遍历每页的用户
+		for(int i = 0 ; i < elements.size() ; i ++){
+			
+			if(elements.get(i).attr("class").equals("WB_handle")){
+				continue;
+			}
+
+			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").size() > 0){
+				
+				String contentChinese = elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").get(0).text();
+				
+				contentChinese = HtmlTools.decodeUnicode(contentChinese);
+				
+				System.out.println(contentChinese);
+				
+				if(contentChinese.indexOf(keyWords) != -1){
+					
+					System.out.println("找到结果--------" + contentChinese);
+					return true;
+					
+				}
+				
+			}
+		}
+		
+		boolean isExsit_1 = false;
+		isExsit_1 = getMsgMouseRollEventSearchUidAndKeyWords(uid, 0, page, keyWords);
+		
+		if(isExsit_1){
+			return true;
+		}
+		
+		boolean isExsit_2 = false;
+		isExsit_2 = getMsgMouseRollEventSearchUidAndKeyWords(uid, 1, page, keyWords);
+		
+		if(isExsit_2){
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * 获取刷新的
+	 * @param uid
+	 * @return
+	 */
+	public boolean getMsgMouseRollEventSearchUidAndKeyWords(long uid,int pageBar,int page,String keyWords){
+		
+		HttpPost httpPost = new HttpPost("http://weibo.com/aj/mblog/mbloglist?_wv=5&page=" + page + "&count=15&pre_page=1&pagebar=" + pageBar + "&_k=13612872994886" + pageBar + "&uid=" + uid + "&_t=0");
+		httpPost.addHeader("Referer", "http://weibo.com/u/" + uid);
+		HttpResponse httpResponse = null;
+		
+		try {
+			httpResponse = httpClient.execute(httpPost);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return false;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("searchUid httpResponse is null");
+			return false;
+		}
+				
+		String JsonResult = HtmlTools.getHtmlByBr(httpResponse);
+		
+		JSONObject json = null;
+		try {
+			json = new JSONObject(JsonResult);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String result = "";
+		try {
+			result = json.getString("data").toString();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+		result = result.replace('\\','`');
+		result = result.replaceAll("`n", "");
+		result = result.replaceAll("`t", "");
+		result = result.replaceAll("`r", "");
+		result = result.replaceAll("`", "");
+		result = "<html><body>" + result + "</body></html>";
+		
+		Document doc = Jsoup.parse(result);
+		
+		Elements elements = doc.getElementsByAttribute("mid");
+		System.out.println("刷新里的" + elements.size());
+		
+		//遍历每页的用户
+		for(int i = 0 ; i < elements.size() ; i ++){
+			
+			if(elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").size() > 0){
+				
+				String contentString = elements.get(i).getElementsByAttributeValue("node-type", "feed_list_content").get(0).text();
+				
+				if(contentString.indexOf(keyWords) != -1){
+					System.out.println("找到结果-----------" + contentString);
+					return true;
+				}
+				
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
 	 * @param args
 	 * @throws JSONException 
 	 * @throws NoSuchPaddingException 
@@ -2496,7 +2705,8 @@ public class WeiboLoginService {
 //		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
-		System.out.println(l.getToMeWeibo(null).size());
+//		System.out.println(l.getToMeWeibo(null).size());
+		System.out.println("结果******" + l.searchUidAndKeyWords(2536914164l, 1, "减了十几斤了"));
 //		l.searchUid_psh(1661461070, 500);
 //		l.searchUid(2363715054l, 1);
 //		l.searchKeywordPageNumber("http://s.weibo.com/weibo/哈哈&Refer=index");
