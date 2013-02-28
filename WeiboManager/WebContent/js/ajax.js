@@ -360,7 +360,54 @@ var weibo = {
 			Error:Error
 		}).send(Before);
 		
-	}
+	},
+	Action_3037_PreLogin:function(uid, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3037,
+			Success:Success,
+			prm:{
+				uid: uid
+			},
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3038_LoadProxy:function(Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3038,
+			Success:Success,
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3039_AddUserByGroupOnlyPush:function(gid, count, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3039,
+			Success:Success,
+			prm:{
+				gid: gid,
+				count: count
+			},
+			Error:Error
+		}).send(Before);
+		
+	},
+	Action_3040_DeleteGroupUserByArray:function(gid, uidarray, Success, Error, Before){
+		
+		new Ajax({
+			ActionCode:3040,
+			Success:Success,
+			prm:{
+				gid: gid,
+				uidarray: uidarray
+			},
+			Error:Error
+		}).send(Before);
+		
+	},
 	
 
 

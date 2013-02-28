@@ -1,12 +1,20 @@
 var AjaxData = {}; 
+var preLogin_pause = false;
 $(document).ready(function(){
 	
 	
-	initStyle();
-	initStatus();
-	initEvent();
-	initTable();
-	loadCategoryInfo();
+	// 开始加载代理
+	var wait = new weibo.WaitAlert("正在初始化代理...(若长时间无反应，请尝试刷新界面)");
+	wait.show();
+	weibo.Action_3038_LoadProxy(function(data){
+		initStyle();
+		initStatus();
+		initEvent();
+		initTable();
+		loadCategoryInfo();
+		wait.close();
+	});
+	
 });
 /**
  * 初始化状态
@@ -620,8 +628,8 @@ function onClick_GroupUserManager(){
 		modal: true,
 		title: '分组用户管理 ID:'+gid,
 		resizable: false,
-		width: $(document).width() * 0.7,
-	    height: $(document).height() * 0.7,
+		width: $(document).width() * 0.71,
+	    height: $(document).height() * 0.8,
 	    create: function(){
 	    	$('#dialog_groupusermanager_table').jqGrid({
 	    		datatype: "local",
@@ -644,34 +652,61 @@ function onClick_GroupUserManager(){
 	       	 		var toolbar = $('#t_dialog_groupusermanager_table');
 	       	 		toolbar.css('height','auto').css('padding','5px').css('padding-right','-5px');
 	       	 		
-		       	 	var setGroupUser = $('<button></button>').text('设置成员').button().attr('title','设置该分组的成员数量');
+		       	 	var setGroupUser = $('<button></button>').text('添加成员').button().attr('title','设置该分组的成员数量');
 		       	 	setGroupUser.click(function(){
-		       	 		onClick_setGroupUser(gid, group);
+		       	 		onClick_setGroupUser(gid, $('#dialog_groupusermanager_table').jqGrid('getRowData').length);
 		       	 	});
 		       		toolbar.append(setGroupUser);
 	       	 		
+		       		var runLogin = $('<button></button>').text('预登录').button().attr('title','对于当前用户进行预登录操作');
+		       		runLogin.click(function(){
+		       			onClick_runLogin($('#dialog_groupusermanager_table').jqGrid('getRowData'),this);
+		       	 	});
+		       		toolbar.append(runLogin);
+		       		
+		       		var stopLogin = $('<button class="stop_login"></button>').text('停止登录').button().attr('title','对于当前用户进行预登录操作');
+		       		stopLogin.click(function(){
+		       			preLogin_pause = true;
+		       	 	});
+		       		toolbar.append(stopLogin);
+		       		
+		       		var Exclude = $('<button></button>').text('排除封锁账号').button().attr('title','将处于被封锁状态的账号排除，排除出本组，并标记为被封锁账号');
+		       		Exclude.click(function(){
+		       			var rowData = $('#dialog_groupusermanager_table').jqGrid('getRowData');
+		       			var disable_uid_array = [];
+		       			for(var i = 0 ; i < rowData.length ; i ++){
+		       				var item = rowData[i];
+		       				if(item.status == ''){
+		       					continue;
+		       				}
+		       				if(item.status.indexOf('账号被封') != -1){
+		       					$('#dialog_groupusermanager_table').jqGrid('delRowData',item.uid);
+		       					disable_uid_array.push(item.uid);
+		       				}
+		       				
+		       			}
+		       			var wait = new weibo.WaitAlert('正在删除...');
+		       			wait.show();
+		       			weibo.Action_3040_DeleteGroupUserByArray(999,disable_uid_array,function(data){
+		       				if(data.res){
+		       					alert('删除被封账号成功！');
+		       					load_By_GroupManager(gid);
+		       				}
+		       				wait.close();
+		       				
+		       			},function(err){
+		       				wait.close();
+		       			});
+		       			
+		       			
+		       			
+		       	 	});
+		       		toolbar.append(Exclude);
 	       	 	}
 	    	});
 	    },
 	    open: function(){
-	    	var wait = new weibo.WaitAlert('正在加载...');
-	    	wait.show();
-	    	weibo.Action_3011_GetGroupUserList(gid, function(data){
-	    		if(data.res){
-	    			var list = data.pld.list;
-	    			for(var i = 0 ; i < list.length ; i ++){
-	    				var item = list[i];
-	    				item.description = item.info;
-	    			}
-	    			$('#dialog_groupusermanager_table').jqGrid('clearGridData');
-	    			$('#dialog_groupusermanager_table').jqGrid('addRowData', 'uid', list);
-	    		}
-	    		wait.close();
-	    		
-	    		console.debug(data);
-	    	},function(){
-	    		wait.close();
-	    	});
+	    	load_By_GroupManager(gid);
 	    	
 	    	
 	    }
@@ -680,12 +715,91 @@ function onClick_GroupUserManager(){
 	
 }
 /**
+ * 删除用户
+ * @param uid
+ * @param obj
+ */
+function onClick_deleteUser(uid,obj,gid){
+	var wait = new weibo.WaitAlert('正在删除...');
+	wait.show();
+	weibo.Action_3040_DeleteGroupUserByArray(0,[uid],function(data){
+		if(data.res){
+			alert('删除被封账号成功！');
+			load_By_GroupManager(gid);
+		}
+		wait.close();
+		
+	},function(err){
+		wait.close();
+	});
+
+}
+/**
+ * 预登陆
+ * @param rowData
+ */
+function onClick_runLogin(rowData, obj){
+	$(obj).parent().find('button').button('disable');
+	$(obj).parent().find('.stop_login').button('enable');
+	preLogin_pause = false;
+	var size = 0;
+	Execute_preLogin(size, rowData, $(obj));
+	
+}
+/**
+ * 执行预登陆的递归
+ * @param size
+ * @param rowData
+ * @param p_this
+ */
+function Execute_preLogin(size, rowData, p_this){
+	if(preLogin_pause){
+		preLogin_pause = false;
+		p_this.parent().find('button').button('enable');
+		alert('预登陆命令执行完毕！');
+		return;
+	}
+	var i = size;
+	var item = rowData[i];
+	$('#dialog_groupusermanager_table').jqGrid('setRowData',item.uid, {'status':'正在操作...'});
+	weibo.Action_3037_PreLogin(
+		parseInt(item.uid)
+	, function(data){
+		if(data.res){
+			$('#dialog_groupusermanager_table').jqGrid('setRowData',item.uid, {
+				'status': '预登陆成功'
+			});
+			
+		}else{
+			$('#dialog_groupusermanager_table').jqGrid('setRowData',item.uid, {'status':data.pld.info});
+		}
+		if(rowData.length == size+1){
+			p_this.parent().find('button').button('enable');
+			alert('预登陆命令执行完毕！');
+		}else{
+			size++;
+			Execute_preLogin(size, rowData, p_this);
+		}
+	},function(){
+		$('#dialog_groupusermanager_table').jqGrid('setRowData',item.uid, {'status':'预登陆失败，网络中断'});
+		if(rowData.length == size+1){
+			p_this.parent().find('button').button('enable');
+			alert('预登陆命令执行完毕！');
+		}else{
+			size++;
+			Execute_preLogin(size, rowData, p_this);
+		}
+	});
+	
+}
+
+/**
  * 设置分组用户
  * @param gid
  * @param group
  */
-function onClick_setGroupUser(gid, group){
-    weibo.Propmt('请输入要设置的用户数量',group.count,'设置用户数量',function(data){
+function onClick_setGroupUser(gid, count){
+    weibo.Propmt('请输入要增加的用户数量',null,'增加用户数量',function(data){
     	var value = 0;
 	  	try {
 		value = parseInt(data);
@@ -693,29 +807,37 @@ function onClick_setGroupUser(gid, group){
 	  	} catch (e) {
 			alert('请输入数字');
 		}	
-		weibo.Action_3010_SetGroupUser(gid, value, function(result){
+		weibo.Action_3039_AddUserByGroupOnlyPush(gid, value, function(result){
 			if(result.res){
-				alert('设置用户数量成功');
-				loadCategoryInfo();
-				var wait = new weibo.WaitAlert('正在加载...');
-		    	wait.show();
-		    	weibo.Action_3011_GetGroupUserList(gid, function(data){
-		    		if(data.res){
-		    			var list = data.pld.list;
-		    			for(var i = 0 ; i < list.length ; i ++){
-		    				var item = list[i];
-		    				item.description = item.info;
-		    			}
-		    			$('#dialog_groupusermanager_table').jqGrid('clearGridData');
-		    			$('#dialog_groupusermanager_table').jqGrid('addRowData', 'uid', list);
-		    		}
-		    		wait.close();
-		    		
-		    		console.debug(data);
-		    	},function(){
-		    		wait.close();
-		    	});
+				alert('增加用户数量成功');
+				load_By_GroupManager(gid);
 			}
 		});
   });
+}
+/**
+ * 加载数据，在groupmanager状态下
+ * @param gid
+ */
+function load_By_GroupManager(gid){
+	loadCategoryInfo();
+	var wait = new weibo.WaitAlert('正在加载...');
+	wait.show();
+	weibo.Action_3011_GetGroupUserList(gid, function(data){
+		if(data.res){
+			var list = data.pld.list;
+			for(var i = 0 ; i < list.length ; i ++){
+				var item = list[i];
+				item.description = item.info;
+				item.actions = '<button onclick="onClick_deleteUser('+item.uid+',this,'+gid+')">删除</button>';
+			}
+			$('#dialog_groupusermanager_table').jqGrid('clearGridData');
+			$('#dialog_groupusermanager_table').jqGrid('addRowData', 'uid', list);
+		}
+		wait.close();
+		
+		console.debug(data);
+	},function(){
+		wait.close();
+	});
 }

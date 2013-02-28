@@ -76,6 +76,7 @@ import com.psh.base.util.PshLogger;
 import com.psh.query.bean.AccountBean;
 import com.psh.query.bean.MsgBean;
 import com.psh.query.bean.ProxyBean;
+import com.psh.query.bean.SuperModel;
 import com.psh.query.model.AccountModel;
 import com.psh.query.model.CityModel;
 import com.psh.query.model.ProvModel;
@@ -90,12 +91,13 @@ public class WeiboLoginService {
 	public static final File cookieDir = new File("e:\\cookiedirs");
 	private String errorMsg;
 	private ProxyBean proxy;
+	private boolean showPin = false;
 	/**
 	 * PreLogin.php实体类
 	 * @author Administrator
 	 *
 	 */
-	private class PreLoginInfo{
+	private class PreLoginInfo extends SuperModel{
 		public String nonce;
 		public String rsakv;
 		public long servertime;
@@ -269,7 +271,6 @@ public class WeiboLoginService {
 			return null;
 		}
 		String html = HtmlTools.getHtmlByBr(httpResponse);
-		
 		html = html.substring(html.indexOf("(")+1, html.lastIndexOf(")"));
 		PreLoginInfo prelogin = new PreLoginInfo();
 		try {
@@ -356,6 +357,12 @@ public class WeiboLoginService {
 		
 		if(proxy != null){
 			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(proxy.getIp(), proxy.getPort()));
+		}else{
+			if(ProxyService.proxyService.getProxyData().size() != 0){
+				proxy = ProxyService.proxyService.getRandomProxyModel();
+				System.out.println(proxy);
+				return Login();
+			}
 		}
 		
 		// 判断cookiestore是否存在，如果存在则取出
@@ -397,8 +404,8 @@ public class WeiboLoginService {
 		String pin = null;
 		
 		// 如果showpin 为1则代表需要输入验证码
-		if(prelogin.showpin == 1){
-			
+		if(prelogin.showpin == 1 || showPin){
+			showPin = false;
 			PinCode pincode = new PinCode("");
 			pin = pincode.getCode(httpClient, prelogin.pcid, "http://login.sina.com.cn/cgi/pin.php?s=0&p="+prelogin.pcid);
 			// 获取验证码
@@ -506,6 +513,11 @@ public class WeiboLoginService {
 			
 			// 得到location准备跳转
 			String url = getScriptLocationReplace(htmlAjaxLogin);
+			// 这代表需要输入验证码
+			if(url.contains("retcode=4049") || url.contains("retcode=2070")){
+				showPin = true;
+				return Login();
+			}
 			System.out.println(url);
 			httpGet = new HttpGet(url);
 			try {
@@ -581,6 +593,7 @@ public class WeiboLoginService {
 			if(userdomain.contains("unfreeze")){
 				PshLogger.logger.error("[489] account is unfreeze");
 				System.out.println("[489] account is unfreeze");
+				errorMsg = "账号被封";
 				return false;
 			}
 			

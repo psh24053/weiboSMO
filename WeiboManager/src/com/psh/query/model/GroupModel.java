@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -196,6 +197,85 @@ public class GroupModel extends SuperModel {
 		} catch (SQLException e) {
 			PshLogger.logger.error(e.getMessage());
 		} finally {
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return result;
+		
+	}
+	/**
+	 * 删除分组用户
+	 * @param gid 要设置为哪一个gid
+	 * @param count
+	 * @return 返回实际更新数量
+	 */
+	public int deleteGroupUserByUidArray(int gid, long[] uid){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = 0;
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return result;
+		}
+		
+		
+		try {
+			for(int i = 0 ; i < uid.length ; i ++){
+				long u = uid[i];
+				pstmt = conn.prepareStatement("UPDATE wb_account SET gid = ? WHERE uid = ?");
+				if(gid == 0){
+					pstmt.setNull(1, Types.INTEGER);
+				}else{
+					pstmt.setInt(1, gid);
+				}
+				pstmt.setLong(2, u);
+				result += pstmt.executeUpdate();
+			}
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
+			closeSQL(pstmt);
+			closeSQL(conn);
+		}
+		
+		
+		return result;
+		
+	}
+	/**
+	 * 设置分组用户数量(只增加)
+	 * @param gid
+	 * @param count
+	 * @return 返回实际更新数量
+	 */
+	public int setGroupUserByOnlyPush(int gid, int count){
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = -1;
+		if(conn == null){
+			PshLogger.logger.error("Get SQL Connection error");
+			return -1;
+		}
+		
+		
+		try {
+			
+			pstmt = conn.prepareStatement("UPDATE wb_account SET gid = ? WHERE gid IS NULL LIMIT ?");
+			pstmt.setInt(1, gid);
+			pstmt.setInt(2, count);
+			
+			result = pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		} finally {
+			closeSQL(rs);
 			closeSQL(pstmt);
 			closeSQL(conn);
 		}
