@@ -85,13 +85,14 @@ CREATE TABLE `wb_city` (
 DROP TABLE IF EXISTS `wb_fansgroup`;
 
 CREATE TABLE `wb_fansgroup` (
-  `fgid` int(6) NOT NULL,
+  `fgid` int(6) NOT NULL auto_increment,
   `gid` int(6) default NULL,
-  `uid` int(6) default NULL,
+  `uid` bigint(24) default NULL,
   `flag` int(1) default NULL COMMENT 'flag,代表该用户在这个分组中所处的地位，3代表最高级，2代表组长，1代表组员',
-  `parent` int(6) default NULL,
+  `parent` bigint(24) default NULL,
   PRIMARY KEY  (`fgid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=7983 DEFAULT CHARSET=utf8
+
 
 /*Table structure for table `wb_group` */
 
