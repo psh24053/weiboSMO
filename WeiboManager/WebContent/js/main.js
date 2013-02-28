@@ -381,7 +381,10 @@ function loadH3Content(h3, div, cid){
 				  var action_modify = $('<a gid="'+item.gid+'" class="group_action_modify" href="javascript:void(0)">改</a>');
 				  var action_delete = $('<a gid="'+item.gid+'" class="group_action_delete" href="javascript:void(0)">删</a>');
 				  var action_adduser = $('<a gid="'+item.gid+'" class="group_action_adduser" href="javascript:void(0)">导入</a>');
-				    
+				  var action_manager = $('<a gid="'+item.gid+'" class="group_action_manager" href="javascript:void(0)">管理</a>');
+				     
+				  action_manager.click(onClick_GroupUserManager);
+				  
 				  
 				  action_modify.click(function(){
 					  var p_this = $(this);
@@ -419,6 +422,7 @@ function loadH3Content(h3, div, cid){
 						  }
 					  });
 				  });
+				  
 				  
 				  
 				  action_adduser.click(function(){
@@ -462,7 +466,7 @@ function loadH3Content(h3, div, cid){
 					  });
 				  });
 				  
-				  group_action.append(action_modify).append(action_delete).append(action_adduser);
+				  group_action.append(action_delete).append(action_manager);
 				  
 				  group_item.append(group_name).append(group_status).append(group_usercount).append(group_action);
 				  
@@ -496,7 +500,7 @@ function loadFirstH3(){
 		  for(var i = 0 ; i < list.length ; i ++){
 			  var item = list[i];
 			  
-			  var group_item = $('<div></div>').addClass('group_item');
+			  var group_item = $('<div></div>').addClass('group_item').data('item',item);
 			  
 			  var group_name = $('<span></span>').text(item.name).addClass('group_name');
 			  var group_status = $('<span></span>').text('('+item.status+')').addClass('group_status');
@@ -506,7 +510,12 @@ function loadFirstH3(){
 			  var action_modify = $('<a gid="'+item.gid+'" class="group_action_modify" href="javascript:void(0)">改</a>');
 			  var action_delete = $('<a gid="'+item.gid+'" class="group_action_delete" href="javascript:void(0)">删</a>');
 			  var action_adduser = $('<a gid="'+item.gid+'" class="group_action_adduser" href="javascript:void(0)">导入</a>');
-				
+			  var action_manager = $('<a gid="'+item.gid+'" class="group_action_manager" href="javascript:void(0)">管理</a>');
+			     
+			  action_manager.click(onClick_GroupUserManager);
+			  
+			  
+			  
 			  action_modify.click(function(){
 				  var p_this = $(this);
 				  weibo.Propmt('请输入要设置的用户数量',item.count,'设置用户数量',function(data){
@@ -585,7 +594,7 @@ function loadFirstH3(){
 				  });
 			  });
 			  
-			  group_action.append(action_modify).append(action_delete).append(action_adduser);
+			  group_action.append(action_delete).append(action_manager);
 			 
 			  group_item.append(group_name).append(group_status).append(group_usercount).append(group_action);
 			  
@@ -599,4 +608,114 @@ function loadFirstH3(){
 	  
 	  
     });
+}
+/**
+ * 分组用户管理
+ */
+function onClick_GroupUserManager(){
+	var p_This = $(this);
+	var gid = $(this).attr('gid');
+	var group = $(this).parent().parent().data('item');
+	$('.dialog_groupusermanager').dialog({
+		modal: true,
+		title: '分组用户管理 ID:'+gid,
+		resizable: false,
+		width: $(document).width() * 0.7,
+	    height: $(document).height() * 0.7,
+	    create: function(){
+	    	$('#dialog_groupusermanager_table').jqGrid({
+	    		datatype: "local",
+	    		height: $(document).height() * 0.5,
+	    		colNames:['操作','uid','邮箱','昵称','状态'],
+	    	   	colModel:[
+	   	            {name:'actions',index:'actions', width:30, align:'center', sortable:false},
+	    	   		{name:'uid',index:'uid', width:30, align:'center', sortable:false},
+	    	   		{name:'email',index:'email', width:30, align:'center', sortable:false},
+	    	   		{name:'nck',index:'nck', width:30, align:'center', sortable:false},
+	    	   		{name:'status',index:'status', width:30, align:'center', sortable:false}
+	    	   	],
+	    	   	rownumbers:true,
+	       		rowNum: 50,
+	       	   	pager: "#dialog_groupusermanager_pager",
+	       	 	viewrecords: true,
+	       	   	width: $(document).width() * 0.67,
+	       	   	toolbar: [true,'top'],
+	       	 	loadComplete: function(){
+	       	 		var toolbar = $('#t_dialog_groupusermanager_table');
+	       	 		toolbar.css('height','auto').css('padding','5px').css('padding-right','-5px');
+	       	 		
+		       	 	var setGroupUser = $('<button></button>').text('设置成员').button().attr('title','设置该分组的成员数量');
+		       	 	setGroupUser.click(function(){
+		       	 		onClick_setGroupUser(gid, group);
+		       	 	});
+		       		toolbar.append(setGroupUser);
+	       	 		
+	       	 	}
+	    	});
+	    },
+	    open: function(){
+	    	var wait = new weibo.WaitAlert('正在加载...');
+	    	wait.show();
+	    	weibo.Action_3011_GetGroupUserList(gid, function(data){
+	    		if(data.res){
+	    			var list = data.pld.list;
+	    			for(var i = 0 ; i < list.length ; i ++){
+	    				var item = list[i];
+	    				item.description = item.info;
+	    			}
+	    			$('#dialog_groupusermanager_table').jqGrid('clearGridData');
+	    			$('#dialog_groupusermanager_table').jqGrid('addRowData', 'uid', list);
+	    		}
+	    		wait.close();
+	    		
+	    		console.debug(data);
+	    	},function(){
+	    		wait.close();
+	    	});
+	    	
+	    	
+	    }
+	});
+	
+	
+}
+/**
+ * 设置分组用户
+ * @param gid
+ * @param group
+ */
+function onClick_setGroupUser(gid, group){
+    weibo.Propmt('请输入要设置的用户数量',group.count,'设置用户数量',function(data){
+    	var value = 0;
+	  	try {
+		value = parseInt(data);
+			
+	  	} catch (e) {
+			alert('请输入数字');
+		}	
+		weibo.Action_3010_SetGroupUser(gid, value, function(result){
+			if(result.res){
+				alert('设置用户数量成功');
+				loadCategoryInfo();
+				var wait = new weibo.WaitAlert('正在加载...');
+		    	wait.show();
+		    	weibo.Action_3011_GetGroupUserList(gid, function(data){
+		    		if(data.res){
+		    			var list = data.pld.list;
+		    			for(var i = 0 ; i < list.length ; i ++){
+		    				var item = list[i];
+		    				item.description = item.info;
+		    			}
+		    			$('#dialog_groupusermanager_table').jqGrid('clearGridData');
+		    			$('#dialog_groupusermanager_table').jqGrid('addRowData', 'uid', list);
+		    		}
+		    		wait.close();
+		    		
+		    		console.debug(data);
+		    	},function(){
+		    		wait.close();
+		    	});
+			}
+		});
+  });
 }
