@@ -2498,17 +2498,11 @@ public class WeiboLoginService {
 			
 			if(location.contains("login") && location.contains("sso")){
 				PayloadInfo payload = new PayloadInfo();
-				if(location != null && location.length() > 0){
-					if(reLogin(location, payload)){
-						return searchUidAndKeyWords(uid, page, keyWords);
-					}else{
-						return false;
-					}
+				if(reLogin(location, payload)){
+					return searchUidAndKeyWords(uid, page, keyWords);
 				}else{
-					System.out.println("??");
-					payload.responseString = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
-				}		
-				result = payload.responseString;
+					return false;
+				}
 			}else{
 				// 判断Url是否包含http
 				if(!(location.charAt(0) == 'h' || location.charAt(0) == 'H')){
@@ -2529,10 +2523,10 @@ public class WeiboLoginService {
 					PshLogger.logger.error("searchUid httpResponse is null");
 					return false;
 				}
-				result = HtmlTools.getHtmlByBr(httpResponse);
+				result = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
 			}
 		}else{
-			result = HtmlTools.getHtmlByBr(httpResponse);
+			result = HtmlTools.getHtmlByBr(httpResponse, false, "WB_feed");
 		}
 		
 		
