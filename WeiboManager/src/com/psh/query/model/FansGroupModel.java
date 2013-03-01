@@ -21,24 +21,199 @@ public class FansGroupModel extends SuperModel {
 	 * @return
 	 */
 	public long getFansGroupBoss(int gid){
-		return 0;
+		
+		long uid = -1;
+		
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		conn = SQLConn.getInstance().getConnection();
+		
+		try {
+			ps = conn.prepareStatement("select uid from wb_fansgroup where gid=" + gid + " and flag=3");
+			
+			rs = ps.executeQuery();
+			
+			if(rs == null){
+				
+				PshLogger.logger.error("Query Boss error");
+				return -1;
+				
+			}
+			
+			if(rs.next()){
+				
+				uid = rs.getLong("uid");
+				
+			}
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		}finally{
+			
+			closeSQL(rs);
+			closeSQL(ps);
+			closeSQL(conn);
+			
+		}
+		
+		
+		
+		return uid;
 	}
 	/**
 	 * 获取分组中的组长的列表
 	 * @param gid
 	 * @return
 	 */
-	public long[] getFansGroupMaster(int gid){
-		return null;
+	public List<Long> getFansGroupMaster(int gid){
+		
+		List<Long> masterList = new ArrayList<Long>();
+		
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		conn = SQLConn.getInstance().getConnection();
+		
+		try {
+			ps = conn.prepareStatement("select uid from wb_fansgroup where gid=" + gid + " and flag=2");
+			
+			rs = ps.executeQuery();
+			
+			if(rs == null){
+				
+				PshLogger.logger.error("Query Master error");
+				return null;
+				
+			}
+			
+			while(rs.next()){
+				
+				long uid = rs.getLong("uid");
+				
+				masterList.add(uid);
+				
+			}
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		}finally{
+			
+			closeSQL(rs);
+			closeSQL(ps);
+			closeSQL(conn);
+			
+		}
+		
+		
+		
+		return masterList;
+		
 	}
+	
+	/**
+	 * 获取分组中指定BOSS下的组长的列表
+	 * @param gid,uid
+	 * @return
+	 */
+	public List<Long> getFansGroupMasterByBoss(int gid,long uid){
+		
+		List<Long> masterList = new ArrayList<Long>();
+		
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		conn = SQLConn.getInstance().getConnection();
+		
+		try {
+			ps = conn.prepareStatement("select uid from wb_fansgroup where gid=" + gid + " and flag=2 and parent=" + uid);
+			
+			rs = ps.executeQuery();
+			
+			if(rs == null){
+				
+				PshLogger.logger.error("Query Master error");
+				return null;
+				
+			}
+			
+			while(rs.next()){
+				
+				long masterUid = rs.getLong("uid");
+				
+				masterList.add(masterUid);
+				
+			}
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		}finally{
+			
+			closeSQL(rs);
+			closeSQL(ps);
+			closeSQL(conn);
+			
+		}
+		
+		
+		
+		return masterList;
+		
+	}
+	
 	/**
 	 * 获取分组中某个组长的成员
 	 * @param gid
 	 * @param uid
 	 * @return
 	 */
-	public long[] getFansGroupByMaster(int gid, int uid){
-		return null;
+	public List<Long> getFansGroupByMaster(int gid, long uid){
+		
+		List<Long> modelList = new ArrayList<Long>();
+		
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		conn = SQLConn.getInstance().getConnection();
+		
+		try {
+			ps = conn.prepareStatement("select uid from wb_fansgroup where gid=" + gid + " and flag=3 and parent=" + uid);
+			
+			rs = ps.executeQuery();
+			
+			if(rs == null){
+				
+				PshLogger.logger.error("Query Master error");
+				return null;
+				
+			}
+			
+			while(rs.next()){
+				
+				long modelUid = rs.getLong("uid");
+				
+				modelList.add(modelUid);
+				
+			}
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		}finally{
+			
+			closeSQL(rs);
+			closeSQL(ps);
+			closeSQL(conn);
+			
+		}
+		
+		
+		
+		return modelList;
+		
 	}
 	
 	/**
@@ -202,8 +377,119 @@ public class FansGroupModel extends SuperModel {
 	 * @return
 	 */
 	public boolean FansGroupExecute(int gid){
-		return false;
+		
+		boolean isSucess = false;
+		
+		
+		if(getCountByGid(gid) < 1000){
+			
+			PshLogger.logger.info("Count under 1000 with this group");
+			return false;
+			
+		}
+		
+		//获取该组的BOSS
+		
+		long bossUid = getFansGroupBoss(gid);
+		
+		if(bossUid == -1){
+			
+			PshLogger.logger.error("This group have none Boss");
+			return false;
+			
+		}
+		
+		//获取该组的组长
+		List<Long> masterList = new ArrayList<Long>();
+		
+		masterList = getFansGroupMasterByBoss(gid, bossUid);
+		
+		if(masterList == null || masterList.size() == 0){
+			
+			PshLogger.logger.error("This group have none master");
+			return false;
+			
+		}
+		
+		//获取每个组长下的成员
+		for(int i = 0 ; i < masterList.size() ; i++){
+			
+			List<Long> modelList = new ArrayList<Long>();
+			
+			long masterUid = modelList.get(i);
+			
+			modelList = getFansGroupByMaster(gid, masterUid);
+			
+			if(modelList == null || modelList.size() == 0){
+				
+				PshLogger.logger.info("There have none model user with this master");
+				continue;
+			}
+			
+			for(int j = 0 ; j < modelList.size() ; j++){
+				
+				//组员分组长粉操作
+				
+				
+				
+			}
+			
+			//组长粉BOSS操作
+			
+		}
+		
+		return isSucess;
 	}
+	
+	/**
+	 * 
+	 * 获取指定分组下用户人数
+	 * @param gid
+	 * @return
+	 * 
+	 */
+	public int getCountByGid(int gid){
+		
+		int count = -1;
+		
+		Connection conn = SQLConn.getInstance().getConnection();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		try {
+			ps = conn.prepareStatement("select count(*) from wb_fansgroup where gid=" + gid);
+			
+			rs = ps.executeQuery();
+			
+			if(rs == null){
+				
+				PshLogger.logger.error("Get count by gid error");
+				return count;
+			}
+			
+			if(rs.next()){
+				
+				count = rs.getInt(1);
+				
+			}
+			
+			
+		} catch (SQLException e) {
+			PshLogger.logger.error(e.getMessage());
+		}finally{
+			
+			closeSQL(rs);
+			closeSQL(ps);
+			closeSQL(conn);
+			
+		}
+		
+		
+		return count;
+		
+		
+		
+	}
+	
 	/**
 	 * 执行两个分组之间的互粉操作
 	 * @param agid
