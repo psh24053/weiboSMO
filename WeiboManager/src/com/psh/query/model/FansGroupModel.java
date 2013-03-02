@@ -9,9 +9,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.psh.base.common.ErrorCode;
 import com.psh.base.util.PshLogger;
 import com.psh.base.util.SQLConn;
+import com.psh.query.bean.AccountBean;
 import com.psh.query.bean.SuperModel;
+import com.psh.query.service.WeiboLoginService;
 
 public class FansGroupModel extends SuperModel {
 
@@ -378,6 +381,9 @@ public class FansGroupModel extends SuperModel {
 	 */
 	public boolean FansGroupExecute(int gid){
 		
+		//成功关注数量
+		int successCount = 0;
+		
 		boolean isSucess = false;
 		
 		
@@ -429,12 +435,49 @@ public class FansGroupModel extends SuperModel {
 			for(int j = 0 ; j < modelList.size() ; j++){
 				
 				//组员分组长粉操作
+				AccountBean account = new AccountBean();
+				AccountModel accountModel = new AccountModel();
+				account = accountModel.getAccount(modelList.get(j));
+				WeiboLoginService weiboLogin = new WeiboLoginService(account);
 				
+				if(!weiboLogin.Login()){
+					
+					PshLogger.logger.error("Login fail,uid= " + modelList.get(j));
+					continue;
+					
+				}
+				
+				boolean isAttentionSuccess = weiboLogin.attention(masterUid);
+				
+				if(isAttentionSuccess){
+					
+					successCount++;
+					
+				}
 				
 				
 			}
 			
 			//组长粉BOSS操作
+			AccountBean account = new AccountBean();
+			AccountModel accountModel = new AccountModel();
+			account = accountModel.getAccount(masterUid);
+			WeiboLoginService weiboLogin = new WeiboLoginService(account);
+			
+			if(!weiboLogin.Login()){
+				
+				PshLogger.logger.error("Login fail,uid= " + masterUid);
+				continue;
+				
+			}
+			
+			boolean isAttentionSuccess = weiboLogin.attention(bossUid);
+			
+			if(isAttentionSuccess){
+				
+				successCount++;
+				
+			}
 			
 		}
 		
