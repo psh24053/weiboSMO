@@ -42,7 +42,14 @@ public class GetPersonInfo {
 	
 	
 	//获得用户信息
-	public UserBean getUserInfoFromWeibo(String uid,String fans,String follow,int queryTaskID){
+	public UserBean getUserInfoFromWeibo(String uid,String fans,String follow){
+		
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		UserBean user = new UserBean();
 		user.setFans(fans);
@@ -104,24 +111,24 @@ public class GetPersonInfo {
 			httpResponse = httpClient.execute(httpPost);
 		} catch (ClientProtocolException e1) {
 			System.out.println("访问被拒绝,重新访问");
-			user = getUserInfoFromWeibo(uid, fans, follow,queryTaskID);
+			user = getUserInfoFromWeibo(uid, fans, follow);
 			return user;
 			// TODO Auto-generated catch block
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
-			user = getUserInfoFromWeibo(uid, fans, follow,queryTaskID);
+			user = getUserInfoFromWeibo(uid, fans, follow);
 			return user;
 		}
 		
 		if(httpResponse == null){
-			user = getUserInfoFromWeibo(uid, fans, follow,queryTaskID);
+			user = getUserInfoFromWeibo(uid, fans, follow);
 			return user;
 		}
 		
 		HttpEntity httpEntity = httpResponse.getEntity();
 		
 		if(httpEntity == null){
-			user = getUserInfoFromWeibo(uid, fans, follow,queryTaskID);
+			user = getUserInfoFromWeibo(uid, fans, follow);
 			return user;
 		}
 		
@@ -136,8 +143,7 @@ public class GetPersonInfo {
 			e1.printStackTrace();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
-			user = getUserInfoFromWeibo(uid, fans, follow,queryTaskID);
-			return user;
+			return null;
 		}
 		
 		String result = "";
@@ -152,13 +158,19 @@ public class GetPersonInfo {
 						//获取基本信息
 						result = item.trim();
 						System.out.println("已获取到 html---基本信息");
-						result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
-						result = result.replace('\\','`');
-						result = result.replaceAll("`n", "");
-						result = result.replaceAll("`t", "");
-						result = result.replaceAll("`r", "");
-						result = result.replaceAll("`", "");
-						result = "<html><body>" + result + "</body></html>";
+						try {
+							
+							result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+							result = result.replace('\\','`');
+							result = result.replaceAll("`n", "");
+							result = result.replaceAll("`t", "");
+							result = result.replaceAll("`r", "");
+							result = result.replaceAll("`", "");
+							result = "<html><body>" + result + "</body></html>";
+						} catch (Exception e) {
+							PshLogger.logger.error(e.getMessage());
+							continue;
+						}
 						
 						Document doc = Jsoup.parse(result);
 						
@@ -212,13 +224,20 @@ public class GetPersonInfo {
 						result = item.trim();
 						//获取基本信息
 						System.out.println("已获取到 html---标签");
-						result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
-						result = result.replace('\\','`');
-						result = result.replaceAll("`n", "");
-						result = result.replaceAll("`t", "");
-						result = result.replaceAll("`r", "");
-						result = result.replaceAll("`", "");
-						result = "<html><body>" + result + "</body></html>";
+						
+						try {
+							
+							result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+							result = result.replace('\\','`');
+							result = result.replaceAll("`n", "");
+							result = result.replaceAll("`t", "");
+							result = result.replaceAll("`r", "");
+							result = result.replaceAll("`", "");
+							result = "<html><body>" + result + "</body></html>";
+						} catch (Exception e) {
+							PshLogger.logger.error(e.getMessage());
+							continue;
+						}
 						
 						Document doc = Jsoup.parse(result);
 						
@@ -240,13 +259,19 @@ public class GetPersonInfo {
 						
 						result = item.trim();
 						System.out.println("已获取到 html---工作信息");
-						result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
-						result = result.replace('\\','`');
-						result = result.replaceAll("`n", "");
-						result = result.replaceAll("`t", "");
-						result = result.replaceAll("`r", "");
-						result = result.replaceAll("`", "");
-						result = "<html><body>" + result + "</body></html>";
+						
+						try {
+							result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+							result = result.replace('\\','`');
+							result = result.replaceAll("`n", "");
+							result = result.replaceAll("`t", "");
+							result = result.replaceAll("`r", "");
+							result = result.replaceAll("`", "");
+							result = "<html><body>" + result + "</body></html>";
+							
+						} catch (Exception e) {
+							PshLogger.logger.error(e.getMessage());
+						}
 						
 						Document doc = Jsoup.parse(result);
 						
@@ -266,13 +291,19 @@ public class GetPersonInfo {
 						
 						result = item.trim();
 						System.out.println("已获取到 html---教育信息");
-						result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
-						result = result.replace('\\','`');
-						result = result.replaceAll("`n", "");
-						result = result.replaceAll("`t", "");
-						result = result.replaceAll("`r", "");
-						result = result.replaceAll("`", "");
-						result = "<html><body>" + result + "</body></html>";
+						
+						try {
+							
+							result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+							result = result.replace('\\','`');
+							result = result.replaceAll("`n", "");
+							result = result.replaceAll("`t", "");
+							result = result.replaceAll("`r", "");
+							result = result.replaceAll("`", "");
+							result = "<html><body>" + result + "</body></html>";
+						} catch (Exception e) {
+							PshLogger.logger.error(e.getMessage());
+						}
 						
 						Document doc = Jsoup.parse(result);
 						
@@ -294,16 +325,14 @@ public class GetPersonInfo {
 			
 			if(user.getUck() == null){
 				
-				user =  getUserInfoFromWeibo(uid, fans, follow,queryTaskID);
-				return user;
+				return null;
 				
 			}
 			
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			PshLogger.logger.error(e1.getMessage());
-			user = getUserInfoFromWeibo(uid, fans, follow,queryTaskID);
-			return user;
+			return null;
 		}finally{
 			try {
 				in.close();
@@ -315,46 +344,53 @@ public class GetPersonInfo {
 		
 		//判断该用户在此次搜索任务中是否存在,并将该用户和搜索任务联系起来
 		
-		QueryTaskBean queryTaskBean = new QueryTaskBean();
-		QueryTaskModel queryModel = new QueryTaskModel();
-		queryTaskBean = queryModel.getQueryTaskInfoByID(queryTaskID);
+//		QueryTaskBean queryTaskBean = new QueryTaskBean();
+//		QueryTaskModel queryModel = new QueryTaskModel();
+//		queryTaskBean = queryModel.getQueryTaskInfoByID();
+//		
+//		UserQueryTaskModel userQuery = new UserQueryTaskModel();
+//		UserQueryTaskBean userQueryBean = new UserQueryTaskBean();
+//		CheckFit check = new CheckFit();
 		
-		UserQueryTaskModel userQuery = new UserQueryTaskModel();
-		UserQueryTaskBean userQueryBean = new UserQueryTaskBean();
-		CheckFit check = new CheckFit();
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		//将用户信息添加到数据库
 		UserModel userModel = new UserModel();
-		if(userModel.checkUserIsExsit(uid)){
-			System.out.println("更新用户");
+//		if(userModel.checkUserIsExsit(uid)){
+//			System.out.println("更新用户");
 			//用户存在更新数据库
-			userModel.updateUser(user);
+//			userModel.updateUser(user);
 			
-			if(!userQuery.checkUidIsExsitByTaskID(uid, queryTaskID)){
-				System.out.println("任务中不存在");
-				//判断该用户是否符合搜索条件
-				if(check.checkIsFitCondition(user, queryTaskBean)){
-					System.out.println("条件匹配");
-					userQueryBean.setUid(uid);
-					userQueryBean.setQtid(queryTaskID);
-					userQuery.addUserQueryTask(userQueryBean);
-				}
-			}
+//			if(!userQuery.checkUidIsExsitByTaskID(uid, queryTaskID)){
+//				System.out.println("任务中不存在");
+//				//判断该用户是否符合搜索条件
+//				if(check.checkIsFitCondition(user, queryTaskBean)){
+//					System.out.println("条件匹配");
+//					userQueryBean.setUid(uid);
+//					userQueryBean.setQtid(queryTaskID);
+//					userQuery.addUserQueryTask(userQueryBean);
+//				}
+//			}
 			
-		}else{
+//		}else{
 			
 			System.out.println("添加用户");
 			//用户不存在,添加到数据库
 			userModel.addUser(user);
 			
-			if(check.checkIsFitCondition(user, queryTaskBean)){
-				System.out.println("条件匹配");
-				userQueryBean.setUid(uid);
-				userQueryBean.setQtid(queryTaskID);
-				userQuery.addUserQueryTask(userQueryBean);
-			}
+//			if(check.checkIsFitCondition(user, queryTaskBean)){
+//				System.out.println("条件匹配");
+//				userQueryBean.setUid(uid);
+//				userQueryBean.setQtid(queryTaskID);
+//				userQuery.addUserQueryTask(userQueryBean);
+//			}
 			
-		}
+//		}
 		
 		return user;
 		
@@ -362,7 +398,7 @@ public class GetPersonInfo {
 	
 	public static void main(String[] args) {
 		GetPersonInfo gpi = new GetPersonInfo();
-		gpi.getUserInfoFromWeibo("1973632934", "50", "100",1);
+//		gpi.getUserInfoFromWeibo("1973632934", "50", "100",1);
 	}
 
 }

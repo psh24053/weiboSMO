@@ -194,8 +194,8 @@ public class GetFirstQueryUser extends Thread{
 					userQuery.addUserQueryTask(userQueryBean);
 				}
 				
-				ThreadContraModel threadContra = new ThreadContraModel(user_info.getUid(), queryTaskID);
-				threadContra.start();
+				/*ThreadContraModel threadContra = new ThreadContraModel(user_info.getUid(), queryTaskID);
+				threadContra.start();*/
 				
 			}
 				

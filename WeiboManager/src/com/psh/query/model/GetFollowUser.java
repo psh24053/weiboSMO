@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -40,7 +42,7 @@ import com.psh.query.util.QueryNumberManager;
 public class GetFollowUser {
 	
 	//根据用户ID找该用户的关注对象
-	public void getFollowUserByUid(String uid,int pageNumber,int queryTaskID){
+	public Set<String> getFollowUserByUid(long uid,int pageNumber){
 		
 		System.out.println("进入查找用户的关注用户");
 		
@@ -80,7 +82,12 @@ public class GetFollowUser {
 		GetFollowOrFansPageNumber page = new GetFollowOrFansPageNumber();
 		int number = page.getFollowOrFansPage("http://weibo.com/" + uid + "/follow");
 		
+		Set<String> uidList = new HashSet<String>();
+		
+//		QueryNumberManager queryNumber = QueryNumberManager.getInstance();
+		
 		for(int u = pageNumber ; u < number ; u++){
+			
 			System.out.println("关注第" + (u + 1) + "页");
 			String url_follow = "http://weibo.com/" + uid + "/follow" +"?page=" + (u + 1);
 			System.out.println(url_follow);
@@ -105,17 +112,17 @@ public class GetFollowUser {
 			} catch (IOException e1) {
 				PshLogger.logger.error(e1.getMessage());
 				System.out.println("重新执行找关注");
-				getFollowUserByUid(uid,u,queryTaskID);
+				return getFollowUserByUid(uid,u);
 			}
 			
 			if(httpResponseFollow == null){
-				getFollowUserByUid(uid,u,queryTaskID);
+				return getFollowUserByUid(uid,u+1);
 			}
 			
 			HttpEntity httpEntityFollow = httpResponseFollow.getEntity();
 			
 			if(httpEntityFollow == null){
-				getFollowUserByUid(uid,u,queryTaskID);
+				return getFollowUserByUid(uid,u);
 			}
 			
 			BufferedReader in_follow = null;
@@ -153,26 +160,30 @@ public class GetFollowUser {
 				
 				System.out.println("新浪微博提示行为异常follow");
 				//换代理IP重新获取该页
-				getFollowUserByUid(uid,u,queryTaskID);
+				return getFollowUserByUid(uid,u);
 				
 			}
 			
 			System.out.println("已获取到 html_follow");
 			
-			result_follow = result_follow.substring(result_follow.indexOf("<div"),result_follow.lastIndexOf("/div>") + 5);
-			result_follow = result_follow.replace('\\','`');
-			result_follow = result_follow.replaceAll("`n", "");
-			result_follow = result_follow.replaceAll("`t", "");
-			result_follow = result_follow.replaceAll("`r", "");
-			result_follow = result_follow.replaceAll("`", "");
-			result_follow = "<html><body>" + result_follow + "</body></html>";
+			try {
+				
+				result_follow = result_follow.substring(result_follow.indexOf("<div"),result_follow.lastIndexOf("/div>") + 5);
+				result_follow = result_follow.replace('\\','`');
+				result_follow = result_follow.replaceAll("`n", "");
+				result_follow = result_follow.replaceAll("`t", "");
+				result_follow = result_follow.replaceAll("`r", "");
+				result_follow = result_follow.replaceAll("`", "");
+				result_follow = "<html><body>" + result_follow + "</body></html>";
+			} catch (Exception e) {
+				PshLogger.logger.error(e.getMessage());
+				return getFollowUserByUid(uid,u+1);
+			}
 			
 			Document doc_follow = Jsoup.parse(result_follow);
 			
 			Elements elements_follow = doc_follow.getElementsByAttributeValue("class", "W_f14 S_func1");
 			System.out.println(elements_follow.size());
-			
-			QueryNumberManager queryNumber = QueryNumberManager.getInstance();
 			
 			for(int x = 0 ; x < elements_follow.size() ; x ++){
 				System.out.println("遍历关注第" + (u + 1) + "页，第" + (x + 1) + "个用户");
@@ -180,6 +191,12 @@ public class GetFollowUser {
 				System.out.println("uridString------"+uidString);
 				String uid_follow = uidString.substring(3);
 				System.out.println(uid_follow);
+				
+				UserModel userModel = new UserModel();
+				
+				if(userModel.checkUserIsExsit(uid_follow)){
+					continue;
+				}
 				
 				//获取该用户详细信息
 				UserBean user = new UserBean();
@@ -195,15 +212,20 @@ public class GetFollowUser {
 					fans = element_fansNum.get(y).text();
 				}
 				//将该用户信息加入数据库
-				user = personInfo.getUserInfoFromWeibo(uid_follow, fans, follow,queryTaskID);
+				user = personInfo.getUserInfoFromWeibo(uid_follow, fans, follow);
+				if(user == null){
+					continue;
+				}
 				System.out.println("用户查找完" + user.getUck());
 				
 				//进行2级遍历
-				
-				queryNumber.executeFollowAndFans(uid_follow, queryTaskID);
+				uidList.add(uid_follow);
 				
 			}
 		}
+		
+//		queryNumber.executeFollowAndFans(uidList, queryTaskID,level);
+		return uidList;
 		
 	}
 

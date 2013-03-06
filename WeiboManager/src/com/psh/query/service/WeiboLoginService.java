@@ -1,11 +1,12 @@
 package com.psh.query.service;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -18,17 +19,16 @@ import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -48,7 +48,6 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.params.ConnRoutePNames;
@@ -61,7 +60,6 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
-import org.apache.log4j.PropertyConfigurator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -71,15 +69,17 @@ import org.jsoup.select.Elements;
 import com.psh.base.json.JSONArray;
 import com.psh.base.json.JSONException;
 import com.psh.base.json.JSONObject;
-import com.psh.base.util.PshConfigManager;
 import com.psh.base.util.PshLogger;
 import com.psh.query.bean.AccountBean;
 import com.psh.query.bean.MsgBean;
 import com.psh.query.bean.ProxyBean;
 import com.psh.query.bean.SuperModel;
+import com.psh.query.bean.UserBean;
 import com.psh.query.model.AccountModel;
 import com.psh.query.model.CityModel;
 import com.psh.query.model.ProvModel;
+import com.psh.query.model.ThreadContraModel;
+import com.psh.query.model.UserModel;
 import com.psh.query.util.HtmlTools;
 
 public class WeiboLoginService {
@@ -2524,6 +2524,686 @@ public class WeiboLoginService {
 	 		}
 	 	}
 	 	return false;
+	}
+	
+	/**
+	 * 根据一个UID通过粉丝以及关注遍历微博用户
+	 * 
+	 */
+	public void searchUserByOneUid(long uid){
+		
+		Set<String> folUidList = new HashSet<String>();
+		Set<String> fansUidList = new HashSet<String>();
+				
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		folUidList = this.getFollowUserByUid_Login(uid, 1);
+
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		fansUidList = this.getFansUserByUid_Login(uid, 1);
+		
+		folUidList.addAll(fansUidList);
+		
+		Iterator<String> iterator=folUidList.iterator();
+		
+		while(iterator.hasNext()){
+			
+			String uid_now = iterator.next();
+			ThreadContraModel threadContra = new ThreadContraModel(uid_now);
+			threadContra.start();
+		}
+				
+		
+	}
+	
+	//根据用户ID找该用户的关注对象
+	public Set<String> getFollowUserByUid_Login(long uid,int pageNumber){
+		
+		int number = this.getFollowOrFansPage_Login("http://weibo.com/" + uid + "/follow");
+		
+		Set<String> uidList = new HashSet<String>();
+		
+		for(int u = pageNumber ; u < number ; u++){
+			
+			/**********************************/
+			
+			String contentUrl = "http://weibo.com/" + uid + "/follow" +"?page=" + (u + 1);
+			
+			HttpGet HttpGet = new HttpGet(contentUrl);
+			HttpGet.addHeader("Referer", contentUrl);
+			HttpResponse httpResponse = null;
+			
+			try {
+				httpResponse = httpClient.execute(HttpGet);
+			} catch (ClientProtocolException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return uidList;
+			} catch (IOException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return uidList;
+			}
+			
+			if(httpResponse == null){
+				PshLogger.logger.error("searchUid httpResponse is null");
+				return uidList;
+			}
+					
+			String location = getHeaderLocation(httpResponse);
+			
+			String result_follow = null;
+			
+			if(location != null){
+				
+				if(location.contains("login") && location.contains("sso")){
+					PayloadInfo payload = new PayloadInfo();
+					if(location != null && location.length() > 0){
+						if(reLogin(location, payload)){
+							return getFollowUserByUid_Login(uid, pageNumber);
+						}else{
+							return uidList;
+						}
+					}else{
+						payload.responseString = HtmlTools.getHtmlByBr(httpResponse, false, "cnfList");
+					}		
+					result_follow = payload.responseString;
+				}else{
+					// 判断Url是否包含http
+					if(!(location.charAt(0) == 'h' || location.charAt(0) == 'H')){
+						location = "http://weibo.com" + location;
+					}
+					HttpGet = new HttpGet(location);
+					try {
+						httpResponse = httpClient.execute(HttpGet);
+					} catch (ClientProtocolException e) {
+						PshLogger.logger.error(e.getMessage(),e);
+						return uidList;
+					} catch (IOException e) {
+						PshLogger.logger.error(e.getMessage(),e);
+						return uidList;
+					}
+					
+					if(httpResponse == null){
+						PshLogger.logger.error("searchUid httpResponse is null");
+						return uidList;
+					}
+					result_follow = HtmlTools.getHtmlByBr(httpResponse);
+				}
+			}else{
+				result_follow = HtmlTools.getHtmlByBr(httpResponse);
+			}
+			
+			result_follow = HtmlTools.getHtmlByBr(httpResponse, false, "cnfList");
+			
+			
+			if(result_follow == null || result_follow.equals("")){
+				return null;
+			}
+			/*********************************/
+			
+			System.out.println("已获取到 html_follow");
+			
+			try {
+				
+				result_follow = result_follow.substring(result_follow.indexOf("<div"),result_follow.lastIndexOf("/div>") + 5);
+				result_follow = result_follow.replace('\\','`');
+				result_follow = result_follow.replaceAll("`n", "");
+				result_follow = result_follow.replaceAll("`t", "");
+				result_follow = result_follow.replaceAll("`r", "");
+				result_follow = result_follow.replaceAll("`", "");
+				result_follow = "<html><body>" + result_follow + "</body></html>";
+			} catch (Exception e) {
+				PshLogger.logger.error(e.getMessage());
+				return getFollowUserByUid_Login(uid, pageNumber);
+			}
+			
+			Document doc_follow = Jsoup.parse(result_follow);
+			
+			Elements elements_follow = doc_follow.getElementsByAttributeValue("class", "W_f14 S_func1");
+			System.out.println(elements_follow.size());
+			
+			for(int x = 0 ; x < elements_follow.size() ; x ++){
+				System.out.println("遍历关注第" + (u + 1) + "页，第" + (x + 1) + "个用户");
+				String uidString = elements_follow.get(x).attr("usercard");
+				System.out.println("uridString------"+uidString);
+				String uid_follow = uidString.substring(3);
+				System.out.println(uid_follow);
+				
+				UserModel userModel = new UserModel();
+				
+				if(userModel.checkUserIsExsit(uid_follow)){
+					continue;
+				}
+				
+				//获取该用户详细信息
+				UserBean user = new UserBean();
+				Elements element_followNum = elements_follow.get(x).parent().parent().getElementsByAttributeValue("href", "/" + uid_follow + "/follow");
+				Elements element_fansNum = elements_follow.get(x).parent().parent().getElementsByAttributeValue("href", "/" + uid_follow + "/fans");
+				String fans = "";
+				String follow = "";
+				for(int y = 0 ; y < element_followNum.size(); y++){
+					follow = element_followNum.get(y).text();
+				}
+				for(int y = 0 ; y < element_fansNum.size(); y++){
+					fans = element_fansNum.get(y).text();
+				}
+				//将该用户信息加入数据库
+				user = this.getUserInfoFromWeibo_Login(uid_follow, fans, follow);
+				if(user == null){
+					continue;
+				}
+				System.out.println("用户查找完" + user.getUck());
+				
+				//进行2级遍历
+				uidList.add(uid_follow);
+				
+			}
+		}
+		
+		return uidList;
+			
+	}
+	
+	//根据用户ID找该用户的粉丝对象
+	public Set<String> getFansUserByUid_Login(long uid,int pageNumber){
+		
+		int number = this.getFollowOrFansPage_Login("http://weibo.com/" + uid + "/fans");
+		
+		Set<String> uidList = new HashSet<String>();
+		
+		for(int u = pageNumber ; u < number ; u++){
+			
+			/**********************************/
+			
+			String contentUrl = "http://weibo.com/" + uid + "/fans" +"?page=" + (u + 1);
+			
+			HttpGet HttpGet = new HttpGet(contentUrl);
+			HttpGet.addHeader("Referer", contentUrl);
+			HttpResponse httpResponse = null;
+			
+			try {
+				httpResponse = httpClient.execute(HttpGet);
+			} catch (ClientProtocolException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return uidList;
+			} catch (IOException e) {
+				PshLogger.logger.error(e.getMessage(),e);
+				return uidList;
+			}
+			
+			if(httpResponse == null){
+				PshLogger.logger.error("searchUid httpResponse is null");
+				return uidList;
+			}
+					
+			String location = getHeaderLocation(httpResponse);
+			
+			String result_follow = null;
+			
+			if(location != null){
+				
+				if(location.contains("login") && location.contains("sso")){
+					PayloadInfo payload = new PayloadInfo();
+					if(location != null && location.length() > 0){
+						if(reLogin(location, payload)){
+							return getFansUserByUid_Login(uid, pageNumber);
+						}else{
+							return uidList;
+						}
+					}else{
+						payload.responseString = HtmlTools.getHtmlByBr(httpResponse, false, "cnfList");
+					}		
+					result_follow = payload.responseString;
+				}else{
+					// 判断Url是否包含http
+					if(!(location.charAt(0) == 'h' || location.charAt(0) == 'H')){
+						location = "http://weibo.com" + location;
+					}
+					HttpGet = new HttpGet(location);
+					try {
+						httpResponse = httpClient.execute(HttpGet);
+					} catch (ClientProtocolException e) {
+						PshLogger.logger.error(e.getMessage(),e);
+						return uidList;
+					} catch (IOException e) {
+						PshLogger.logger.error(e.getMessage(),e);
+						return uidList;
+					}
+					
+					if(httpResponse == null){
+						PshLogger.logger.error("searchUid httpResponse is null");
+						return uidList;
+					}
+					result_follow = HtmlTools.getHtmlByBr(httpResponse);
+				}
+			}else{
+				result_follow = HtmlTools.getHtmlByBr(httpResponse);
+			}
+			
+			result_follow = HtmlTools.getHtmlByBr(httpResponse, false, "cnfList");
+			
+			
+			if(result_follow == null || result_follow.equals("")){
+				return null;
+			}
+			/*********************************/
+			
+			System.out.println("已获取到 html_follow");
+			
+			try {
+				
+				result_follow = result_follow.substring(result_follow.indexOf("<div"),result_follow.lastIndexOf("/div>") + 5);
+				result_follow = result_follow.replace('\\','`');
+				result_follow = result_follow.replaceAll("`n", "");
+				result_follow = result_follow.replaceAll("`t", "");
+				result_follow = result_follow.replaceAll("`r", "");
+				result_follow = result_follow.replaceAll("`", "");
+				result_follow = "<html><body>" + result_follow + "</body></html>";
+			} catch (Exception e) {
+				PshLogger.logger.error(e.getMessage());
+				return getFollowUserByUid_Login(uid, pageNumber);
+			}
+			
+			Document doc_follow = Jsoup.parse(result_follow);
+			
+			Elements elements_follow = doc_follow.getElementsByAttributeValue("class", "W_f14 S_func1");
+			System.out.println(elements_follow.size());
+			
+			for(int x = 0 ; x < elements_follow.size() ; x ++){
+				System.out.println("遍历关注第" + (u + 1) + "页，第" + (x + 1) + "个用户");
+				String uidString = elements_follow.get(x).attr("usercard");
+				System.out.println("uridString------"+uidString);
+				String uid_follow = uidString.substring(3);
+				System.out.println(uid_follow);
+				
+				UserModel userModel = new UserModel();
+				
+				if(userModel.checkUserIsExsit(uid_follow)){
+					continue;
+				}
+				
+				//获取该用户详细信息
+				UserBean user = new UserBean();
+				Elements element_followNum = elements_follow.get(x).parent().parent().getElementsByAttributeValue("href", "/" + uid_follow + "/follow");
+				Elements element_fansNum = elements_follow.get(x).parent().parent().getElementsByAttributeValue("href", "/" + uid_follow + "/fans");
+				String fans = "";
+				String follow = "";
+				for(int y = 0 ; y < element_followNum.size(); y++){
+					follow = element_followNum.get(y).text();
+				}
+				for(int y = 0 ; y < element_fansNum.size(); y++){
+					fans = element_fansNum.get(y).text();
+				}
+				//将该用户信息加入数据库
+				user = this.getUserInfoFromWeibo_Login(uid_follow, fans, follow);
+				if(user == null){
+					continue;
+				}
+				System.out.println("用户查找完" + user.getUck());
+				
+				//进行2级遍历
+				uidList.add(uid_follow);
+				
+			}
+		}
+		
+		return uidList;
+			
+	}
+	
+	//获得粉丝或者关注的页数
+	public int getFollowOrFansPage_Login(String url){
+		
+		HttpGet HttpGet = new HttpGet(url);
+		HttpGet.addHeader("Referer", url);
+		HttpResponse httpResponse = null;
+		
+		try {
+			httpResponse = httpClient.execute(HttpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return 0;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return 0;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("searchUid httpResponse is null");
+			return 0;
+		}
+				
+		String location = getHeaderLocation(httpResponse);
+		
+		String result_page = null;
+		
+		if(location != null){
+			
+			if(location.contains("login") && location.contains("sso")){
+				PayloadInfo payload = new PayloadInfo();
+				if(location != null && location.length() > 0){
+					if(reLogin(location, payload)){
+						return getFollowOrFansPage_Login(url);
+					}else{
+						return 0;
+					}
+				}else{
+					payload.responseString = HtmlTools.getHtmlByBr(httpResponse, false, "W_pages W_pages_comment");
+				}		
+				result_page = payload.responseString;
+			}else{
+				// 判断Url是否包含http
+				if(!(location.charAt(0) == 'h' || location.charAt(0) == 'H')){
+					location = "http://weibo.com" + location;
+				}
+				HttpGet = new HttpGet(location);
+				try {
+					httpResponse = httpClient.execute(HttpGet);
+				} catch (ClientProtocolException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return 0;
+				} catch (IOException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return 0;
+				}
+				
+				if(httpResponse == null){
+					PshLogger.logger.error("searchUid httpResponse is null");
+					return 0;
+				}
+				result_page = HtmlTools.getHtmlByBr(httpResponse);
+			}
+		}else{
+			result_page = HtmlTools.getHtmlByBr(httpResponse);
+		}
+		
+		result_page = HtmlTools.getHtmlByBr(httpResponse, false, "W_pages W_pages_comment");
+		
+		if(result_page == null || result_page.equals("")){
+			return 0;
+		}
+			
+		result_page = result_page.substring(result_page.indexOf("<div"),result_page.lastIndexOf("/div>") + 5);
+		result_page = result_page.replace('\\','`');
+		result_page = result_page.replaceAll("`n", "");
+		result_page = result_page.replaceAll("`t", "");
+		result_page = result_page.replaceAll("`r", "");
+		result_page = result_page.replaceAll("`", "");
+		result_page = "<html><body>" + result_page + "</body></html>";
+		
+		Document doc_page = Jsoup.parse(result_page);
+		
+		Elements elements_page = doc_page.getElementsByAttributeValue("class", "page S_bg1");
+		System.out.println(elements_page.size());
+		
+		String pageNumber = elements_page.get(elements_page.size() - 1).text();
+		System.out.println("##################关注或粉丝有" + pageNumber + "页##############");
+		
+		return Integer.parseInt(pageNumber);
+		
+	}
+	
+	
+	//获得用户信息
+	public UserBean getUserInfoFromWeibo_Login(String uid,String fans,String follow){
+		
+		UserBean user = new UserBean();
+		user.setFans(fans);
+		user.setFol(follow);
+		user.setUid(uid);
+		
+		String url = "http://weibo.com/" + uid + "/info";
+		
+		HttpGet HttpGet = new HttpGet(url);
+		HttpGet.addHeader("Referer", url);
+		HttpResponse httpResponse = null;
+		
+		try {
+			httpResponse = httpClient.execute(HttpGet);
+		} catch (ClientProtocolException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return null;
+		} catch (IOException e) {
+			PshLogger.logger.error(e.getMessage(),e);
+			return null;
+		}
+		
+		if(httpResponse == null){
+			PshLogger.logger.error("searchUid httpResponse is null");
+			return null;
+		}
+				
+		String location = getHeaderLocation(httpResponse);
+		
+		String result_page = null;
+		
+		if(location != null){
+			
+			if(location.contains("login") && location.contains("sso")){
+				PayloadInfo payload = new PayloadInfo();
+				if(location != null && location.length() > 0){
+					if(reLogin(location, payload)){
+						return getUserInfoFromWeibo_Login(uid, fans, follow);
+					}else{
+						return null;
+					}
+				}else{
+					payload.responseString = HtmlTools.getHtmlByBr(httpResponse);
+				}		
+				result_page = payload.responseString;
+			}else{
+				// 判断Url是否包含http
+				if(!(location.charAt(0) == 'h' || location.charAt(0) == 'H')){
+					location = "http://weibo.com" + location;
+				}
+				HttpGet = new HttpGet(location);
+				try {
+					httpResponse = httpClient.execute(HttpGet);
+				} catch (ClientProtocolException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return null;
+				} catch (IOException e) {
+					PshLogger.logger.error(e.getMessage(),e);
+					return null;
+				}
+				
+				if(httpResponse == null){
+					PshLogger.logger.error("searchUid httpResponse is null");
+					return null;
+				}
+				result_page = HtmlTools.getHtmlByBr(httpResponse);
+			}
+		}else{
+			result_page = HtmlTools.getHtmlByBr(httpResponse);
+		}
+		
+		if(result_page == null || result_page.equals("")){
+			return null;
+		}
+		
+		String item = "";
+		String result = "";
+		
+		BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(result_page.getBytes())));
+		
+		try {
+			while((item = in.readLine()) != null){
+				if(item.trim().indexOf("infoblock") != -1){
+					
+					
+					if(item.trim().indexOf("基本信息") != -1){
+						//获取基本信息
+						result = item.trim();
+						System.out.println("已获取到 html---基本信息");
+						result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+						result = result.replace('\\','`');
+						result = result.replaceAll("`n", "");
+						result = result.replaceAll("`t", "");
+						result = result.replaceAll("`r", "");
+						result = result.replaceAll("`", "");
+						result = "<html><body>" + result + "</body></html>";
+						
+						Document doc = Jsoup.parse(result);
+						
+						Elements elements = doc.getElementsByAttributeValue("class", "pf_item clearfix");
+						System.out.println(elements.size());
+						
+						for(int i = 0 ; i < elements.size() ; i++){
+							
+							if((elements.get(i).getElementsByAttributeValue("class", "label S_txt2").text()).equals("昵称")){
+								
+								user.setUck(elements.get(i).getElementsByAttributeValue("class", "con").text());
+								
+							}else if((elements.get(i).getElementsByAttributeValue("class", "label S_txt2").text()).equals("所在地")){
+								
+								String address[] = elements.get(i).getElementsByAttributeValue("class", "con").text().split(" ");
+								if(address.length > 0){
+									
+									user.setProv(address[0]);
+								}
+								if(address.length == 2){
+									
+									user.setCity(address[1]);
+								}
+								
+							}else if((elements.get(i).getElementsByAttributeValue("class", "label S_txt2").text()).equals("性别")){
+								
+								user.setSex(elements.get(i).getElementsByAttributeValue("class", "con").text());
+								
+							}else if((elements.get(i).getElementsByAttributeValue("class", "label S_txt2").text()).equals("简介")){
+								
+								user.setInfo(elements.get(i).getElementsByAttributeValue("class", "con").text());
+								
+							}else if((elements.get(i).getElementsByAttributeValue("class", "label S_txt2").text()).equals("感情状况")){
+								
+								user.setEmo(elements.get(i).getElementsByAttributeValue("class", "con").text());
+								
+							}else if((elements.get(i).getElementsByAttributeValue("class", "label S_txt2").text()).equals("生日")){
+								
+								user.setDate(elements.get(i).getElementsByAttributeValue("class", "con").text());
+								
+							}else if((elements.get(i).getElementsByAttributeValue("class", "label S_txt2").text()).equals("血型")){
+								
+								user.setBlo(elements.get(i).getElementsByAttributeValue("class", "con").text());
+								
+							}
+							
+						}
+						
+						
+					}else if(item.trim().indexOf("标签信息") != -1){
+						result = item.trim();
+						//获取基本信息
+						System.out.println("已获取到 html---标签");
+						result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+						result = result.replace('\\','`');
+						result = result.replaceAll("`n", "");
+						result = result.replaceAll("`t", "");
+						result = result.replaceAll("`r", "");
+						result = result.replaceAll("`", "");
+						result = "<html><body>" + result + "</body></html>";
+						
+						Document doc = Jsoup.parse(result);
+						
+						Elements elements = doc.getElementsByAttributeValue("class", "S_func1");
+						System.out.println(elements.size());
+						
+						String tag = "";
+						
+						for(int i = 0 ; i < elements.size() ; i++){
+							
+							tag += elements.get(i).text() + ",";
+							
+						}
+						
+						user.setTag(tag);
+						
+						
+					}else if(item.trim().indexOf("工作信息") != -1){
+						
+						result = item.trim();
+						System.out.println("已获取到 html---工作信息");
+						result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+						result = result.replace('\\','`');
+						result = result.replaceAll("`n", "");
+						result = result.replaceAll("`t", "");
+						result = result.replaceAll("`r", "");
+						result = result.replaceAll("`", "");
+						result = "<html><body>" + result + "</body></html>";
+						
+						Document doc = Jsoup.parse(result);
+						
+						Elements elements = doc.getElementsByAttributeValue("class", "pf_item clearfix");
+						System.out.println(elements.size());
+						
+						for(int i = 0 ; i < elements.size() ; i++){
+							
+							if((elements.get(i).getElementsByAttributeValue("class", "label S_txt2").text()).equals("公司")){
+								
+								user.setCom(elements.get(i).getElementsByAttributeValue("target", "_blank").text());
+								
+							}
+						}
+						
+					}else if(item.trim().indexOf("教育信息") != -1){
+						
+						result = item.trim();
+						System.out.println("已获取到 html---教育信息");
+						result = result.substring(result.indexOf("<div"),result.lastIndexOf("/div>") + 5);
+						result = result.replace('\\','`');
+						result = result.replaceAll("`n", "");
+						result = result.replaceAll("`t", "");
+						result = result.replaceAll("`r", "");
+						result = result.replaceAll("`", "");
+						result = "<html><body>" + result + "</body></html>";
+						
+						Document doc = Jsoup.parse(result);
+						
+						Elements elements = doc.getElementsByAttributeValue("class", "pf_item clearfix");
+						System.out.println(elements.size());
+						
+						for(int i = 0 ; i < elements.size() ; i++){
+							
+							if((elements.get(i).getElementsByAttributeValue("class", "label S_txt2").text()).equals("大学")){
+								
+								user.setStu(elements.get(i).getElementsByAttributeValue("target", "_blank").text());
+								
+							}
+						}
+						
+					}
+				}
+				
+				
+			}
+			
+			UserModel userModel = new UserModel();
+			userModel.addUser(user);
+			
+			if(user.getUck() == null){
+				
+				user =  getUserInfoFromWeibo_Login(uid, fans, follow);
+				return user;
+				
+			}
+			
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			PshLogger.logger.error(e1.getMessage());
+			user = getUserInfoFromWeibo_Login(uid, fans, follow);
+			return user;
+		}
+		
+		return user;
+		
 	}
 	
 	/**

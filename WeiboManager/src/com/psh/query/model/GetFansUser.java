@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -40,10 +42,9 @@ import com.psh.query.util.QueryNumberManager;
 public class GetFansUser {
 	
 	//根据用户ID找该用户的粉丝对象
-	public void getFansUserByUid(String uid,int pageNumber,int queryTaskID){
+	public Set<String> getFansUserByUid(long uid,int pageNumber){
 		
 		System.out.println("进入查找用户的粉丝用户");
-		
 		
 		PoolingClientConnectionManager connectionManager = new PoolingClientConnectionManager();
 		connectionManager.setMaxTotal(2000);
@@ -81,7 +82,12 @@ public class GetFansUser {
 		GetFollowOrFansPageNumber page = new GetFollowOrFansPageNumber();
 		int number = page.getFollowOrFansPage("http://weibo.com/" + uid + "/fans");
 		
+//		QueryNumberManager queryNumber = QueryNumberManager.getInstance();
+		
+		Set<String> uidList = new HashSet<String>();
+		
 		for(int u = pageNumber ; u < number ; u++){
+			
 			System.out.println("粉丝第" + (u + 1) + "页");
 			String url_fans = "http://weibo.com/" + uid + "/fans" +"?page=" + (u + 1);
 			System.out.println(url_fans);
@@ -106,10 +112,22 @@ public class GetFansUser {
 			} catch (IOException e1) {
 				PshLogger.logger.error(e1.getMessage());
 				System.out.println("重新执行找关注");
-				getFansUserByUid(uid,u,queryTaskID);
+				return getFansUserByUid(uid,u);
+			}
+			
+			if(httpResponseFans == null){
+				
+				return getFansUserByUid(uid,u+1);
+				
 			}
 			
 			HttpEntity httpEntityFans = httpResponseFans.getEntity();
+			
+			if(httpEntityFans == null){
+				
+				return getFansUserByUid(uid, u);
+				
+			}
 			
 			BufferedReader in_fans= null;
 			try {
@@ -146,19 +164,25 @@ public class GetFansUser {
 				
 				System.out.println("新浪微博提示行为异常follow");
 				//换代理IP重新获取该页
-				getFansUserByUid(uid,u,queryTaskID);
+				return getFansUserByUid(uid,u);
 				
 			}
 			
 			System.out.println("已获取到 html_fans");
 			
-			result_fans = result_fans.substring(result_fans.indexOf("<div"),result_fans.lastIndexOf("/div>") + 5);
-			result_fans = result_fans.replace('\\','`');
-			result_fans = result_fans.replaceAll("`n", "");
-			result_fans = result_fans.replaceAll("`t", "");
-			result_fans = result_fans.replaceAll("`r", "");
-			result_fans = result_fans.replaceAll("`", "");
-			result_fans = "<html><body>" + result_fans + "</body></html>";
+			try {
+				
+				result_fans = result_fans.substring(result_fans.indexOf("<div"),result_fans.lastIndexOf("/div>") + 5);
+				result_fans = result_fans.replace('\\','`');
+				result_fans = result_fans.replaceAll("`n", "");
+				result_fans = result_fans.replaceAll("`t", "");
+				result_fans = result_fans.replaceAll("`r", "");
+				result_fans = result_fans.replaceAll("`", "");
+				result_fans = "<html><body>" + result_fans + "</body></html>";
+			} catch (Exception e) {
+				PshLogger.logger.error(e.getMessage());
+				return getFansUserByUid(uid,u + 1);
+			}
 			
 			Document doc_fans = Jsoup.parse(result_fans);
 			
@@ -171,6 +195,12 @@ public class GetFansUser {
 				System.out.println("uridString------"+uidString);
 				String uid_fans = uidString.substring(3);
 				System.out.println(uid_fans);
+				
+				UserModel userModel = new UserModel();
+				
+				if(userModel.checkUserIsExsit(uid_fans)){
+					continue;
+				}
 				
 				//获取该用户详细信息
 				UserBean user = new UserBean();
@@ -186,17 +216,21 @@ public class GetFansUser {
 					fans = element_fansNum.get(y).text();
 				}
 				//将该用户信息加入数据库
-				user = personInfo.getUserInfoFromWeibo(uid_fans, fans, follow,queryTaskID);
+				user = personInfo.getUserInfoFromWeibo(uid_fans, fans, follow);
+				if(user == null){
+					continue;
+				}
 				System.out.println("用户查找完" + user.getUck());
 				
 				
 				//进行2级遍历
-				QueryNumberManager queryNumber = QueryNumberManager.getInstance();
-				queryNumber.executeFollowAndFans(uid_fans, queryTaskID);
+				uidList.add(uid_fans);
 				
 			}
 		}
 		
+//		queryNumber.executeFollowAndFans(uidList, queryTaskID,level);
+		return uidList;
 	}
 
 }
