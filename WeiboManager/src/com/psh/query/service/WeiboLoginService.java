@@ -1988,6 +1988,12 @@ public class WeiboLoginService {
 			return list;
 		}
 		
+		String startKeyword = "<!-- 微博列表 -->";
+		String endKeyword = "<!-- \\/微博列表 -->";
+		
+		String type = "basic";
+		
+		
 		String location = getHeaderLocation(httpResponse);
 		String responseStr = null;
 		if(location != null){
@@ -2017,13 +2023,36 @@ public class WeiboLoginService {
 				}
 				
 				responseStr = HtmlTools.getHtmlByBr(httpResponse);
+				System.out.println("location -> "+location);
+				if(location.contains("http://e.")){
+					//企业微博模式
+					startKeyword = "<!--中栏内容-->";
+					endKeyword = "<!--/中栏内容-->";
+					type = "e";
+				}
+				
+				
+				location = getHeaderLocation(httpResponse);
+				if(location != null && location.contains("media.")){
+					//跳转至media频道，暂时不处理，跳出
+					type = "media";
+					return list;
+				}
+				
 			}
 			
 		}else{
 			responseStr = HtmlTools.getHtmlByBr(httpResponse);
 		}
 		
-	 	list.addAll(parseWB_listHtml(responseStr,"<!-- 微博列表 -->","<!-- \\/微博列表 -->"));
+		if(type.equals("basic")){
+			list.addAll(parseWB_listHtml(responseStr,startKeyword,endKeyword));
+		}else if(type.equals("e")){
+			list.addAll(parseWB_listHtmlByE(responseStr,startKeyword,endKeyword));
+		}else if(type.equals("media")){
+			list.addAll(parseWB_listHtmlByMedia(responseStr,startKeyword,endKeyword));
+		}
+		
 	 	
 	 	// 如果List 还小于count ，则继续使用翻页功能
 	 	if(list.size() >= count){
@@ -2136,6 +2165,149 @@ public class WeiboLoginService {
 	 	}
 	 	return list;
 	}
+	/**
+	 * 获取电台用户的微博
+	 * @param html
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	public List<MsgBean> parseWB_listHtmlByMedia(String html, String start, String end){
+		List<MsgBean> list = new ArrayList<MsgBean>();
+		// 由于返回的html界面格式不正常，需要先转换后才能供jsoup使用
+		html = html.substring(html.indexOf(start),html.indexOf(end));
+		
+		html = html.replace("\\"+"t", "");
+		html = html.replace("\\"+"n", "");
+		html = html.replace("\\"+"\"", "\"");
+		html = html.replace("\\/", "/");
+		Document doc = Jsoup.parse(html);
+		
+	 	Elements feedtypes = doc.select(".WB_feed_type");
+		
+	 	for(int i = 0 ; i < feedtypes.size() ; i ++){
+	 		Element feed = feedtypes.get(i);
+	 		MsgBean msg = new MsgBean();
+	 		msg.setMid(feed.attr("mid"));
+	 		
+	 		Elements WB_text = feed.select(".WB_text[node-type=feed_list_content]");
+	 		msg.setCon(WB_text.text());
+	 		
+	 		Elements WB_time = feed.select(".WB_time");
+	 		msg.setTime(WB_time.attr("title"));
+	 		
+	 		
+	 		Elements favorite = feed.select("a[action-type=feed_list_favorite]");
+	 		if(favorite.size() > 0){
+	 			msg.setUid(Long.valueOf(favorite.attr("diss-data").split("=")[1]));
+	 		}
+	 		
+	 		
+	 		if(feed.hasAttr("isforward")){
+		 		msg.setType("转发");
+		 		
+		 		Elements feed_list_originNick = feed.select("a[node-type=feed_list_originNick]");
+		 		if(feed_list_originNick.size() > 0){
+		 			
+		 			msg.setOnck(feed_list_originNick.attr("nick-name"));
+		 			String[] usercard = feed_list_originNick.attr("usercard").split("=");
+		 			if(usercard.length == 1){
+		 				System.out.println(feed);
+		 			}else{
+		 				msg.setOuid(Long.valueOf(usercard[1]));
+		 				
+		 			}
+		 		}
+		 		
+		 		
+	 		}else{
+	 			msg.setType("普通");
+	 			msg.setNck(WB_text.attr("nick-name"));
+	 		}
+	 		
+	 		Elements feed_list_media_bgimg = feed.select("img[node-type=feed_list_media_bgimg]");
+	 		if(feed_list_media_bgimg.size() > 0){
+		 		msg.setImage(feed_list_media_bgimg.attr("src"));
+	 		}
+	 		list.add(msg);
+	 	}
+	 	return list;
+	}
+	/**
+	 * 获取企业版用户的微博
+	 * @param html
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	public List<MsgBean> parseWB_listHtmlByE(String html, String start, String end){
+		List<MsgBean> list = new ArrayList<MsgBean>();
+		// 由于返回的html界面格式不正常，需要先转换后才能供jsoup使用
+		html = html.substring(html.indexOf(start),html.indexOf(end));
+		
+//		html = html.replace("\\"+"t", "");
+//		html = html.replace("\\"+"n", "");
+//		html = html.replace("\\"+"\"", "\"");
+//		html = html.replace("\\/", "/");
+		Document doc = Jsoup.parse(html);
+		
+	 	Elements feedtypes = doc.select("dl[action-type=feed_list_item]");
+		
+	 	for(int i = 0 ; i < feedtypes.size() ; i ++){
+	 		Element feed = feedtypes.get(i);
+	 		MsgBean msg = new MsgBean();
+	 		msg.setMid(feed.attr("mid"));
+	 		
+	 		Elements WB_text = feed.select("p[node-type=feed_list_content]");
+	 		msg.setCon(WB_text.text());
+	 		
+	 		Elements WB_time = feed.select("a[node-type=feed_list_item_date]");
+	 		msg.setTime(WB_time.attr("title"));
+	 		
+//	 		
+//	 		Elements favorite = feed.select("a[action-type=feed_list_favorite]");
+//	 		if(favorite.size() > 0){
+//	 			msg.setUid(Long.valueOf(favorite.attr("diss-data").split("=")[1]));
+//	 		}
+//	 		
+//	 		
+//	 		if(feed.hasAttr("isforward")){
+//		 		msg.setType("转发");
+//		 		
+//		 		Elements feed_list_originNick = feed.select("a[node-type=feed_list_originNick]");
+//		 		if(feed_list_originNick.size() > 0){
+//		 			
+//		 			msg.setOnck(feed_list_originNick.attr("nick-name"));
+//		 			String[] usercard = feed_list_originNick.attr("usercard").split("=");
+//		 			if(usercard.length == 1){
+//		 				System.out.println(feed);
+//		 			}else{
+//		 				msg.setOuid(Long.valueOf(usercard[1]));
+//		 				
+//		 			}
+//		 		}
+//		 		
+//		 		
+//	 		}else{
+//	 			msg.setType("普通");
+//	 			msg.setNck(WB_text.attr("nick-name"));
+//	 		}
+//	 		
+//	 		Elements feed_list_media_bgimg = feed.select("img[node-type=feed_list_media_bgimg]");
+//	 		if(feed_list_media_bgimg.size() > 0){
+//		 		msg.setImage(feed_list_media_bgimg.attr("src"));
+//	 		}
+	 		list.add(msg);
+	 	}
+	 	return list;
+	}
+	/**
+	 * 获取普通版用户的微博
+	 * @param html
+	 * @param start
+	 * @param end
+	 * @return
+	 */
 	public List<MsgBean> parseWB_listHtml(String html, String start, String end){
 		List<MsgBean> list = new ArrayList<MsgBean>();
 		// 由于返回的html界面格式不正常，需要先转换后才能供jsoup使用
@@ -3244,8 +3416,61 @@ public class WeiboLoginService {
 //		
 		WeiboLoginService l = new WeiboLoginService(account);
 		l.Login();
+		
+		long start = System.currentTimeMillis();
+		List<MsgBean> msg = null;
+		msg = l.searchUid_psh(2875101593l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(2799302317l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(2998967374l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(1665142275l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(1960428810l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(3171846540l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(2217485055l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(1780853205l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(2801287904l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(1939076760l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(2975324742l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		start = System.currentTimeMillis();
+		msg = l.searchUid_psh(1254649200l, 1);
+		System.out.println("time : "+(System.currentTimeMillis() - start) + " ms ,msg: "+(msg.size() > 0 ? msg.get(0).getCon() : ""));
+		
+		
+		
+		
 //		System.out.println(l.getToMeWeibo(null).size());
-		System.out.println("结果******" + l.searchUidAndKeyWords(2536914164l, "相爱者互不束缚对方", 100));
+//		System.out.println("结果******" + l.searchUidAndKeyWords(2536914164l, "相爱者互不束缚对方", 100));
 //		l.searchUid_psh(1661461070, 500);
 //		l.searchUid(2363715054l, 1);
 //		l.searchKeywordPageNumber("http://s.weibo.com/weibo/哈哈&Refer=index");
