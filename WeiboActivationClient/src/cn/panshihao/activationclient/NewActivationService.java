@@ -17,6 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -946,6 +947,7 @@ public class NewActivationService {
 			return data.remove(0);
 		}
 	}
+	
 	
 	public static void main(String[] args) {
 		wb_activationDAO dao = new wb_activationDAO();

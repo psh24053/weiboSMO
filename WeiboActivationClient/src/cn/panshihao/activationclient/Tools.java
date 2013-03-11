@@ -1,8 +1,10 @@
 package cn.panshihao.activationclient;
 
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.log4j.Logger;
@@ -34,6 +36,42 @@ public class Tools {
 		}
 		
 	}
+	
+	public static String RandomChineseChar() {
+
+       String str = null;
+
+       int hightPos, lowPos; // 定义高低位
+
+       Random random = new Random();
+
+       hightPos = (176 + Math.abs(random.nextInt(39)));//获取高位值
+
+       lowPos = (161 + Math.abs(random.nextInt(93)));//获取低位值
+
+       byte[] b = new byte[2];
+
+       b[0] = (new Integer(hightPos).byteValue());
+
+       b[1] = (new Integer(lowPos).byteValue());
+
+    	try {
+			str = new String(b, "GBK");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}//转成中文
+
+       return str;
+
+    }
+	
+	public static void main(String[] args) {
+		
+		System.out.println(RandomChineseChar());
+		
+	}
+	
 	
 	
 }

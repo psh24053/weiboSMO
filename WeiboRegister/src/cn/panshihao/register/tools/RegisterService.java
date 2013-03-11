@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import cn.panshihao.desktop.commons.Log;
 import cn.panshihao.desktop.commons.RandomString;
 import cn.panshihao.desktop.commons.SQLConn;
+import cn.panshihao.desktop.commons.Tools;
 import cn.panshihao.register.dao.wb_accountDAO;
 import cn.panshihao.register.model.wb_accountModel;
 
@@ -167,7 +168,7 @@ public class RegisterService {
 		for(int i = 0 ; i < count ; i ++){
 			wb_accountModel model = new wb_accountModel();
 			model.setEmail(RandomString.getMD5ForUUIDIndex(12, 22)+"@"+EmailServerDomain);
-			model.setNickname("pan"+RandomString.getMD5ForUUIDIndex(2, 20)+"shihao");
+			model.setNickname(Tools.RandomChineseCharForCount(5)+RandomString.getMD5ForUUIDIndex(12, 22)+Tools.RandomChineseCharForCount(5));
 			model.setPassword(RandomString.getMD5ForUUIDIndex(12, 22));
 			
 			randomData.add(model);

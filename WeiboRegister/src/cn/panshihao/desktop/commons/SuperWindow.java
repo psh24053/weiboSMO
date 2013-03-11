@@ -123,6 +123,29 @@ public abstract class SuperWindow {
 	public void show(){
 		init();
 	}
+	/**
+	 * Shell Open和layout事件
+	 */
+	public void ShellOpen(){
+		if(getShell() == null){
+			return;
+		}
+		
+		getShell().open();
+		getShell().layout();
+		
+	}
+	/**
+	 * Shell监听关闭事件
+	 */
+	public void ShellListenerClose(){
+		
+		while (!getShell().isDisposed()) {
+			if (!getShell().getDisplay().readAndDispatch()) {
+				getShell().getDisplay().sleep();
+			}
+		}
+	}
 	
 	/**
 	 * 获取Display
